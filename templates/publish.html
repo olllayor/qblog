@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publish Article</title>
+    <!-- Include Quill stylesheet -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
+    <!-- Include custom publish styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='publish-styles.css') }}">
+    <!-- Yandex.Metrika counter -->
+    <script type="text/javascript">
+        (function (m, e, t, r, i, k, a) {
+            m[i] = m[i] || function () { (m[i].a = m[i].a || []).push(arguments) };
+            m[i].l = 1 * new Date();
+            for (var j = 0; j < document.scripts.length; j++) { if (document.scripts[j].src === r) { return; } }
+            k = e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a)
+        })
+            (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+        ym(96888458, "init", {
+            clickmap: true,
+            trackLinks: true,
+            accurateTrackBounce: true,
+            webvisor: true
+        });
+    </script>
+    <noscript>
+        <div><img src="https://mc.yandex.ru/watch/96888458" style="position:absolute; left:-9999px;" alt="" /></div>
+    </noscript>
+    <!-- /Yandex.Metrika counter -->
+</head>
+
+<body>
+    <div id="form-container">
+        <form action="{{ url_for('publish') }}" method="POST">
+            <input type="text" id="title" name="title" placeholder="Title" required spellcheck="false">
+            <!-- Hidden input to store the Quill-generated HTML -->
+            <input type="hidden" name="content" id="content">
+            <div id="editor"></div>
+            <button type="submit" id="publish-button">PUBLISH</button>
+        </form>
+
+    </div>
+
+    <!-- Include Quill library -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <!-- Initialize Quill editor -->
+    <script>
+        var toolbarOptions = [
+            [{ 'font': [] }],
+            ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+            ['image', 'code-block'],
+            ['blockquote'],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+            ['clean']                                         // remove formatting button
+        ];
+        var quill = new Quill('#editor', {
+            modules: {
+                toolbar: toolbarOptions,
+
+                // history: {
+                //     delay: 2000,
+                //     maxStack: 500,
+                //     userOnly: true
+                // }
+            },
+            placeholder: 'Your story...',
+            theme: 'snow'
+        });
+
+        // Set spellcheck to false after initializing Quill
+        quill.root.setAttribute('spellcheck', false);
+
+        var form = document.querySelector('form');
+        form.onsubmit = function () {
+            // Set the value of the hidden input to the HTML from the Quill editor
+            var content = document.querySelector('input[name=content]');
+            content.value = quill.root.innerHTML;
+        };
+
+    </script>
+</body>
+
+</html>

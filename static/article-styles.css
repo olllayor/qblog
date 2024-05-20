@@ -1,0 +1,50 @@
+.article-container {
+    max-width: 60%;
+    margin: 0 auto;
+    padding: auto;
+}
+
+.article-header {
+    display: flex;
+    flex-direction: column;
+}
+
+
+.article-title {
+    font-size: 45px; /* Match the article content size */
+    margin-bottom: 0.5em; /* Space between title and date */
+    line-height: 1.6; /* Match the article content line height */
+    color: #333; /* Match the article content color */
+    padding-left: 0;
+}
+
+.article-date {
+    font-size: 1em;
+    color: #888;
+    margin-bottom: 1em; /* Space between date and content */
+}
+
+.article-content {
+    font-size: 18px;
+    line-height: 1.5;
+    color: #333;
+    padding-left: 38px;
+    margin-bottom: 50px;
+}
+.article-header:after {
+    content: '';
+    height: 2px;
+    background: #ddd;
+    width: 100%;
+    display: block;
+    margin-top: 30px;}
+
+.article-content img {
+    max-width: 100%;
+    object-fit: none;
+    height: auto;
+    display: block; /* Optional: may help with layout */
+    }
+
+
+

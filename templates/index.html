@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var currentYear = new Date().getFullYear();
+        document.getElementById("currentYear").textContent = currentYear;
+    });
+</script>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <!-- Head content, including Bootstrap CSS and your custom stylesheet -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- Yandex.Metrika counter -->
+    <script type="text/javascript">
+        (function (m, e, t, r, i, k, a) {
+            m[i] = m[i] || function () { (m[i].a = m[i].a || []).push(arguments) };
+            m[i].l = 1 * new Date();
+            for (var j = 0; j < document.scripts.length; j++) { if (document.scripts[j].src === r) { return; } }
+            k = e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a)
+        })
+            (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+        ym(96888458, "init", {
+            clickmap: true,
+            trackLinks: true,
+            accurateTrackBounce: true,
+            webvisor: true
+        });
+    </script>
+    <noscript>
+        <div><img src="https://mc.yandex.ru/watch/96888458" style="position:absolute; left:-9999px;" alt="" /></div>
+    </noscript>
+    <!-- /Yandex.Metrika counter -->
+</head>
+
+<body>
+
+    {% include 'header.html' %}
+    <section class="profile">
+        <img src="{{ url_for('static', filename='photo.jpg') }}" alt="Profile Picture">
+        <h1>Ollayor Maxammadnabiyev</h1>
+        <h2>Software Engineer</h2>
+        <div class="social-links">
+            <a href="https://youtube.com" target="_blank"><i class="fab fa-youtube"></i></a>
+            <a href="https://twitter.com/olllayor" target="_blank"><i class="fab fa-twitter"></i></a>
+            <a href="https://github.com/olllayor" target="_blank"><i class="fab fa-github"></i></a>
+            <a href="https://www.linkedin.com/in/olllayor/" target="_blank"><i class="fab fa-linkedin"></i></a>
+            <a href="https://t.me/@Qprogrammer" target="_blank"><i class="fab fa-telegram-plane"></i></a>
+
+        </div>
+        <p>I write about non-technical stuff in the technical world.</p>
+        <!-- Social links -->
+        <div class="social-links">
+            <!-- Icons for YouTube, GitHub, LinkedIn, etc. -->
+        </div>
+        <div class="buttons">
+            <a href="{{ url_for('blog') }}"><button>Read Blog</button></a>
+
+            <button>About Me</button>
+        </div>
+    </section>
+    <footer>
+        <p>&copy;<span id="currentYear"></span> ollayor.uz</p>
+    </footer>
+    </div>
+</body>
+
+</html>
