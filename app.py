@@ -1,22 +1,24 @@
+import os
 from datetime import datetime
 from slugify import slugify
-import os
 from flask import Flask, render_template, redirect, url_for, request, session, flash
-
+from articles import Article
 from functools import wraps
-# from flask_ckeditor import CKEditor
+import logging
 
-from articles import Article 
 app = Flask(__name__)
 articles = Article.all()
 
-app.secret_key = 'your_secret_key'
+# Environment configuration
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'default_secret_key')
 
+# ARTICLES_DIR = "articles"
+# if not os.path.exists(ARTICLES_DIR):
+#     os.makedirs(ARTICLES_DIR)
 
-ARTICLES_DIR = "articles"
-if not os.path.exists(ARTICLES_DIR):
-    os.makedirs(ARTICLES_DIR)  # Make sure the articles directory exists
-
+# Logger configuration
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 # Dummy check for the username and password. Replace with your database check or more secure checks.
 def check_admin(username, password):
@@ -38,7 +40,7 @@ def login():
         if check_admin(request.form['username'], request.form['password']):
             session['logged_in'] = True
             flash('You were just logged in!')
-            return redirect(url_for('publish'))
+            return redirect(url_for('blog'))
         else:
             flash('Wrong credentials!')
     return render_template('login.html')
@@ -50,90 +52,79 @@ def logout():
     flash('You were just logged out!')
     return redirect(url_for('login'))
 
-
 @app.route('/')
 def index():
-    # Render the main page
     return render_template('index.html')
-
 
 @app.route('/projects')
 def projects():
-    # Render the projects page
     return render_template('projects.html')
 
 @app.route('/blog')
 def blog():
-    articles = Article.all()  # Retrieve all articles
-    # Convert the date_published to datetime objects and sort the articles
-    sorted_articles = sorted(articles.values(), key=lambda a: datetime.strptime(a.date_published, "%d %B, %Y"), reverse=True)
-    return render_template('blog.html', articles=sorted_articles)
+    articles = Article.get_all_articles()
+    # published_articles = [article for article in articles if article.is_published]
+    return render_template('blog.html', articles=articles)
 
 @app.route('/blog/<slug>')
 def article(slug: str):
-    article = articles[slug]    
+    article = Article.get_by_slug(slug)
+    if not article:
+        return render_template('404.html'), 404
     return render_template('article.html', article=article)
 
 @app.route('/talks')
 def talks():
-    # Render the talks page
     return render_template('talks.html')
-
-
-# @app.errorhandler(404)# type: ignore
-# def page_not_found(e): # type: ignore
-#     return render_template('404.html'), 404
-
-# @app.errorhandler(500) # type: ignore
-# def page_not_found(e):
-#     return render_template('500.html'), 500
-
 
 @app.route('/publish', methods=['GET', 'POST'])
 @login_required
 def publish():
     if request.method == 'POST':
-        title = request.form.get('title')  # Use .get() for safe access
-        content = request.form.get('content')  # Use .get() for safe access
+        title = request.form.get('title')
+        content = request.form.get('content')
         date_published = datetime.utcnow().strftime("%d %B, %Y")
+
         if not title or not content:
-            # Handle the error, such as returning an error message to the user
             flash("Title or content is missing", "error")
             return redirect(url_for('publish'))
-        
-    
-        
-        # For example, writing to a file
-        article_filename = slugify(title)
-        article_path = os.path.join(ARTICLES_DIR, article_filename)
-        with open(article_path, 'w', encoding='utf-8') as file:
-            file.write(f"{title}\n{date_published}\n\n{content}")               
-            
 
-        # Redirect to a new page or display a success message
-        new_article = Article(title, content, date_published)
-        articles[new_article.slug] = new_article  # Update the dictionary with the new article
-        flash("Article published successfully", "success")
+        new_article = Article(title, content, date_published, is_published=False)
+        Article.save_article(new_article)
+
+        flash("Article saved successfully. You can publish it now.", "success")
         return redirect(url_for('article', slug=new_article.slug))
+
     return render_template('publish.html')
 
-@app.route('/<slug>/delete', methods=['POST'])
-@login_required  # Assuming your admin authentication is done with this decorator
+@app.route('/blog/<slug>/delete', methods=['DELETE', 'POST', 'GET'])
+@login_required
 def delete_article(slug):
-    if session.get('username') == 'admin':  # Replace with actual admin check
-        article_path = os.path.join(ARTICLES_DIR, slug)
+    print(f"Attempting to delete article with slug: {slug}") 
+
+    
+    success = Article.delete_article_by_slug(slug)
+    if success:
         try:
-            os.remove(article_path)
-            # Assuming articles is a dictionary with slugs as keys
-            articles.pop(slug, None)  
+            print(f"Deleting article file: {slug}")
             flash('Article deleted successfully.', 'success')
         except OSError as e:
-            flash(f'Error deleting article: {e.strerror}', 'error')
+            print(f'Error deleting article file: {e.strerror}')
+            flash(f'Error deleting article file: {e.strerror}', 'error')
     else:
-        flash('You do not have permission to delete articles.', 'error')
+        print('Error deleting article from the database.')
+        flash('Error deleting article from the database.', 'error')
+
     
     return redirect(url_for('blog'))
 
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    return render_template('500.html'), 500
 
 if __name__ == '__main__':
-    app.run(port=4200, debug=False)
+    app.run(port=4200, debug=True)
