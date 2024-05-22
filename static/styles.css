@@ -4,15 +4,7 @@
     margin: 0;
     box-sizing: border-box;
 }
-h1 a {
-    text-decoration: none; /* This removes the underline */
-    color: inherit; /* This makes the link use the same color as the h1 tag */
-    cursor: grab;
-}
 
-h1 a:hover {
-    text-decoration: none; /* This adds the underline back on hover for visual feedback, optional */
-}
 /* Set the font for the whole body */
 body {
     font-family: 'Inter', sans-serif;
@@ -23,34 +15,64 @@ body {
 /* Style the header */
 header {
     background-color: #f8f9fa;
+    padding: 20px 45px;
+    position: relative; /* Added for positioning the toggle */
+}
+
+.header-container {
     display: flex;
     justify-content: space-between;
-    align-items: flex;
-    padding: 30px 40px;
+    align-items: center;
 }
 
 /* Style the blog title */
 header h1 {
     font-size: 25px;
     font-weight: bold;
-    color:#162232;
-    padding: 0 120px;
+    color: #162232;
     cursor: grab;
+    margin: 0; /* Remove default margin */
 }
 
-/* Style the navigation links */
+h1 a {
+    text-decoration: none; /* Remove underline */
+    color: inherit; /* Use the same color as h1 */
+}
+
+h1 a:hover {
+    text-decoration: none; /* Remove underline on hover for visual feedback, optional */
+}
+
+/* Toggle button styling */
+#toggle {
+    display: none; /* Hidden by default on desktop */
+    cursor: pointer;
+    z-index: 1001; /* Ensure it's above other elements */
+}
+
+#toggle span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background-color: #000; /* Change color as needed */
+    margin: 5px 0;
+}
+
+/* Navigation styling */
 nav {
     font-size: 1rem;
-    padding: 10px 110px
+    padding: 10px 0;
 }
 
 nav ul {
+    text-align: right;
     list-style-type: none;
     display: flex;
     gap: 20px;
 }
 
 nav ul li a {
+    text-align: right;
     text-decoration: none;
     color: #00000080;
     font-weight: bold;
@@ -61,11 +83,62 @@ nav ul li a:hover {
     cursor: grab;
 }
 
+/* Mobile-specific styles */
+@media screen and (max-width: 576px) {
+    header {
+        padding: 20px; /* Adjust padding as needed */
+    }
+
+    header h1 {
+        font-size: 1.5rem; /* Smaller font size for the header */
+        text-align: left; /* Align text to the left */
+    }
+
+    #toggle {
+        display: block; /* Show the toggle button on mobile */
+    }
+
+    #menu {
+        display: none; /* Hidden by default on mobile */
+        flex-direction: column;
+        align-items: center; /* Center the menu items */
+        position: absolute;
+        top: 60px; /* Adjust based on header height */
+        right: 0;
+        width: 100%;
+        background-color: #f6f6f6;
+        z-index: 1000;
+    }
+
+    #menu.open {
+        display: flex; /* Show the menu when open */
+    }
+
+    nav ul {
+        flex-direction: column;
+        width: 100%; /* Full width for the nav */
+        padding: 0;
+        margin: 0;
+    }
+
+    nav ul li {
+        display: block;
+        width: 100%; /* Full width for the list items */
+    }
+
+    nav ul li a {
+        display: block;
+        width: 100%; /* Full width for links */
+        padding: 10px; /* More padding for tap targets */
+        text-align: center; /* Center the text */
+    }
+}
+
 /* Profile section styling */
 .profile {
     text-align: center;
     margin: auto;
-    margin-top: 95px;
+    margin-top: 85px;
     background-color: #f8f9fa;
 }
 
@@ -114,7 +187,6 @@ nav ul li a:hover {
     color: #007bff; /* Icon hover color, change as needed */
 }
 
-
 /* Button styling */
 .buttons button {
     font-family: 'Inter', sans-serif;
@@ -123,7 +195,7 @@ nav ul li a:hover {
     border: none;
     border-radius: 5px;
     background-color: #1E90FF;
-    color: #00000080;
+    color: white;
     font-weight: bolder;
     font-size: 1rem;
     cursor: grab;
@@ -136,57 +208,12 @@ nav ul li a:hover {
 /* Footer styling */
 footer {
     text-align: center;
-    margin-top: 100px;
-    padding: 20px;
+    margin-top: 20px;
     background-color: #f8f9fa;
 }
 
 /* Existing styles */
-
 #page-transition-wrapper {
     opacity: 0;
     transition: opacity 1s ease-out;
-}
-
-/* Important styles */
-@media screen and (max-width: 576px) {
-    header {
-        flex-direction: column;
-        align-items: center; /* Center align items for smaller screens */
-        padding: 20px; /* Adjust padding as needed */
-    }
-    
-    header h1 {
-        font-size: 1.5rem; /* Smaller font size for the header */
-        padding: 10px 0; /* Reduced padding */
-        text-align: center; /* Center the text */
-        margin: 0; /* Remove margin to fix spacing */
-    }
-    
-    #toggle {
-        order: -1; /* Put toggle above the header title */
-        align-self: flex-end; /* Align toggle to the right */
-        margin: 10px; /* Adjust margin for spacing */
-    }
-
-    #menu {
-        width: 100%; /* Make the menu full width */
-    }
-
-    nav ul {
-        flex-direction: column;
-        width: 100%; /* Full width to the nav */
-    }
-
-    nav ul li {
-        display: block;
-        width: 100%; /* Full width to the list items */
-    }
-
-    nav ul li a {
-        display: block;
-        width: 100%; /* Full width to links */
-        padding: 10px; /* More padding for tap targets */
-        text-align: left; /* Align text to the left */
-    }
 }

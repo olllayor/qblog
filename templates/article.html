@@ -7,7 +7,8 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='article-styles.css') }}">
 </head>
 <body>
-  {% include 'header.html' %} <main>
+  {% include 'header.html' %}
+  <main>
     {% if article %}
       <article class="article-container">
         <header class="article-header">
@@ -22,5 +23,7 @@
       <p>Article not found or not published yet.</p>
     {% endif %}
   </main>
+  {% include 'footer.html' %}
 </body>
+
 </html>

@@ -1,0 +1,17 @@
+<!-- templates/footer.html -->
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='footer.css') }}">
+</head>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var currentYear = new Date().getFullYear();
+        document.getElementById("currentYear").textContent = currentYear;
+    });
+</script>
+
+<footer>
+    <div class="footer-container">
+        <p>&copy; 2024 ollayor.uz</p>
+    </div>
+</footer>

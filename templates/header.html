@@ -1,15 +1,16 @@
 <!-- templates/header.html -->
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
     <!-- Yandex.Metrika counter -->
     <script type="text/javascript">
         (function (m, e, t, r, i, k, a) {
@@ -17,8 +18,7 @@
             m[i].l = 1 * new Date();
             for (var j = 0; j < document.scripts.length; j++) { if (document.scripts[j].src === r) { return; } }
             k = e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a)
-        })
-            (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+        })(window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
 
         ym(96888458, "init", {
             clickmap: true,
@@ -32,67 +32,39 @@
     </noscript>
     <!-- /Yandex.Metrika counter -->
 </head>
-<header>
-    <h1><a href="{{ url_for('index') }} ">Ollayor's Blog</a></h1>
-    <a href="#menu" id="toggle"><span></span></a>
-    <div id="menu">
-        <nav>
-            <ul>
-                <li><a href="{{ url_for('blog') }}">Blog</a></li>
-                <li><a href="{{ url_for('projects') }}">Projects</a></li>
-                <li><a href="{{ url_for('talks') }}">Talks</a></li>
-                <li><a href="https://t.me/Qprogrammer">Channel</a></li>
-            </ul>
-        </nav>
-    </div>
-</header>
-<script>
-    var theToggle = document.getElementById('toggle');
+<body>
+    <header>
+        <div class="header-container">
+            <h1><a href="{{ url_for('index') }}">Ollayor's Blog</a></h1>
+            <a href="#" id="toggle"><span></span><span></span><span></span></a>
+        </div>
+        <div id="menu">
+            <nav>
+                <ul>
+                    <li><a href="{{ url_for('blog') }}">Blog</a></li>
+                    <li><a href="{{ url_for('projects') }}">Projects</a></li>
+                    <li><a href="{{ url_for('talks') }}">Talks</a></li>
+                    <li><a href="https://t.me/Qprogrammer">Channel</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <script>
+        var theToggle = document.getElementById('toggle');
+        var menu = document.getElementById('menu');
 
-    // based on Todd Motto functions
-    // https://toddmotto.com/labs/reusable-js/
+        // Toggle menu visibility
+        theToggle.onclick = function () {
+            menu.classList.toggle('open');
+            return false;
+        }
 
-    // hasClass
-    function hasClass(elem, className) {
-        return new RegExp(' ' + className + ' ').test(' ' + elem.className + ' ');
-    }
-    // addClass
-    function addClass(elem, className) {
-        if (!hasClass(elem, className)) {
-            elem.className += ' ' + className;
-        }
-    }
-    // removeClass
-    function removeClass(elem, className) {
-        var newClass = ' ' + elem.className.replace(/[\t\r\n]/g, ' ') + ' ';
-        if (hasClass(elem, className)) {
-            while (newClass.indexOf(' ' + className + ' ') >= 0) {
-                newClass = newClass.replace(' ' + className + ' ', ' ');
-            }
-            elem.className = newClass.replace(/^\s+|\s+$/g, '');
-        }
-    }
-    // toggleClass
-    function toggleClass(elem, className) {
-        var newClass = ' ' + elem.className.replace(/[\t\r\n]/g, " ") + ' ';
-        if (hasClass(elem, className)) {
-            while (newClass.indexOf(" " + className + " ") >= 0) {
-                newClass = newClass.replace(" " + className + " ", " ");
-            }
-            elem.className = newClass.replace(/^\s+|\s+$/g, '');
-        } else {
-            elem.className += ' ' + className;
-        }
-    }
-
-    theToggle.onclick = function () {
-        toggleClass(this, 'on');
-        return false;
-    }
-    // Add this snippet to close the menu when a link is clicked
-    document.querySelectorAll('#menu li a').forEach(link => {
-        link.addEventListener('click', function() {
-            removeClass(theToggle, 'on');
+        // Close the menu when a link is clicked
+        document.querySelectorAll('#menu li a').forEach(link => {
+            link.addEventListener('click', function() {
+                menu.classList.remove('open');
+            });
         });
-    });
-</script>
+    </script>
+</body>
+</html>
