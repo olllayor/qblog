@@ -66,6 +66,10 @@ def blog():
     # published_articles = [article for article in articles if article.is_published]
     return render_template('blog.html', articles=articles)
 
+@app.route('/media/ollayor-cv.pdf')
+def cv_redirect():
+    return redirect(url_for('static', filename='media/ollayor-cv.pdf'))
+
 @app.route('/blog/<slug>')
 def article(slug: str):
     article = Article.get_by_slug(slug)
