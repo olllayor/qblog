@@ -1,15 +1,39 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Ollayor Maxammadnabiyev - Software Engineer">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+      <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      .dark .prose {
+        color: #fff; /* Set text color to white in dark mode */
+        --tw-prose-body: #fff; /* Text color for body */
+        --tw-prose-headings: #fff; /* Text color for headings */
+        --tw-prose-lead: #fff; /* Text color for lead */
+        --tw-prose-links: #fff; /* Text color for links */
+        --tw-prose-bold: #fff; /* Text color for bold text */
+        --tw-prose-counters: #fff; /* Text color for counters */
+        --tw-prose-bullets: #fff; /* Text color for bullets */
+        --tw-prose-hr: #4b5563; /* Color for horizontal rules */
+        --tw-prose-quotes: #a1a1aa; /* Color for blockquotes */
+        --tw-prose-quote-borders: #a1a1aa; /* Border color for blockquotes */
+        --tw-prose-captions: #fff; /* Text color for captions */
+        --tw-prose-code: #fff; /* Text color for code */
+        --tw-prose-pre-code: #fff; /* Text color for pre code */
+        --tw-prose-th-borders: #4b5563; /* Border color for table headers */
+        --tw-prose-td-borders: #4b5563; /* Border color for table cells */
+
+        --tw-prose-invert: #fff;
+        
+    }
+</style>
 </head>
 
-<body class="font-inter bg-gradient-to-b from-gray-50 to-white min-h-screen flex flex-col">
+<body class="font-inter bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 min-h-screen flex flex-col">
     {% include 'header.html' %}
 
     <main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8">
@@ -20,44 +44,44 @@
                 <img 
                     src="{{ url_for('static', filename='photo.jpg') }}" 
                     alt="Ollayor Maxammadnabiyev" 
-                    class="relative w-36 h-36 rounded-full border-4 border-white object-cover shadow-lg"
+                    class="relative w-36 h-36 rounded-full border-4 border-white dark:border-gray-700 object-cover shadow-lg"
                 >
             </div>
             
             <!-- Profile Content -->
             <div class="mt-6 space-y-4">
-                <h1 class="text-4xl font-bold text-gray-800 transition-all duration-300 hover:text-gray-900">
+                <h1 class="text-4xl font-bold text-gray-800 dark:text-gray-200 transition-all duration-300 hover:text-gray-900 dark:hover:text-gray-100">
                     Ollayor Maxammadnabiyev
                 </h1>
                 
-                <h2 class="text-xl text-gray-600 font-medium transition-all duration-300 hover:text-gray-700">
+                <h2 class="text-xl text-gray-600 dark:text-gray-400 font-medium transition-all duration-300 hover:text-gray-700 dark:hover:text-gray-300">
                     Software Engineer
                 </h2>
                 
-                <p class="text-gray-600 max-w-lg mx-auto transition-all duration-300 hover:text-gray-700">
+                <p class="text-gray-600 dark:text-gray-400 max-w-lg mx-auto transition-all duration-300 hover:text-gray-700 dark:hover:text-gray-300">
                     I write about non-technical stuff in the technical world.
                 </p>
 
                 <!-- Social Links -->
                 <div class="flex justify-center space-x-6 mt-6">
                     <a href="https://youtube.com" target="_blank" 
-                       class="text-2xl text-gray-700 hover:text-red-600 transform transition-all duration-300 hover:-translate-y-1">
+                       class="text-2xl text-gray-700 dark:text-gray-300 hover:text-red-600 transform transition-all duration-300 hover:-translate-y-1">
                         <i class="fab fa-youtube"></i>
                     </a>
                     <a href="https://twitter.com/olllayor" target="_blank" 
-                       class="text-2xl text-gray-700 hover:text-blue-400 transform transition-all duration-300 hover:-translate-y-1">
+                       class="text-2xl text-gray-700 dark:text-gray-300 hover:text-blue-400 transform transition-all duration-300 hover:-translate-y-1">
                         <i class="fab fa-twitter"></i>
                     </a>
                     <a href="https://github.com/olllayor" target="_blank" 
-                       class="text-2xl text-gray-700 hover:text-gray-900 transform transition-all duration-300 hover:-translate-y-1">
+                       class="text-2xl text-gray-700 dark:text-gray-300 hover:text-gray-900 transform transition-all duration-300 hover:-translate-y-1">
                         <i class="fab fa-github"></i>
                     </a>
                     <a href="https://www.linkedin.com/in/olllayor/" target="_blank" 
-                       class="text-2xl text-gray-700 hover:text-blue-700 transform transition-all duration-300 hover:-translate-y-1">
+                       class="text-2xl text-gray-700 dark:text-gray-300 hover:text-blue-700 transform transition-all duration-300 hover:-translate-y-1">
                         <i class="fab fa-linkedin"></i>
                     </a>
                     <a href="https://t.me/@Qprogrammer" target="_blank" 
-                       class="text-2xl text-gray-700 hover:text-blue-500 transform transition-all duration-300 hover:-translate-y-1">
+                       class="text-2xl text-gray-700 dark:text-gray-300 hover:text-blue-500 transform transition-all duration-300 hover:-translate-y-1">
                         <i class="fab fa-telegram-plane"></i>
                     </a>
                 </div>
@@ -84,17 +108,17 @@
 
     <footer class="mt-auto py-4">
         <div class="container mx-auto px-4 flex justify-between items-center">
-            <div class="text-sm text-gray-500">
+            <div class="text-sm text-gray-500 dark:text-gray-400">
                 © <span id="currentYear"></span> ollayor.uz
             </div>
             <div class="flex gap-4">
-                <a href="https://t.me/Qprogrammer" class="text-gray-500 hover:text-gray-700 transition-colors">
+                <a href="https://t.me/Qprogrammer" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 transition-colors">
                     <i class="fab fa-telegram-plane"></i>
                 </a>
-                <a href="https://twitter.com/olllayor" class="text-gray-500 hover:text-gray-700 transition-colors">
+                <a href="https://twitter.com/olllayor" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 transition-colors">
                     <i class="fab fa-twitter"></i>
                 </a>
-                <a href="https://github.com/olllayor" class="text-gray-500 hover:text-gray-700 transition-colors">
+                <a href="https://github.com/olllayor" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 transition-colors">
                     <i class="fab fa-github"></i>
                 </a>
             </div>
