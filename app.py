@@ -5,24 +5,27 @@ from flask import Flask, render_template, redirect, url_for, request, session, f
 from articles import Article
 from functools import wraps
 import logging
+from api_analytics.flask import add_middleware
+from dotenv import load_dotenv
 
+load_dotenv()
 app = Flask(__name__)
-articles = Article.all()
+add_middleware(app, os.getenv('API_ANALYTICS_KEY'))  # Add middleware
+
+# articles = Article.all() # Removed, now loading from db
 
 # Environment configuration
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'default_secret_key')
-
-# ARTICLES_DIR = "articles"
-# if not os.path.exists(ARTICLES_DIR):
-#     os.makedirs(ARTICLES_DIR)
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", 'admin')
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", 'password')
 
 # Logger configuration
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+# logging.basicConfig(level=logging.DEBUG)
+# logger = logging.getLogger(__name__)
 
 # Dummy check for the username and password. Replace with your database check or more secure checks.
 def check_admin(username, password):
-    return username == 'admin' and password == 'password'
+    return username == ADMIN_USERNAME and password == ADMIN_PASSWORD
 
 def login_required(f):
     @wraps(f)
@@ -68,7 +71,7 @@ def blog():
 
 @app.route('/media/ollayor-cv.pdf')
 def cv_redirect():
-    return redirect(url_for('static', filename='media/ollayor-cv.pdf'))
+    return redirect(url_for('static', filename='media/Olloyor_s_resume.pdf'))
 
 @app.route('/blog/<slug>')
 def article(slug: str):
@@ -87,19 +90,39 @@ def publish():
     if request.method == 'POST':
         title = request.form.get('title')
         content = request.form.get('content')
-        date_published = datetime.utcnow().strftime("%d %B, %Y")
-
+        is_published = request.form.get('is_published') == 'on'
+        date_published = datetime.utcnow()
         if not title or not content:
             flash("Title or content is missing", "error")
             return redirect(url_for('publish'))
 
-        new_article = Article(title, content, date_published, is_published=False)
+        new_article = Article(title, content, date_published, is_published=is_published)
         Article.save_article(new_article)
 
         flash("Article saved successfully. You can publish it now.", "success")
         return redirect(url_for('article', slug=new_article.slug))
 
     return render_template('publish.html')
+    
+@app.route('/blog/<slug>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_article(slug):
+    article = Article.get_by_slug(slug)
+    if not article:
+        return render_template('404.html'), 404
+    if request.method == 'POST':
+        article.title = request.form.get('title')
+        article.content = request.form.get('content')
+        article.is_published = request.form.get('is_published') == 'on'
+        
+        if Article.update_article(article):
+            flash('Article updated successfully', 'success')
+            return redirect(url_for('article', slug = article.slug))
+        else:
+             flash('Error updating article', 'error')
+        
+    return render_template('publish.html', article=article)
+    
 
 @app.route('/blog/<slug>/delete', methods=['DELETE', 'POST', 'GET'])
 @login_required

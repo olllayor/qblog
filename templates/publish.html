@@ -10,39 +10,28 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
-    <!-- Include custom publish styles -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='publish-styles.css') }}">
-    <!-- Yandex.Metrika counter -->
-    <script type="text/javascript">
-        (function (m, e, t, r, i, k, a) {
-            m[i] = m[i] || function () { (m[i].a = m[i].a || []).push(arguments) };
-            m[i].l = 1 * new Date();
-            for (var j = 0; j < document.scripts.length; j++) { if (document.scripts[j].src === r) { return; } }
-            k = e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a)
-        })
-            (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
-
-        ym(96888458, "init", {
-            clickmap: true,
-            trackLinks: true,
-            accurateTrackBounce: true,
-            webvisor: true
-        });
-    </script>
-    <noscript>
-        <div><img src="https://mc.yandex.ru/watch/96888458" style="position:absolute; left:-9999px;" alt="" /></div>
-    </noscript>
-    <!-- /Yandex.Metrika counter -->
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body>
-    <div id="form-container">
-        <form action="{{ url_for('publish') }}" method="POST">
-            <input type="text" id="title" name="title" placeholder="Title" required spellcheck="false">
+<body class="font-inter flex justify-center items-center h-screen bg-white">
+    <div id="form-container" class="bg-white p-10 rounded-lg w-[700px]">
+        <form action="" method="POST">
+            <input type="text" id="title" name="title" placeholder="Title" required spellcheck="false"
+            class="w-[calc(100%-36px)] mb-5 p-4 border border-gray-300 rounded-md text-lg font-bold"
+              value = "{{article.title if article else ''}}">
             <!-- Hidden input to store the Quill-generated HTML -->
-            <input type="hidden" name="content" id="content">
-            <div id="editor"></div>
-            <button type="submit" id="publish-button">PUBLISH</button>
+            <input type="hidden" name="content" id="content" value="{{article.content if article else ''}}">
+            <div class="flex items-center mb-4">
+            <input type="checkbox" id="is_published" name="is_published"  class="mr-2"
+            {% if article and article.is_published %} checked {% endif %}>
+             <label for="is_published" class="text-gray-700">Publish Now?</label>
+             </div>
+            <div id="editor" class="h-[300px] bg-white border border-gray-300 rounded-md p-1 shadow-sm cursor-text "></div>
+            
+            <button type="submit" id="publish-button"
+             class="bg-white text-black border-2 border-black font-bold py-2 px-4 rounded-2xl uppercase float-right mt-4 text-md">
+                PUBLISH
+            </button>
         </form>
 
     </div>
@@ -82,6 +71,8 @@
             var content = document.querySelector('input[name=content]');
             content.value = quill.root.innerHTML;
         };
+         var quillContent = document.getElementById('content').value;
+            quill.root.innerHTML = quillContent;
 
     </script>
 </body>

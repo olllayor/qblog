@@ -1,69 +1,124 @@
-<!-- templates/header.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-
-    <!-- Yandex.Metrika counter -->
-    <script type="text/javascript">
-        (function (m, e, t, r, i, k, a) {
-            m[i] = m[i] || function () { (m[i].a = m[i].a || []).push(arguments) };
-            m[i].l = 1 * new Date();
-            for (var j = 0; j < document.scripts.length; j++) { if (document.scripts[j].src === r) { return; } }
-            k = e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a)
-        })(window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
-
-        ym(96888458, "init", {
-            clickmap: true,
-            trackLinks: true,
-            accurateTrackBounce: true,
-            webvisor: true
-        });
-    </script>
-    <noscript>
-        <div><img src="https://mc.yandex.ru/watch/96888458" style="position:absolute; left:-9999px;" alt="" /></div>
-    </noscript>
-    <!-- /Yandex.Metrika counter -->
+    <meta name="description" content="Ollayor's Blog - Thoughts on programming and technology">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        .nav-link {
+            position: relative;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: #3B82F6;
+            transition: width 0.3s ease-in-out;
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+    </style>
 </head>
-<body>
-    <header>
-        <div class="header-container">
-            <h1><a href="{{ url_for('index') }}">Ollayor's Blog</a></h1>
-            <a href="#" id="toggle"><span></span><span></span><span></span></a>
+<body class="font-inter bg-gray-50">
+    <header class="bg-white shadow-sm fixed w-full top-0 z-50">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex-shrink-0">
+                    <a href="{{ url_for('index') }}" class="group flex items-center space-x-2">
+                        <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent transition-all duration-300 ease-in-out transform group-hover:scale-105">
+                            Ollayor's Blog
+                        </h1>
+                    </a>
+                </div>
+                
+                <button id="toggle" class="lg:hidden p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <span class="block w-6 h-0.5 bg-gray-600 transition-all duration-300 mb-1.5"></span>
+                    <span class="block w-6 h-0.5 bg-gray-600 transition-all duration-300 mb-1.5"></span>
+                    <span class="block w-6 h-0.5 bg-gray-600 transition-all duration-300"></span>
+                </button>
+
+                <nav class="hidden lg:flex items-center space-x-8">
+                    <a href="{{ url_for('blog') }}" class="nav-link text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200">Blog</a>
+                    <a href="{{ url_for('projects') }}" class="nav-link text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200">Projects</a>
+                    <a href="{{ url_for('talks') }}" class="nav-link text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200">Talks</a>
+                    <a href="https://t.me/Qprogrammer" class="flex items-center space-x-1 px-4 py-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200">
+                        <i class="fab fa-telegram-plane"></i>
+                        <span>Channel</span>
+                    </a>
+                </nav>
+            </div>
         </div>
-        <div id="menu">
-            <nav>
-                <ul>
-                    <li><a href="{{ url_for('blog') }}">Blog</a></li>
-                    <li><a href="{{ url_for('projects') }}">Projects</a></li>
-                    <li><a href="{{ url_for('talks') }}">Talks</a></li>
-                    <li><a href="https://t.me/Qprogrammer">Channel</a></li>
-                </ul>
-            </nav>
+
+        <!-- Mobile menu -->
+        <div id="mobile-menu" class="lg:hidden hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 bg-white border-t">
+                <a href="{{ url_for('blog') }}" class="block px-3 py-2 rounded-md text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition-colors duration-200">Blog</a>
+                <a href="{{ url_for('projects') }}" class="block px-3 py-2 rounded-md text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition-colors duration-200">Projects</a>
+                <a href="{{ url_for('talks') }}" class="block px-3 py-2 rounded-md text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition-colors duration-200">Talks</a>
+                <a href="https://t.me/Qprogrammer" class="block px-3 py-2 rounded-md text-gray-600 hover:text-blue-600 hover:bg-gray-50 transition-colors duration-200">
+                    <i class="fab fa-telegram-plane mr-2"></i>Channel
+                </a>
+            </div>
         </div>
     </header>
-    <script>
-        var theToggle = document.getElementById('toggle');
-        var menu = document.getElementById('menu');
 
-        // Toggle menu visibility
-        theToggle.onclick = function () {
-            menu.classList.toggle('open');
-            return false;
+    <!-- Main content padding to account for fixed header -->
+    <main class="pt-16">
+        <!-- Your page content goes here -->
+    </main>
+
+    <script>
+        const toggle = document.getElementById('toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        let isOpen = false;
+
+        function toggleMenu() {
+            isOpen = !isOpen;
+            mobileMenu.classList.toggle('hidden');
+            
+            // Animate hamburger to X
+            const spans = toggle.getElementsByTagName('span');
+            if (isOpen) {
+                spans[0].style.transform = 'rotate(45deg) translate(5px, 5px)';
+                spans[1].style.opacity = '0';
+                spans[2].style.transform = 'rotate(-45deg) translate(5px, -5px)';
+            } else {
+                spans[0].style.transform = 'none';
+                spans[1].style.opacity = '1';
+                spans[2].style.transform = 'none';
+            }
         }
 
-        // Close the menu when a link is clicked
-        document.querySelectorAll('#menu li a').forEach(link => {
-            link.addEventListener('click', function() {
-                menu.classList.remove('open');
+        toggle.addEventListener('click', toggleMenu);
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (isOpen && !toggle.contains(e.target) && !mobileMenu.contains(e.target)) {
+                toggleMenu();
+            }
+        });
+
+        // Close mobile menu when clicking links
+        const mobileLinks = mobileMenu.getElementsByTagName('a');
+        for (const link of mobileLinks) {
+            link.addEventListener('click', () => {
+                if (isOpen) toggleMenu();
             });
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 1024 && isOpen) {
+                toggleMenu();
+            }
         });
     </script>
 </body>

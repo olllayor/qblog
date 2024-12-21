@@ -5,13 +5,14 @@
   <meta charset="UTF-8">
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
   <title>Login</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+  
   <!-- Yandex.Metrika counter -->
   <script type="text/javascript">
     (function (m, e, t, r, i, k, a) {
@@ -35,17 +36,19 @@
   <!-- /Yandex.Metrika counter -->
 </head>
 
-<body>
-  <div class="login-container">
-    <h2>Admin Login</h2>
+<body class="font-inter bg-gray-100 flex justify-center items-center h-screen">
+  <div class="bg-white p-5 rounded-xl shadow-md text-center w-80">
+    <h2 class="text-2xl font-bold mb-4">Admin Login</h2>
     <form method="POST" action="{{ url_for('login') }}">
-      <input type="text" name="username" placeholder="Username" required>
-      <input type="password" name="password" placeholder="Password" required>
-      <input type="submit" value="Login">
+      <input type="text" name="username" placeholder="Username" required
+      class="w-full p-3 border border-gray-300 rounded-md mb-4 focus:outline-none focus:border-blue-500 cursor-grab">
+      <input type="password" name="password" placeholder="Password" required
+      class="w-full p-3 border border-gray-300 rounded-md mb-4 focus:outline-none focus:border-blue-500 cursor-grab">
+      <input type="submit" value="Login" class="w-full py-3 text-white bg-green-500 rounded-md cursor-grab hover:bg-green-600">
     </form>
     {% with messages = get_flashed_messages() %}
     {% if messages %}
-    <ul class="flashed-messages">
+    <ul class="mt-4 text-sm text-red-600">
       {% for message in messages %}
       <li>{{ message }}</li>
       {% endfor %}
