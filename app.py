@@ -15,13 +15,13 @@ add_middleware(app, os.getenv('API_ANALYTICS_KEY'))  # Add middleware
 # articles = Article.all() # Removed, now loading from db
 
 # Environment configuration
-app.secret_key = os.getenv('FLASK_SECRET_KEY', 'default_secret_key')
-ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", 'admin')
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", 'password')
+app.secret_key = os.getenv('FLASK_SECRET_KEY')
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 
 # Logger configuration
-# logging.basicConfig(level=logging.DEBUG)
-# logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 # Dummy check for the username and password. Replace with your database check or more secure checks.
 def check_admin(username, password):
