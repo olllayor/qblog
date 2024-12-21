@@ -3,7 +3,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-DATABASE_URL = 'blog.db'  # Path to your SQLite database file
+DATABASE_URL = 'tmp/blog.db'  # Path to your SQLite database file
 
 def connect_db():
     try:
