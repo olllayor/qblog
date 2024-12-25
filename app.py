@@ -8,6 +8,8 @@ import logging
 from api_analytics.flask import add_middleware
 from dotenv import load_dotenv
 
+from database import init_db
+
 load_dotenv()
 app = Flask(__name__)
 add_middleware(app, os.getenv('API_ANALYTICS_KEY'))  # Add middleware
@@ -22,6 +24,13 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 # Logger configuration
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+# Initialize database here
+try:
+    if not init_db():
+      print("Error initializing database")
+except Exception as e:
+    print(f"Error during db initialization: {e}")
 
 # Dummy check for the username and password. Replace with your database check or more secure checks.
 def check_admin(username, password):
