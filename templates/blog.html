@@ -33,30 +33,30 @@
           {% if articles %}
           <div class="space-y-6">
             {% for article in articles %}
-            <article
-              class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden"
+            <a
+              href="{{ url_for('article', slug=article.slug) }}"
+              class="block hover:no-underline"
             >
-              <div class="p-6">
-                <h3
-                  class="text-2xl font-bold mb-2"
-                  style="font-family: 'Geist Mono', monospace"
-                >
-                  <a
-                    href="{{ url_for('article', slug=article.slug) }}"
-                    class="text-gray-800 hover:text-blue-600 transition-colors duration-300"
+              <article
+                class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden"
+              >
+                <div class="p-6">
+                  <h3
+                    class="text-2xl font-bold mb-2 text-gray-800 hover:text-blue-600 transition-colors duration-300"
+                    style="font-family: 'Geist Mono', monospace"
                   >
                     {{ article.title }}
-                  </a>
-                </h3>
-                <div
-                  class="flex items-center text-gray-500 text-sm"
-                  style="font-family: 'JetBrains Mono', monospace"
-                >
-                  <i class="far fa-calendar-alt mr-2"></i>
-                  {{ article.date_published.strftime('%d %B, %Y') }}
+                  </h3>
+                  <div
+                    class="flex items-center text-gray-500 text-sm"
+                    style="font-family: 'JetBrains Mono', monospace"
+                  >
+                    <i class="far fa-calendar-alt mr-2"></i>
+                    {{ article.date_published.strftime('%d %B, %Y') }}
+                  </div>
                 </div>
-              </div>
-            </article>
+              </article>
+            </a>
             {% endfor %}
           </div>
           {% else %}
