@@ -21,8 +21,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
 
-  <body class="font-inter flex justify-center items-center h-screen bg-white">
-    <div id="form-container" class="bg-white p-10 rounded-lg w-[700px]">
+  <body
+    class="font-inter bg-white dark:bg-gray-900 flex justify-center items-center h-screen"
+  >
+    <div
+      id="form-container"
+      class="bg-white dark:bg-gray-800 p-10 rounded-lg w-[700px] shadow-lg"
+    >
       <form action="" method="POST">
         <input
           type="text"
@@ -31,11 +36,10 @@
           placeholder="Title"
           required
           spellcheck="false"
-          class="w-[calc(100%-36px)] mb-5 p-4 border border-gray-300 rounded-md text-lg font-bold"
+          class="w-[calc(100%-36px)] mb-5 p-4 border border-gray-300 dark:border-gray-700 rounded-md text-lg font-bold bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200"
           style="font-family: 'JetBrains Mono', monospace"
           value="{{article.title if article else ''}}"
         />
-        <!-- Hidden input to store the Quill-generated HTML -->
         <input
           type="hidden"
           name="content"
@@ -61,20 +65,20 @@
           />
           <label
             for="is_published"
-            class="text-gray-700"
+            class="text-gray-700 dark:text-gray-300"
             style="font-family: 'JetBrains Mono', monospace"
             >Publish Now?</label
           >
         </div>
         <div
           id="editor"
-          class="h-[300px] bg-white border border-gray-300 rounded-md p-1 shadow-sm cursor-text"
+          class="h-[300px] bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md p-1 shadow-sm cursor-text text-gray-800 dark:text-gray-200"
         ></div>
 
         <button
           type="submit"
           id="publish-button"
-          class="bg-white text-black border-2 border-black font-bold py-2 px-4 rounded-2xl uppercase float-right mt-4 text-md"
+          class="bg-white dark:bg-gray-800 text-black dark:text-white border-2 border-black dark:border-gray-700 font-bold py-2 px-4 rounded-2xl uppercase float-right mt-4 text-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
           style="font-family: 'JetBrains Mono', monospace"
         >
           PUBLISH
@@ -97,12 +101,6 @@
       var quill = new Quill("#editor", {
         modules: {
           toolbar: toolbarOptions,
-
-          // history: {
-          //     delay: 2000,
-          //     maxStack: 500,
-          //     userOnly: true
-          // }
         },
         placeholder: "Your story...",
         theme: "snow",
