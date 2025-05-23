@@ -3,36 +3,38 @@ from datetime import datetime
 from slugify import slugify
 from flask import Flask, render_template, redirect, url_for, request, session, flash
 from articles import Article
+from projects import Project # Add this import
 from functools import wraps
 import logging
 from api_analytics.flask import add_middleware
 from dotenv import load_dotenv
 
-from database import init_db
+from database import init_db, get_db, close_db # Import get_db and close_db
 
 load_dotenv()
 app = Flask(__name__)
-add_middleware(app, os.getenv('API_ANALYTICS_KEY'))  # Add middleware
+# add_middleware(app, os.getenv('API_ANALYTICS_KEY'))
 
-# articles = Article.all() # Removed, now loading from db
 
-# Environment configuration
 app.secret_key = os.getenv('FLASK_SECRET_KEY')
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 
-# Logger configuration
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-# Initialize database here
-try:
-    if not init_db():
-      print("Error initializing database")
-except Exception as e:
-    print(f"Error during db initialization: {e}")
+# Initialize database within an application context
+with app.app_context():
+    try:
+        if not init_db():
+            logger.error("Error initializing database during app setup") # Changed print to logger.error
+    except Exception as e:
+        logger.error(f"Exception during db initialization: {e}") # Changed print to logger.error
 
-# Dummy check for the username and password. Replace with your database check or more secure checks.
+@app.teardown_appcontext
+def teardown_db(exception):
+    close_db(exception)
+
 def check_admin(username, password):
     return username == ADMIN_USERNAME and password == ADMIN_PASSWORD
 
@@ -70,7 +72,8 @@ def index():
 
 @app.route('/projects')
 def projects():
-    return render_template('projects.html')
+    all_projects = Project.get_all_projects()
+    return render_template('projects.html', projects=all_projects)
 
 @app.route('/blog')
 def blog():
@@ -153,6 +156,88 @@ def delete_article(slug):
 
     
     return redirect(url_for('blog'))
+
+@app.route('/admin/projects')
+@login_required
+def admin_projects():
+    all_projects = Project.get_all_projects()
+    return render_template('admin_projects.html', projects=all_projects)
+
+@app.route('/admin/projects/add', methods=['GET', 'POST'])
+@login_required
+def add_project():
+    if request.method == 'POST':
+        title = request.form.get('title')
+        description = request.form.get('description')
+        image_url = request.form.get('image_url')
+        technologies = request.form.get('technologies') # Comma-separated string
+        github_link = request.form.get('github_link')
+        live_demo_link = request.form.get('live_demo_link')
+
+        if not title or not description:
+            flash('Title and description are required.', 'error')
+            return render_template('add_edit_project.html', project=request.form)
+        
+        # Convert comma-separated string to list for storage, or handle as string if preferred
+        tech_list = [tech.strip() for tech in technologies.split(',')] if technologies else []
+
+        new_project = Project(
+            title=title,
+            description=description,
+            image_url=image_url,
+            technologies=tech_list, # Pass as list
+            github_link=github_link,
+            live_demo_link=live_demo_link
+        )
+        if Project.save_project(new_project):
+            flash('Project added successfully!', 'success')
+            return redirect(url_for('admin_projects'))
+        else:
+            flash('Error adding project.', 'error')
+    return render_template('add_edit_project.html')
+
+@app.route('/admin/projects/edit/<int:project_id>', methods=['GET', 'POST'])
+@login_required
+def edit_project(project_id):
+    project_to_edit = Project.get_project_by_id(project_id)
+    if not project_to_edit:
+        flash('Project not found.', 'error')
+        return redirect(url_for('admin_projects'))
+
+    if request.method == 'POST':
+        project_to_edit.title = request.form.get('title')
+        project_to_edit.description = request.form.get('description')
+        project_to_edit.image_url = request.form.get('image_url')
+        technologies = request.form.get('technologies')
+        project_to_edit.technologies = [tech.strip() for tech in technologies.split(',')] if technologies else []
+        project_to_edit.github_link = request.form.get('github_link')
+        project_to_edit.live_demo_link = request.form.get('live_demo_link')
+
+        if not project_to_edit.title or not project_to_edit.description:
+            flash('Title and description are required.', 'error')
+            # Pass technologies back as a string for the form
+            project_form_data = project_to_edit
+            project_form_data.technologies = technologies # Keep it as string for re-rendering form
+            return render_template('add_edit_project.html', project=project_form_data, is_edit=True)
+
+        if Project.update_project(project_to_edit):
+            flash('Project updated successfully!', 'success')
+            return redirect(url_for('admin_projects'))
+        else:
+            flash('Error updating project.', 'error')
+    # For GET request, convert technologies list to comma-separated string for the form
+    project_to_edit.technologies = ", ".join(project_to_edit.technologies) if project_to_edit.technologies else ""
+    return render_template('add_edit_project.html', project=project_to_edit, is_edit=True)
+
+@app.route('/admin/projects/delete/<int:project_id>', methods=['POST'])
+@login_required
+def delete_project(project_id):
+    if Project.delete_project_by_id(project_id):
+        flash('Project deleted successfully!', 'success')
+    else:
+        flash('Error deleting project.', 'error')
+    return redirect(url_for('admin_projects'))
+
 
 @app.errorhandler(404)
 def page_not_found(e):

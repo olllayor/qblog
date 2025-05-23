@@ -2,6 +2,7 @@ import os
 import psycopg2
 import logging
 from urllib.parse import urlparse
+from flask import g # Added import
 
 logger = logging.getLogger(__name__)
 
@@ -19,8 +20,24 @@ def connect_db():
         logger.error(f"Error connecting to database: {e}")
         return None
 
+def get_db():
+    """Opens a new database connection if there is none yet for the
+    current application context.
+    """
+    if 'db' not in g:
+        g.db = connect_db()
+    return g.db
+
+def close_db(e=None):
+    """Closes the database connection."""
+    db = g.pop('db', None)
+
+    if db is not None:
+        db.close()
+        logger.info("Database connection closed.")
+
 def init_db():
-    conn = connect_db()
+    conn = get_db() # Use get_db instead of connect_db
     if conn is None:
         logger.error("Failed to connect to the database.")
         return False
@@ -37,6 +54,18 @@ def init_db():
                 slug TEXT UNIQUE NOT NULL
             )
         """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS projects (
+                id SERIAL PRIMARY KEY,
+                title TEXT NOT NULL,
+                description TEXT NOT NULL,
+                image_url TEXT,
+                technologies TEXT, -- Comma-separated or JSON
+                github_link TEXT,
+                live_demo_link TEXT,
+                date_added TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
         conn.commit()
         logger.info("Database initialized or already exists.")
         return True
@@ -44,5 +73,5 @@ def init_db():
         logger.error(f"Error initializing database: {e}")
         return False
     finally:
-        if conn:
-            conn.close()
+        # Connection is now managed by app context, no close here
+        pass

@@ -2,7 +2,7 @@ import os
 from slugify import slugify
 from datetime import datetime
 import psycopg2
-from database import connect_db
+from database import connect_db, get_db
 import logging
 
 logger = logging.getLogger(__name__)
@@ -21,10 +21,10 @@ class Article:
 
     @staticmethod
     def save_article(article):
-        conn = connect_db()
+        conn = get_db()  # Use get_db()
         if conn is None:
             logger.error("Failed to connect to the database.")
-            return
+            return False  # Indicate failure
 
         try:
             cur = conn.cursor()
@@ -41,15 +41,17 @@ class Article:
             )
             conn.commit()
             logger.info("Article saved successfully.")
+            return True  # Indicate success
         except psycopg2.Error as e:
             logger.error(f"Error saving article: {e}")
+            return False  # Indicate failure
         finally:
-            if conn:
-                conn.close()
+            # Connection is now managed by app context, no close here
+            pass
 
     @staticmethod
     def update_article(article):
-        conn = connect_db()
+        conn = get_db()  # Use get_db()
         if conn is None:
             logger.error("Failed to connect to the database.")
             return False
@@ -72,38 +74,37 @@ class Article:
             logger.error(f"Error updating article: {e}")
             return False
         finally:
-            if conn:
-                conn.close()
+            # Connection is now managed by app context, no close here
+            pass
 
     @staticmethod
     def get_all_articles():
-        conn = connect_db()
+        conn = get_db()  # Use get_db()
         if conn is None:
             logger.error("Failed to connect to the database.")
             return []
 
         try:
             cur = conn.cursor()
-            cur.execute("SELECT * FROM articles")
-            articles = cur.fetchall()
+            # Sort by date_published in descending order directly in the query
+            cur.execute("SELECT * FROM articles ORDER BY date_published DESC")
+            articles_data = cur.fetchall()
         except psycopg2.Error as e:
             logger.error(f"Error fetching all articles: {e}")
-            articles = []
+            articles_data = []
         finally:
-            if conn:
-                conn.close()
+            # Connection is now managed by app context, no close here
+            pass
 
         article_objects = [
-            Article(row[1], row[2], row[3], row[4], row[5]) for row in articles
+            Article(row[1], row[2], row[3], row[4], row[5]) for row in articles_data
         ]
-        sorted_articles = sorted(
-            article_objects, key=lambda a: a.date_published, reverse=True
-        )
-        return sorted_articles
+        # The sorting is now done by the database, so the Python sort is removed.
+        return article_objects
 
     @staticmethod
     def delete_article_by_slug(slug):
-        conn = connect_db()
+        conn = get_db()  # Use get_db()
         if conn is None:
             logger.error("Failed to connect to the database.")
             return False
@@ -117,12 +118,12 @@ class Article:
             logger.error(f"Error deleting article: {e}")
             return False
         finally:
-            if conn:
-                conn.close()
+            # Connection is now managed by app context, no close here
+            pass
 
     @classmethod
     def get_by_slug(cls, slug):
-        conn = connect_db()
+        conn = get_db()  # Use get_db()
         if conn is None:
             return None
 
@@ -134,8 +135,8 @@ class Article:
             logger.error(f"Error fetching article by slug: {e}")
             return None
         finally:
-            if conn:
-                conn.close()
+            # Connection is now managed by app context, no close here
+            pass
 
         if article_data:
             return cls(
