@@ -9,7 +9,9 @@
     rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap"
     rel="stylesheet" />
-
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
   <title>Projects</title>
 </head>
 
@@ -25,24 +27,38 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {% for project in projects %}
       <div
-        class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105">
-        <img src="{{ project.image_url if project.image_url else 'https://via.placeholder.com/400x250' }}"
-          alt="{{ project.title }} Thumbnail" class="w-full h-48 object-cover" loading="lazy" />
+        class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105">
+        {% if project.image_url %}
+        <div class="cursor-pointer" onclick="openModal('{{ project.image_url }}')">
+          <img src="{{ project.image_url }}" alt="{{ project.title }} Thumbnail" class="w-full h-full object-cover"
+            loading="lazy" />
+        </div>
+        {% else %}
+        <img src="https://via.placeholder.com/400x250" alt="{{ project.title }} Thumbnail - Placeholder"
+          class="w-full h-48 object-cover" loading="lazy" />
+        {% endif %}
         <div class="p-6">
-          <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-2"
-            style="font-family: 'Geist Mono', monospace">
+          <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-2" style="font-family: 'Geist', monospace">
             {{ project.title }}
           </h2>
-          <p class="text-gray-600 dark:text-gray-400 text-sm mb-4 h-20 overflow-y-auto"
-            style="font-family: 'JetBrains Mono', monospace">
-            {{ project.description }}
-          </p>
+          <div class="description-area mb-4">
+            {% if project.description %}
+            <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed project-description" style="font-family: 'Geist', monospace">
+              {{ project.description | e }}
+            </p>
+            {% else %}
+            <p class="text-gray-600 dark:text-gray-400 text-sm italic">
+              No description available.
+            </p>
+            {% endif %}
+          </div>
+          <!-- Technologies -->
           {% if project.technologies %}
           <div class="mb-4 flex flex-wrap gap-2">
             {% for tech in project.technologies %}
             <span
               class="inline-block bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-300 text-xs font-semibold px-2.5 py-0.5 rounded"
-              style="font-family: 'JetBrains Mono', monospace">{{ tech }}</span>
+              style="font-family: 'Geist Mono', monospace">{{ tech }}</span>
             {% endfor %}
           </div>
           {% endif %}
@@ -75,6 +91,58 @@
     {% endif %}
   </main>
   {% include 'footer.html' %}
+
+  <!-- Image Modal -->
+  <div id="imageModal"
+    class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4 opacity-0 pointer-events-none transition-opacity duration-300 ease-in-out">
+    <img id="modalImage" src="" alt="Project Image" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl">
+    <span class="absolute top-4 right-6 text-white text-4xl cursor-pointer hover:text-gray-300"
+      onclick="closeModal()">&times;</span>
+  </div>
+
+  <script>
+    function openModal(imageUrl) {
+      const modal = document.getElementById('imageModal');
+      const modalImage = document.getElementById('modalImage');
+      if (modal && modalImage) {
+        modalImage.src = imageUrl;
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        modal.classList.add('opacity-100');
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+      }
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('imageModal');
+      if (modal) {
+        modal.classList.remove('opacity-100');
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        document.body.style.overflow = 'auto'; // Restore scrolling
+        // It's good practice to clear the src after the transition or when opening next time
+        // For simplicity, we'll let it be overwritten on next openModal call.
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const modalElement = document.getElementById('imageModal');
+
+      if (modalElement) {
+        // Close modal on escape key
+        document.addEventListener('keydown', function (event) {
+          if (event.key === 'Escape' && modalElement.classList.contains('opacity-100')) {
+            closeModal();
+          }
+        });
+
+        // Close modal when clicking on the background (the modalElement itself)
+        modalElement.addEventListener('click', function (event) {
+          if (event.target === modalElement) {
+            closeModal();
+          }
+        });
+      }
+    });
+  </script>
 </body>
 
 </html>
