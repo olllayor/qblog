@@ -1,19 +1,27 @@
+import logging
 import os
 from datetime import datetime
-from slugify import slugify
-from flask import Flask, render_template, redirect, url_for, request, session, flash
-from articles import Article
-from projects import Project # Add this import
 from functools import wraps
-import logging
-from api_analytics.flask import add_middleware
-from dotenv import load_dotenv
 
-from database import init_db, get_db, close_db # Import get_db and close_db
+from dotenv import load_dotenv
+from flask import Flask, flash, redirect, render_template, request, session, url_for
+from flask_caching import Cache
+
+from articles import Article
+from database import close_db, init_db  # Import get_db and close_db
+from projects import Project  # Add this import
 
 load_dotenv()
 app = Flask(__name__)
 # add_middleware(app, os.getenv('API_ANALYTICS_KEY'))
+
+# Configure caching
+app.config['CACHE_TYPE'] = 'RedisCache'
+app.config['CACHE_REDIS_URL'] = os.getenv('REDIS_URL')
+app.config['CACHE_DEFAULT_TIMEOUT'] = 180
+
+# Initialize cache
+cache = Cache(app)
 
 
 app.secret_key = os.getenv('FLASK_SECRET_KEY')
@@ -67,15 +75,18 @@ def logout():
     return redirect(url_for('login'))
 
 @app.route('/')
+@cache.cached(timeout=300)
 def index():
     return render_template('index.html')
 
 @app.route('/projects')
+@cache.cached(timeout=180)
 def projects():
     all_projects = Project.get_all_projects()
     return render_template('projects.html', projects=all_projects)
 
 @app.route('/blog')
+@cache.cached(timeout=180)
 def blog():
     articles = Article.get_all_articles()
     # published_articles = [article for article in articles if article.is_published]
@@ -86,6 +97,7 @@ def cv_redirect():
     return redirect(url_for('static', filename='media/Olloyor_s_resume.pdf'))
 
 @app.route('/blog/<slug>')
+@cache.cached(timeout=180, query_string=False)
 def article(slug: str):
     article = Article.get_by_slug(slug)
     if not article:
@@ -110,6 +122,10 @@ def publish():
 
         new_article = Article(title, content, date_published, is_published=is_published)
         Article.save_article(new_article)
+        # remove the article from cache
+
+        cache.delete_memoized(blog)
+        cache.delete_memoized(article, new_article.slug)
 
         flash("Article saved successfully. You can publish it now.", "success")
         return redirect(url_for('article', slug=new_article.slug))
@@ -129,7 +145,10 @@ def edit_article(slug):
         
         if Article.update_article(article):
             flash('Article updated successfully', 'success')
-            return redirect(url_for('article', slug = article.slug))
+
+            cache.delete_memoized(blog)
+            cache.delete_memoized(article, article.slug)
+            return redirect(url_for('article', slug=article.slug))
         else:
              flash('Error updating article', 'error')
         
@@ -150,6 +169,9 @@ def delete_article(slug):
         except OSError as e:
             print(f'Error deleting article file: {e.strerror}')
             flash(f'Error deleting article file: {e.strerror}', 'error')
+        
+        cache.delete_memoized(blog)
+        cache.delete_memoized(article, slug)
     else:
         print('Error deleting article from the database.')
         flash('Error deleting article from the database.', 'error')
