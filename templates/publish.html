@@ -1,101 +1,47 @@
-<htm    <title>Publish Article</title>
-    <!-- Include Quill stylesheet -->
-    <link
-      href="https://cdn.quilljs.com/1.3.6/quill.snow.css"
-      rel="stylesheet"
-    />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <script src="https://cdn.tailwindcss.com"></script>
-    {% include 'analytics.html' %}meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Publish Article</title>
-    <!-- Include Quill stylesheet -->
-    <link
-      href="https://cdn.quilljs.com/1.3.6/quill.snow.css"
-      rel="stylesheet"
-    />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <script src="https://cdn.tailwindcss.com"></script>
+<htm <title>Publish Article</title>
+  <!-- Include Quill stylesheet -->
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  {% include 'analytics.html' %}meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Publish Article</title>
+  <!-- Include Quill stylesheet -->
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
   </head>
 
-  <body
-    class="font-inter bg-white dark:bg-gray-900 flex justify-center items-center h-screen"
-  >
-    <div
-      id="form-container"
-      class="bg-white dark:bg-gray-800 p-10 rounded-lg w-[700px] shadow-lg"
-    >
+  <body class="font-inter bg-white dark:bg-gray-900 flex justify-center items-center h-screen">
+    <div id="form-container" class="bg-white dark:bg-gray-800 p-10 rounded-lg w-[700px] shadow-lg">
       <form action="" method="POST">
-        <input
-          type="text"
-          id="title"
-          name="title"
-          placeholder="Title"
-          required
-          spellcheck="false"
+        <input type="text" id="title" name="title" placeholder="Title" required spellcheck="false"
           class="w-[calc(100%-36px)] mb-5 p-4 border border-gray-300 dark:border-gray-700 rounded-md text-lg font-bold bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200"
-          style="font-family: 'JetBrains Mono', monospace"
-          value="{{article.title if article else ''}}"
-        />
-        <input
-          type="hidden"
-          name="content"
-          id="content"
-          value="{{article.content if article else ''}}"
-        />
+          style="font-family: 'JetBrains Mono', monospace" value="{{article.title if article else ''}}" />
+        <input type="hidden" name="content" id="content" value="{{article.content if article else ''}}" />
         <div class="flex items-center mb-4">
-          <input
-            type="checkbox"
-            id="is_published"
-            name="is_published"
-            class="mr-2"
-            {%
-            if
-            article
-            and
-            article.is_published
-            %}
-            checked
-            {%
-            endif
-            %}
-          />
-          <label
-            for="is_published"
-            class="text-gray-700 dark:text-gray-300"
-            style="font-family: 'JetBrains Mono', monospace"
-            >Publish Now?</label
-          >
+          <input type="checkbox" id="is_published" name="is_published" class="mr-2" {% if article and
+            article.is_published %} checked {% endif %} />
+          <label for="is_published" class="text-gray-700 dark:text-gray-300"
+            style="font-family: 'JetBrains Mono', monospace">Publish Now?</label>
         </div>
-        <div
-          id="editor"
-          class="h-[300px] bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md p-1 shadow-sm cursor-text text-gray-800 dark:text-gray-200"
-        ></div>
+        <div id="editor"
+          class="h-[300px] bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md p-1 shadow-sm cursor-text text-gray-800 dark:text-gray-200">
+        </div>
 
-        <button
-          type="submit"
-          id="publish-button"
+        <button type="submit" id="publish-button"
           class="bg-white dark:bg-gray-800 text-black dark:text-white border-2 border-black dark:border-gray-700 font-bold py-2 px-4 rounded-2xl uppercase float-right mt-4 text-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
-          style="font-family: 'JetBrains Mono', monospace"
-        >
+          style="font-family: 'JetBrains Mono', monospace">
           PUBLISH
         </button>
       </form>
@@ -134,4 +80,5 @@
       quill.root.innerHTML = quillContent;
     </script>
   </body>
-</html>
+
+  </html>

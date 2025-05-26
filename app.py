@@ -42,7 +42,7 @@ def setup_cache():
     else:
         logger.info("No Redis URL provided. Using SimpleCache")
         app.config['CACHE_TYPE'] = 'SimpleCache'
-        app.config['CACHE_DEFAULT_TIMEOUT'] = 180
+        app.config['CACHE_DEFAULT_TIMEOUT'] = 360
     
     return Cache(app)
 
@@ -50,7 +50,7 @@ def setup_cache():
 cache = setup_cache()
 
 # Cache decorator with error handling
-def safe_cached(timeout=180, **kwargs):
+def safe_cached(timeout=360, **kwargs):
     def decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs_inner):

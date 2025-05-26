@@ -31,8 +31,8 @@
         class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105">
         {% if project.image_url %}
         <div class="cursor-pointer h-48 overflow-hidden" onclick="openModal('{{ project.image_url }}')">
-          <img src="{{ project.image_url }}" alt="{{ project.title }} Thumbnail" class="w-full h-48 object-cover transition-transform duration-300 hover:scale-110"
-            loading="lazy" />
+          <img src="{{ project.image_url }}" alt="{{ project.title }} Thumbnail"
+            class="w-full h-48 object-cover transition-transform duration-300 hover:scale-110" loading="lazy" />
         </div>
         {% else %}
         <div class="h-48 overflow-hidden">
@@ -41,12 +41,14 @@
         </div>
         {% endif %}
         <div class="p-6">
-          <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-2" style="font-family: 'Geist', monospace">
+          <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-2"
+            style="font-family: 'Geist', monospace">
             {{ project.title }}
           </h2>
           <div class="description-area mb-4">
             {% if project.description %}
-            <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed project-description" style="font-family: 'Geist', monospace">
+            <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed project-description"
+              style="font-family: 'Geist', monospace">
               {{ project.description | e }}
             </p>
             {% else %}
