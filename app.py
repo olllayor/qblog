@@ -5,7 +5,7 @@ from datetime import datetime
 from functools import wraps
 
 import redis
-from api_analytics.flask import add_middleware
+# from api_analytics.flask import add_middleware
 from dotenv import load_dotenv
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 from flask_caching import Cache
@@ -16,7 +16,7 @@ from projects import Project  # Add this import
 
 load_dotenv()
 app = Flask(__name__)
-add_middleware(app, os.getenv('API_ANALYTICS_KEY'))
+
 logger = logging.getLogger(__name__)
 
 # Configure caching with fallback
@@ -75,13 +75,12 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-# Initialize database within an application context
 with app.app_context():
     try:
         if not init_db():
-            logger.error("Error initializing database during app setup") # Changed print to logger.error
+            logger.error("Error initializing database during app setup") 
     except Exception as e:
-        logger.error(f"Exception during db initialization: {e}") # Changed print to logger.error
+        logger.error(f"Exception during db initialization: {e}")
 
 @app.teardown_appcontext
 def teardown_db(exception):
@@ -344,4 +343,4 @@ def health_check():
     return status
 
 if __name__ == '__main__':
-    app.run(port=4200)
+    app.run(port=4200, debug=True)
