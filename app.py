@@ -5,6 +5,7 @@ from datetime import datetime
 from functools import wraps
 
 import redis
+
 # from api_analytics.flask import add_middleware
 from dotenv import load_dotenv
 from flask import Flask, flash, redirect, render_template, request, session, url_for
@@ -66,6 +67,36 @@ def safe_cached(timeout=360, **kwargs):
                 return f(*args, **kwargs_inner)
         return wrapper
     return decorator
+
+# Cache key management functions
+def get_cache_key(view_name, **kwargs):
+    """Generate cache key for a given view function that matches Flask-Caching's format"""
+    # Flask-Caching uses 'view//' + endpoint format for @cache.cached
+    if kwargs:
+        # For parameterized routes like article(slug='test')
+        params = "&".join([f"{k}={v}" for k, v in sorted(kwargs.items())])
+        return f"view//{view_name}?{params}"
+    return f"view//{view_name}"
+
+def invalidate_view_cache(view_name, **kwargs):
+    """Safely invalidate cache for a specific view"""
+    try:
+        cache_key = get_cache_key(view_name, **kwargs)
+        cache.delete(cache_key)
+        logger.info(f"Cache invalidated for {view_name} with key: {cache_key}")
+    except Exception as e:
+        logger.warning(f"Failed to invalidate cache for {view_name}: {e}")
+
+def invalidate_multiple_caches(*view_specs):
+    """Invalidate multiple view caches"""
+    for view_spec in view_specs:
+        if isinstance(view_spec, str):
+            invalidate_view_cache(view_spec)
+        elif isinstance(view_spec, tuple):
+            view_name, kwargs = view_spec
+            invalidate_view_cache(view_name, **kwargs)
+        else:
+            logger.warning(f"Invalid view spec: {view_spec}")
 
 
 app.secret_key = os.getenv('FLASK_SECRET_KEY')
@@ -169,8 +200,8 @@ def publish():
         Article.save_article(new_article)
         # remove the article from cache
         try:
-            cache.delete_memoized(blog)
-            cache.delete_memoized(article, new_article.slug)
+            invalidate_multiple_caches('blog', ('article', {'slug': new_article.slug}))
+            logger.info(f"Blog caches invalidated after publishing new article: {new_article.slug}")
         except Exception as e:
             logger.warning(f"Cache invalidation failed: {e}")
 
@@ -193,8 +224,8 @@ def edit_article(slug):
         if Article.update_article(article):
             flash('Article updated successfully', 'success')
             try:
-                cache.delete_memoized(blog)
-                cache.delete_memoized(article, article.slug)
+                invalidate_multiple_caches('blog', ('article', {'slug': article.slug}))
+                logger.info(f"Blog caches invalidated after updating article: {article.slug}")
             except Exception as e:
                 logger.warning(f"Cache invalidation failed: {e}")
             return redirect(url_for('article', slug=article.slug))
@@ -220,8 +251,8 @@ def delete_article(slug):
             flash(f'Error deleting article file: {e.strerror}', 'error')
         
         try:
-            cache.delete_memoized(blog)
-            cache.delete_memoized(article, slug)
+            invalidate_multiple_caches('blog', ('article', {'slug': slug}))
+            logger.info(f"Blog caches invalidated after deleting article: {slug}")
         except Exception as e:
             logger.warning(f"Cache invalidation failed: {e}")
     else:
@@ -267,12 +298,11 @@ def add_project():
             flash('Project added successfully!', 'success')
 
             try:
-                # Invalidate cache for projects
-                cache.delete_memoized(admin_projects)
-                cache.delete_memoized(projects)
+                # Invalidate cache for projects pages
+                invalidate_multiple_caches('projects', 'index')
+                logger.info("Project caches invalidated after adding new project")
             except Exception as e:
                 logger.warning(f"Cache invalidation failed: {e}")
-                flash('Error invalidating cache.', 'error')
             return redirect(url_for('admin_projects'))
         else:
             flash('Error adding project.', 'error')
@@ -305,12 +335,11 @@ def edit_project(project_id):
         if Project.update_project(project_to_edit):
             flash('Project updated successfully!', 'success')
             try:
-                # Invalidate cache for projects
-                cache.delete_memoized(admin_projects)
-                cache.delete_memoized(projects)
+                # Invalidate cache for projects pages
+                invalidate_multiple_caches('projects', 'index')
+                logger.info("Project caches invalidated after updating project")
             except Exception as e:
                 logger.warning(f"Cache invalidation failed: {e}")
-                flash('Error invalidating cache.', 'error')
             return redirect(url_for('admin_projects'))
         else:
             flash('Error updating project.', 'error')
@@ -323,12 +352,11 @@ def edit_project(project_id):
 def delete_project(project_id):
     if Project.delete_project_by_id(project_id):
         try:
-            # Invalidate cache for projects
-            cache.delete_memoized(admin_projects)
-            cache.delete_memoized(projects)
+            # Invalidate cache for projects pages
+            invalidate_multiple_caches('projects', 'index')
+            logger.info("Project caches invalidated after deleting project")
         except Exception as e:
             logger.warning(f"Cache invalidation failed: {e}")
-            flash('Error invalidating cache.', 'error')
         flash('Project deleted successfully!', 'success')
     else:
         flash('Error deleting project.', 'error')
