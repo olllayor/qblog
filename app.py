@@ -265,6 +265,14 @@ def add_project():
         )
         if Project.save_project(new_project):
             flash('Project added successfully!', 'success')
+
+            try:
+                # Invalidate cache for projects
+                cache.delete_memoized(admin_projects)
+                cache.delete_memoized(projects)
+            except Exception as e:
+                logger.warning(f"Cache invalidation failed: {e}")
+                flash('Error invalidating cache.', 'error')
             return redirect(url_for('admin_projects'))
         else:
             flash('Error adding project.', 'error')
@@ -296,6 +304,13 @@ def edit_project(project_id):
 
         if Project.update_project(project_to_edit):
             flash('Project updated successfully!', 'success')
+            try:
+                # Invalidate cache for projects
+                cache.delete_memoized(admin_projects)
+                cache.delete_memoized(projects)
+            except Exception as e:
+                logger.warning(f"Cache invalidation failed: {e}")
+                flash('Error invalidating cache.', 'error')
             return redirect(url_for('admin_projects'))
         else:
             flash('Error updating project.', 'error')
@@ -307,6 +322,13 @@ def edit_project(project_id):
 @login_required
 def delete_project(project_id):
     if Project.delete_project_by_id(project_id):
+        try:
+            # Invalidate cache for projects
+            cache.delete_memoized(admin_projects)
+            cache.delete_memoized(projects)
+        except Exception as e:
+            logger.warning(f"Cache invalidation failed: {e}")
+            flash('Error invalidating cache.', 'error')
         flash('Project deleted successfully!', 'success')
     else:
         flash('Error deleting project.', 'error')
