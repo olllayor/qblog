@@ -6,6 +6,7 @@ from functools import wraps
 from dotenv import load_dotenv
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 from flask_caching import Cache
+from api_analytics.flask import add_middleware
 
 from articles import Article
 from database import close_db, init_db  # Import get_db and close_db
@@ -13,7 +14,7 @@ from projects import Project  # Add this import
 
 load_dotenv()
 app = Flask(__name__)
-# add_middleware(app, os.getenv('API_ANALYTICS_KEY'))
+add_middleware(app, os.getenv('API_ANALYTICS_KEY'))
 
 # Configure caching
 app.config['CACHE_TYPE'] = 'RedisCache'
