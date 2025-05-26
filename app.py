@@ -1,5 +1,7 @@
 import logging
 import os
+import time
+
 from datetime import datetime
 from functools import wraps
 
@@ -15,7 +17,7 @@ from projects import Project  # Add this import
 load_dotenv()
 app = Flask(__name__)
 add_middleware(app, os.getenv('API_ANALYTICS_KEY'))
-
+logger = logging.getLogger(__name__)
 # Configure caching
 app.config['CACHE_TYPE'] = 'RedisCache'
 app.config['CACHE_REDIS_URL'] = os.getenv('REDIS_URL')
@@ -89,8 +91,10 @@ def projects():
 @app.route('/blog')
 @cache.cached(timeout=180)
 def blog():
+    start = time.time()
     articles = Article.get_all_articles()
-    # published_articles = [article for article in articles if article.is_published]
+    duration = time.time() - start
+    logger.info(f"/blog route executed in {duration:.3f} seconds")
     return render_template('blog.html', articles=articles)
 
 @app.route('/media/ollayor-cv.pdf')
@@ -271,4 +275,4 @@ def internal_server_error(e):
     return render_template('500.html'), 500
 
 if __name__ == '__main__':
-    app.run(port=4200, debug=True)
+    app.run(port=4200)
