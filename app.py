@@ -1,14 +1,14 @@
 import logging
 import os
 import time
-
 from datetime import datetime
 from functools import wraps
 
+import redis
+from api_analytics.flask import add_middleware
 from dotenv import load_dotenv
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 from flask_caching import Cache
-from api_analytics.flask import add_middleware
 
 from articles import Article
 from database import close_db, init_db  # Import get_db and close_db
@@ -18,13 +18,54 @@ load_dotenv()
 app = Flask(__name__)
 add_middleware(app, os.getenv('API_ANALYTICS_KEY'))
 logger = logging.getLogger(__name__)
-# Configure caching
-app.config['CACHE_TYPE'] = 'RedisCache'
-app.config['CACHE_REDIS_URL'] = os.getenv('REDIS_URL')
-app.config['CACHE_DEFAULT_TIMEOUT'] = 180
 
-# Initialize cache
-cache = Cache(app)
+# Configure caching with fallback
+def setup_cache():
+    redis_url = os.getenv('REDIS_URL')
+    
+    # Try to use Redis if available
+    if redis_url:
+        try:
+            # Test Redis connection
+            redis_client = redis.from_url(redis_url)
+            redis_client.ping()
+            
+            app.config['CACHE_TYPE'] = 'RedisCache'
+            app.config['CACHE_REDIS_URL'] = redis_url
+            app.config['CACHE_DEFAULT_TIMEOUT'] = 180
+            logger.info("Using Redis cache")
+            
+        except (redis.ConnectionError, redis.TimeoutError, Exception) as e:
+            logger.warning(f"Redis connection failed: {e}. Falling back to SimpleCache")
+            app.config['CACHE_TYPE'] = 'SimpleCache'
+            app.config['CACHE_DEFAULT_TIMEOUT'] = 180
+    else:
+        logger.info("No Redis URL provided. Using SimpleCache")
+        app.config['CACHE_TYPE'] = 'SimpleCache'
+        app.config['CACHE_DEFAULT_TIMEOUT'] = 180
+    
+    return Cache(app)
+
+# Initialize cache with error handling
+cache = setup_cache()
+
+# Cache decorator with error handling
+def safe_cached(timeout=180, **kwargs):
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs_inner):
+            try:
+                # Try to use cache
+                cached_func = cache.cached(timeout=timeout, **kwargs)(f)
+                result = cached_func(*args, **kwargs_inner)
+                logger.debug(f"Cache hit for {f.__name__}")
+                return result
+            except (redis.ConnectionError, redis.TimeoutError, Exception) as e:
+                logger.warning(f"Cache error for {f.__name__}: {e}. Executing function without cache.")
+                # Execute function without cache if Redis fails
+                return f(*args, **kwargs_inner)
+        return wrapper
+    return decorator
 
 
 app.secret_key = os.getenv('FLASK_SECRET_KEY')
@@ -78,18 +119,18 @@ def logout():
     return redirect(url_for('login'))
 
 @app.route('/')
-@cache.cached(timeout=300)
+@safe_cached(timeout=300)
 def index():
     return render_template('index.html')
 
 @app.route('/projects')
-@cache.cached(timeout=180)
+@safe_cached(timeout=180)
 def projects():
     all_projects = Project.get_all_projects()
     return render_template('projects.html', projects=all_projects)
 
 @app.route('/blog')
-@cache.cached(timeout=180)
+@safe_cached(timeout=180)
 def blog():
     start = time.time()
     articles = Article.get_all_articles()
@@ -102,7 +143,7 @@ def cv_redirect():
     return redirect(url_for('static', filename='media/Olloyor_s_resume.pdf'))
 
 @app.route('/blog/<slug>')
-@cache.cached(timeout=180, query_string=False)
+@safe_cached(timeout=180, query_string=False)
 def article(slug: str):
     article = Article.get_by_slug(slug)
     if not article:
@@ -128,9 +169,11 @@ def publish():
         new_article = Article(title, content, date_published, is_published=is_published)
         Article.save_article(new_article)
         # remove the article from cache
-
-        cache.delete_memoized(blog)
-        cache.delete_memoized(article, new_article.slug)
+        try:
+            cache.delete_memoized(blog)
+            cache.delete_memoized(article, new_article.slug)
+        except Exception as e:
+            logger.warning(f"Cache invalidation failed: {e}")
 
         flash("Article saved successfully. You can publish it now.", "success")
         return redirect(url_for('article', slug=new_article.slug))
@@ -150,9 +193,11 @@ def edit_article(slug):
         
         if Article.update_article(article):
             flash('Article updated successfully', 'success')
-
-            cache.delete_memoized(blog)
-            cache.delete_memoized(article, article.slug)
+            try:
+                cache.delete_memoized(blog)
+                cache.delete_memoized(article, article.slug)
+            except Exception as e:
+                logger.warning(f"Cache invalidation failed: {e}")
             return redirect(url_for('article', slug=article.slug))
         else:
              flash('Error updating article', 'error')
@@ -175,8 +220,11 @@ def delete_article(slug):
             print(f'Error deleting article file: {e.strerror}')
             flash(f'Error deleting article file: {e.strerror}', 'error')
         
-        cache.delete_memoized(blog)
-        cache.delete_memoized(article, slug)
+        try:
+            cache.delete_memoized(blog)
+            cache.delete_memoized(article, slug)
+        except Exception as e:
+            logger.warning(f"Cache invalidation failed: {e}")
     else:
         print('Error deleting article from the database.')
         flash('Error deleting article from the database.', 'error')
@@ -273,6 +321,27 @@ def page_not_found(e):
 @app.errorhandler(500)
 def internal_server_error(e):
     return render_template('500.html'), 500
+
+@app.route('/health')
+def health_check():
+    """Health check endpoint to monitor application and cache status"""
+    status = {
+        'status': 'healthy',
+        'cache_type': app.config.get('CACHE_TYPE', 'unknown'),
+        'timestamp': datetime.utcnow().isoformat()
+    }
+    
+    # Test cache connection
+    try:
+        cache.set('health_check', 'ok', timeout=5)
+        cache_result = cache.get('health_check')
+        status['cache_status'] = 'connected' if cache_result == 'ok' else 'disconnected'
+        cache.delete('health_check')
+    except Exception as e:
+        status['cache_status'] = f'error: {str(e)}'
+        logger.warning(f"Cache health check failed: {e}")
+    
+    return status
 
 if __name__ == '__main__':
     app.run(port=4200)
