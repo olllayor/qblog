@@ -4,7 +4,12 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<meta name="description" content="Ollayor's Blog - Technical and non-technical articles" />
+		
+		<!-- SEO and Social Media Meta Tags -->
+		{% set page_title = "Ollayor's Blog - Technical Articles & Insights" %}
+		{% set page_description = "Technical and non-technical articles by Ollayor Maxammadnabiyev. Exploring software engineering, programming, mathematics, and technology insights." %}
+		{% include 'seo_meta.html' %}
+		
 		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" />
 		<script src="https://cdn.tailwindcss.com"></script>
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
@@ -16,7 +21,6 @@
 			href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap"
 			rel="stylesheet"
 		/>
-		<title>Ollayor's Blog</title>
 		{% include 'analytics.html' %}
 	</head>
 

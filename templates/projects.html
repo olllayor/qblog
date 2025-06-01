@@ -3,6 +3,12 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		
+		<!-- SEO and Social Media Meta Tags -->
+		{% set page_title = "Projects - Ollayor Maxammadnabiyev" %}
+		{% set page_description = "Software development projects by Ollayor Maxammadnabiyev. Showcasing web applications, tools, and innovative solutions built with modern technologies." %}
+		{% include 'seo_meta.html' %}
+		
 		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" />
 		<script src="https://cdn.tailwindcss.com"></script>
 		<link
@@ -20,7 +26,6 @@
 			crossorigin="anonymous"
 			referrerpolicy="no-referrer"
 		/>
-		<title>Projects</title>
 		{% include 'analytics.html' %}
 	</head>
 

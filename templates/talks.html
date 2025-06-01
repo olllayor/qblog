@@ -3,12 +3,17 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		
+		<!-- SEO and Social Media Meta Tags -->
+		{% set page_title = "Talks & Presentations - Ollayor Maxammadnabiyev" %}
+		{% set page_description = "Technical talks and presentations by Ollayor Maxammadnabiyev on software engineering, programming, and technology topics." %}
+		{% include 'seo_meta.html' %}
+		
 		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" />
 		<script src="https://cdn.tailwindcss.com"></script>
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
-		<title>Talks</title>
 		{% include 'analytics.html' %}
 	</head>
 

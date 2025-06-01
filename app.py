@@ -442,5 +442,49 @@ def health_check():
     return status
 
 
+@app.route("/sitemap.xml")
+def sitemap():
+    """Generate sitemap for SEO"""
+    try:
+        # Get all articles for sitemap
+        articles = Article.get_all_articles()
+        
+        from sitemap_generator import generate_sitemap
+        pages = generate_sitemap(app, articles=articles)
+        
+        sitemap_xml = render_template("sitemap.xml", pages=pages)
+        response = app.response_class(
+            sitemap_xml,
+            mimetype="application/xml"
+        )
+        return response
+    except Exception as e:
+        logger.error(f"Error generating sitemap: {e}")
+        return "Error generating sitemap", 500
+
+
+@app.route("/robots.txt")
+def robots():
+    """Generate robots.txt for SEO"""
+    robots_content = f"""User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: {url_for('sitemap', _external=True)}
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /login
+Disallow: /logout
+Disallow: /publish
+"""
+    
+    response = app.response_class(
+        robots_content,
+        mimetype="text/plain"
+    )
+    return response
+
+
 if __name__ == "__main__":
     app.run(port=4200, debug=True)
