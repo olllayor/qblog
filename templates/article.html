@@ -4,15 +4,14 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		
+
 		<!-- SEO and Social Media Meta Tags for Articles -->
-		{% set page_title = article.title + " - Ollayor's Blog" %}
-		{% set page_description = article.summary[:160] if article.summary else (article.content[:160] + "..." if article.content else "Technical article by Ollayor Maxammadnabiyev") %}
-		{% set page_type = "article" %}
-		{% set article_date = article.date_published.isoformat() if article.date_published else "" %}
-		{% set article_modified = article.date_updated.isoformat() if article.date_updated else "" %}
-		{% include 'seo_meta.html' %}
-		
+		{% set page_title = article.title + " - Ollayor's Blog" %} {% set page_description = article.summary[:160] if
+		article.summary else (article.content[:160] + "..." if article.content else "Technical article by Ollayor
+		Maxammadnabiyev") %} {% set page_type = "article" %} {% set article_date = article.date_published.isoformat() if
+		article.date_published else "" %} {% set article_modified = article.date_updated.isoformat() if article.date_updated
+		else "" %} {% include 'seo_meta.html' %}
+
 		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" />
 		<script src="https://cdn.tailwindcss.com"></script>
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />

@@ -448,15 +448,13 @@ def sitemap():
     try:
         # Get all articles for sitemap
         articles = Article.get_all_articles()
-        
+
         from sitemap_generator import generate_sitemap
+
         pages = generate_sitemap(app, articles=articles)
-        
+
         sitemap_xml = render_template("sitemap.xml", pages=pages)
-        response = app.response_class(
-            sitemap_xml,
-            mimetype="application/xml"
-        )
+        response = app.response_class(sitemap_xml, mimetype="application/xml")
         return response
     except Exception as e:
         logger.error(f"Error generating sitemap: {e}")
@@ -470,7 +468,7 @@ def robots():
 Allow: /
 
 # Sitemap
-Sitemap: {url_for('sitemap', _external=True)}
+Sitemap: {url_for("sitemap", _external=True)}
 
 # Disallow admin and private areas
 Disallow: /admin/
@@ -478,11 +476,8 @@ Disallow: /login
 Disallow: /logout
 Disallow: /publish
 """
-    
-    response = app.response_class(
-        robots_content,
-        mimetype="text/plain"
-    )
+
+    response = app.response_class(robots_content, mimetype="text/plain")
     return response
 
 

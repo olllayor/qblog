@@ -1,15 +1,18 @@
 <!-- SEO Meta Tags Template -->
-{% set page_title = page_title or "Ollayor Maxammadnabiyev - Software Engineer" %}
-{% set page_description = page_description or "Software Engineer passionate about code, math, physics, and computer science. Building innovative solutions with Python, JavaScript, and modern web technologies." %}
-{% set page_url = page_url or request.url %}
-{% set page_image = page_image or url_for('static', filename='myself-social.jpg', _external=True) %}
-{% set site_name = "Ollayor Maxammadnabiyev" %}
+{% set page_title = page_title or "Ollayor Maxammadnabiyev - Software Engineer" %} {% set page_description =
+page_description or "Software Engineer passionate about code, math, physics, and computer science. Building innovative
+solutions with Python, JavaScript, and modern web technologies." %} {% set page_url = page_url or request.url %} {% set
+page_image = page_image or url_for('static', filename='myself-social.jpg', _external=True) %} {% set site_name =
+"Ollayor Maxammadnabiyev" %}
 
 <!-- Basic Meta Tags -->
 <title>{{ page_title }}</title>
 <meta name="description" content="{{ page_description }}" />
 <meta name="author" content="Ollayor Maxammadnabiyev" />
-<meta name="keywords" content="software engineer, python developer, web development, computer science, programming, tech blog" />
+<meta
+	name="keywords"
+	content="software engineer, python developer, web development, computer science, programming, tech blog"
+/>
 
 <!-- Open Graph Meta Tags for Facebook, LinkedIn, etc. -->
 <meta property="og:type" content="{% if page_type %}{{ page_type }}{% else %}website{% endif %}" />
@@ -40,89 +43,85 @@
 
 <!-- JSON-LD Structured Data -->
 <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Person",
-  "name": "Ollayor Maxammadnabiyev",
-  "jobTitle": "Software Engineer",
-  "description": "{{ page_description }}",
-  "url": "{{ request.url_root }}",
-  "image": {
-    "@type": "ImageObject",
-    "url": "{{ page_image }}",
-    "width": 1200,
-    "height": 630
-  },
-  "sameAs": [
-    "https://github.com/ollayor",
-    "https://linkedin.com/in/ollayor",
-    "https://twitter.com/ollayor"
-  ],
-  "knowsAbout": [
-    "Software Development",
-    "Python Programming",
-    "JavaScript",
-    "Web Development",
-    "Computer Science",
-    "Mathematics",
-    "Physics",
-    "Full Stack Development",
-    "Backend Development",
-    "API Development"
-  ],
-  "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": "{{ request.url_root }}"
-  },
-  "address": {
-    "@type": "PostalAddress",
-    "addressCountry": "UZ"
-  }
-}
+	{
+		"@context": "https://schema.org",
+		"@type": "Person",
+		"name": "Ollayor Maxammadnabiyev",
+		"jobTitle": "Software Engineer",
+		"description": "{{ page_description }}",
+		"url": "{{ request.url_root }}",
+		"image": {
+			"@type": "ImageObject",
+			"url": "{{ page_image }}",
+			"width": 1200,
+			"height": 630
+		},
+		"sameAs": ["https://github.com/ollayor", "https://linkedin.com/in/ollayor", "https://twitter.com/ollayor"],
+		"knowsAbout": [
+			"Software Development",
+			"Python Programming",
+			"JavaScript",
+			"Web Development",
+			"Computer Science",
+			"Mathematics",
+			"Physics",
+			"Full Stack Development",
+			"Backend Development",
+			"API Development"
+		],
+		"mainEntityOfPage": {
+			"@type": "WebPage",
+			"@id": "{{ request.url_root }}"
+		},
+		"address": {
+			"@type": "PostalAddress",
+			"addressCountry": "UZ"
+		}
+	}
 </script>
 
 <!-- Website/Blog JSON-LD -->
 <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Website",
-  "name": "{{ site_name }}",
-  "description": "{{ page_description }}",
-  "url": "{{ request.url_root }}",
-  "author": {
-    "@type": "Person",
-    "name": "Ollayor Maxammadnabiyev"
-  },
-  "publisher": {
-    "@type": "Person",
-    "name": "Ollayor Maxammadnabiyev",
-    "image": "{{ page_image }}"
-  }
-}
+	{
+		"@context": "https://schema.org",
+		"@type": "Website",
+		"name": "{{ site_name }}",
+		"description": "{{ page_description }}",
+		"url": "{{ request.url_root }}",
+		"author": {
+			"@type": "Person",
+			"name": "Ollayor Maxammadnabiyev"
+		},
+		"publisher": {
+			"@type": "Person",
+			"name": "Ollayor Maxammadnabiyev",
+			"image": "{{ page_image }}"
+		}
+	}
 </script>
 
 {% if page_type == 'article' %}
 <!-- Article JSON-LD for blog posts -->
 <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": "{{ page_title }}",
-  "description": "{{ page_description }}",
-  "image": "{{ page_image }}",
-  "url": "{{ page_url }}",
-  "datePublished": "{{ article_date or '' }}",
-  "dateModified": "{{ article_modified or article_date or '' }}",
-  "author": {
-    "@type": "Person",
-    "name": "Ollayor Maxammadnabiyev",
-    "image": "{{ url_for('static', filename='myself.jpg', _external=True) }}"
-  },
-  "publisher": {
-    "@type": "Person",
-    "name": "Ollayor Maxammadnabiyev",
-    "image": "{{ url_for('static', filename='myself.jpg', _external=True) }}"
-  }
-}
+	{
+		"@context": "https://schema.org",
+		"@type": "BlogPosting",
+		"headline": "{{ page_title }}",
+		"description": "{{ page_description }}",
+		"image": "{{ page_image }}",
+		"url": "{{ page_url }}",
+		"datePublished": "{{ article_date or '' }}",
+		"dateModified": "{{ article_modified or article_date or '' }}",
+		"author": {
+			"@type": "Person",
+			"name": "Ollayor Maxammadnabiyev",
+			"image": "{{ url_for('static', filename='myself.jpg', _external=True) }}"
+		},
+		"publisher": {
+			"@type": "Person",
+			"name": "Ollayor Maxammadnabiyev",
+			"image": "{{ url_for('static', filename='myself.jpg', _external=True) }}"
+		}
+	}
 </script>
 {% endif %}
