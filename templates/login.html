@@ -1,88 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
+	<head>
+		<meta charset="UTF-8" />
 
-<head>
-  <meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+		<script src="https://cdn.tailwindcss.com"></script>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+		<title>Login</title>
+		{% include 'analytics.html' %}
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet" />
-  <title>Login</title>
-  {% include 'analytics.html' %}
+		<!-- Yandex.Metrika counter -->
+		<script type="text/javascript">
+			(function (m, e, t, r, i, k, a) {
+				m[i] =
+					m[i] ||
+					function () {
+						(m[i].a = m[i].a || []).push(arguments);
+					};
+				m[i].l = 1 * new Date();
+				for (var j = 0; j < document.scripts.length; j++) {
+					if (document.scripts[j].src === r) {
+						return;
+					}
+				}
+				(k = e.createElement(t)),
+					(a = e.getElementsByTagName(t)[0]),
+					(k.async = 1),
+					(k.src = r),
+					a.parentNode.insertBefore(k, a);
+			})(window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js', 'ym');
 
-  <!-- Yandex.Metrika counter -->
-  <script type="text/javascript">
-    (function (m, e, t, r, i, k, a) {
-      m[i] =
-        m[i] ||
-        function () {
-          (m[i].a = m[i].a || []).push(arguments);
-        };
-      m[i].l = 1 * new Date();
-      for (var j = 0; j < document.scripts.length; j++) {
-        if (document.scripts[j].src === r) {
-          return;
-        }
-      }
-      (k = e.createElement(t)),
-        (a = e.getElementsByTagName(t)[0]),
-        (k.async = 1),
-        (k.src = r),
-        a.parentNode.insertBefore(k, a);
-    })(
-      window,
-      document,
-      "script",
-      "https://mc.yandex.ru/metrika/tag.js",
-      "ym"
-    );
+			ym(96888458, 'init', {
+				clickmap: true,
+				trackLinks: true,
+				accurateTrackBounce: true,
+				webvisor: true,
+			});
+		</script>
+		<noscript>
+			<div>
+				<img src="https://mc.yandex.ru/watch/96888458" style="position: absolute; left: -9999px" alt="" />
+			</div>
+		</noscript>
+		<!-- /Yandex.Metrika counter -->
+	</head>
 
-    ym(96888458, "init", {
-      clickmap: true,
-      trackLinks: true,
-      accurateTrackBounce: true,
-      webvisor: true,
-    });
-  </script>
-  <noscript>
-    <div>
-      <img src="https://mc.yandex.ru/watch/96888458" style="position: absolute; left: -9999px" alt="" />
-    </div>
-  </noscript>
-  <!-- /Yandex.Metrika counter -->
-</head>
-
-<body class="font-inter bg-gray-100 dark:bg-gray-900 flex justify-center items-center h-screen">
-  <div class="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-md text-center w-80">
-    <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200" style="font-family: 'Geist Mono', monospace">
-      Admin Login
-    </h2>
-    <form method="POST" action="{{ url_for('login') }}">
-      <input type="text" name="username" placeholder="Username" required
-        class="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-md mb-4 focus:outline-none focus:border-blue-500 cursor-grab"
-        style="font-family: 'JetBrains Mono', monospace" />
-      <input type="password" name="password" placeholder="Password" required
-        class="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-md mb-4 focus:outline-none focus:border-blue-500 cursor-grab"
-        style="font-family: 'JetBrains Mono', monospace" />
-      <input type="submit" value="Login"
-        class="w-full py-3 text-white bg-green-500 rounded-md cursor-grab hover:bg-green-600"
-        style="font-family: 'JetBrains Mono', monospace" />
-    </form>
-    {% with messages = get_flashed_messages() %} {% if messages %}
-    <ul class="mt-4 text-sm text-red-600">
-      {% for message in messages %}
-      <li style="font-family: 'JetBrains Mono', monospace">{{ message }}</li>
-      {% endfor %}
-    </ul>
-    {% endif %} {% endwith %}
-  </div>
-</body>
-
+	<body class="font-inter bg-gray-100 dark:bg-gray-900 flex justify-center items-center h-screen">
+		<div class="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-md text-center w-80">
+			<h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200" style="font-family: 'Geist Mono', monospace">
+				Admin Login
+			</h2>
+			<form method="POST" action="{{ url_for('login') }}">
+				<input
+					type="text"
+					name="username"
+					placeholder="Username"
+					required
+					class="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-md mb-4 focus:outline-none focus:border-blue-500 cursor-grab"
+					style="font-family: 'JetBrains Mono', monospace"
+				/>
+				<input
+					type="password"
+					name="password"
+					placeholder="Password"
+					required
+					class="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-md mb-4 focus:outline-none focus:border-blue-500 cursor-grab"
+					style="font-family: 'JetBrains Mono', monospace"
+				/>
+				<input
+					type="submit"
+					value="Login"
+					class="w-full py-3 text-white bg-green-500 rounded-md cursor-grab hover:bg-green-600"
+					style="font-family: 'JetBrains Mono', monospace"
+				/>
+			</form>
+			{% with messages = get_flashed_messages() %} {% if messages %}
+			<ul class="mt-4 text-sm text-red-600">
+				{% for message in messages %}
+				<li style="font-family: 'JetBrains Mono', monospace">{{ message }}</li>
+				{% endfor %}
+			</ul>
+			{% endif %} {% endwith %}
+		</div>
+	</body>
 </html>

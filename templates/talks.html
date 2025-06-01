@@ -1,22 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+		<script src="https://cdn.tailwindcss.com"></script>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
+		<title>Talks</title>
+		{% include 'analytics.html' %}
+	</head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
-  <title>Talks</title>
-  {% include 'analytics.html' %}
-</head>
-
-<body class="font-inter bg-gray-50 dark:bg-gray-900 flex flex-col justify-center items-center h-screen">
-  <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">
-    Coming Soon
-  </h1>
-</body>
-
+	<body class="font-inter bg-gray-50 dark:bg-gray-900 flex flex-col justify-center items-center h-screen">
+		<h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">Coming Soon</h1>
+	</body>
 </html>
 <br />

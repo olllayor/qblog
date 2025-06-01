@@ -1,202 +1,224 @@
 <!DOCTYPE html>
 <html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="description" content="Ollayor's Blog - Thoughts on programming and technology" />
+		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+		<script src="https://cdn.tailwindcss.com"></script>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+		<link
+			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Ollayor's Blog - Thoughts on programming and technology" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet" />
+		<style>
+			.nav-link {
+				position: relative;
+			}
 
-  <style>
-    .nav-link {
-      position: relative;
-    }
+			.nav-link::after {
+				content: '';
+				position: absolute;
+				width: 0;
+				height: 2px;
+				bottom: -4px;
+				left: 0;
+				background-color: #3b82f6;
+				transition: width 0.3s ease-in-out;
+			}
 
-    .nav-link::after {
-      content: "";
-      position: absolute;
-      width: 0;
-      height: 2px;
-      bottom: -4px;
-      left: 0;
-      background-color: #3b82f6;
-      transition: width 0.3s ease-in-out;
-    }
+			.nav-link:hover::after {
+				width: 100%;
+			}
+		</style>
+		{% include 'analytics.html' %}
+	</head>
 
-    .nav-link:hover::after {
-      width: 100%;
-    }
-  </style>
-  {% include 'analytics.html' %}
-</head>
+	<body class="font-inter bg-gray-50 dark:bg-gray-900">
+		<header class="bg-white dark:bg-gray-800 shadow-sm fixed w-full top-0 z-50">
+			<div class="container mx-auto px-4 sm:px-6 lg:px-8">
+				<div class="flex justify-between items-center h-16">
+					<div class="flex-shrink-0">
+						<a href="{{ url_for('index') }}" class="group flex items-center space-x-2">
+							<h1
+								class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent transition-all duration-300 ease-in-out transform group-hover:scale-105"
+								style="font-family: 'Geist Mono', monospace"
+							>
+								Ollayor's Blog
+							</h1>
+						</a>
+					</div>
 
-<body class="font-inter bg-gray-50 dark:bg-gray-900">
-  <header class="bg-white dark:bg-gray-800 shadow-sm fixed w-full top-0 z-50">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between items-center h-16">
-        <div class="flex-shrink-0">
-          <a href="{{ url_for('index') }}" class="group flex items-center space-x-2">
-            <h1
-              class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent transition-all duration-300 ease-in-out transform group-hover:scale-105"
-              style="font-family: 'Geist Mono', monospace">
-              Ollayor's Blog
-            </h1>
-          </a>
-        </div>
+					<button
+						id="toggle"
+						class="lg:hidden p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					>
+						<span class="block w-6 h-0.5 bg-gray-600 dark:bg-gray-300 transition-all duration-300 mb-1.5"></span>
+						<span class="block w-6 h-0.5 bg-gray-600 dark:bg-gray-300 transition-all duration-300 mb-1.5"></span>
+						<span class="block w-6 h-0.5 bg-gray-600 dark:bg-gray-300 transition-all duration-300"></span>
+					</button>
 
-        <button id="toggle"
-          class="lg:hidden p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <span class="block w-6 h-0.5 bg-gray-600 dark:bg-gray-300 transition-all duration-300 mb-1.5"></span>
-          <span class="block w-6 h-0.5 bg-gray-600 dark:bg-gray-300 transition-all duration-300 mb-1.5"></span>
-          <span class="block w-6 h-0.5 bg-gray-600 dark:bg-gray-300 transition-all duration-300"></span>
-        </button>
+					<nav class="hidden lg:flex items-center space-x-8">
+						<a
+							href="{{ url_for('blog') }}"
+							class="nav-link text-gray-600 dark:text-gray-300 hover:text-blue-600 font-medium transition-colors duration-200"
+							style="font-family: 'JetBrains Mono', monospace"
+							>Blog</a
+						>
+						<a
+							href="{{ url_for('projects') }}"
+							class="nav-link text-gray-600 dark:text-gray-300 hover:text-blue-600 font-medium transition-colors duration-200"
+							style="font-family: 'JetBrains Mono', monospace"
+							>Projects</a
+						>
+						<a
+							href="{{ url_for('talks') }}"
+							class="nav-link text-gray-600 dark:text-gray-300 hover:text-blue-600 font-medium transition-colors duration-200"
+							style="font-family: 'JetBrains Mono', monospace"
+							>Talks</a
+						>
+						<a
+							href="https://t.me/Qprogrammer"
+							class="flex items-center space-x-1 px-4 py-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200"
+							style="font-family: 'JetBrains Mono', monospace"
+						>
+							<i class="fab fa-telegram-plane"></i>
+							<span>Channel</span>
+						</a>
+					</nav>
+				</div>
+			</div>
 
-        <nav class="hidden lg:flex items-center space-x-8">
-          <a href="{{ url_for('blog') }}"
-            class="nav-link text-gray-600 dark:text-gray-300 hover:text-blue-600 font-medium transition-colors duration-200"
-            style="font-family: 'JetBrains Mono', monospace">Blog</a>
-          <a href="{{ url_for('projects') }}"
-            class="nav-link text-gray-600 dark:text-gray-300 hover:text-blue-600 font-medium transition-colors duration-200"
-            style="font-family: 'JetBrains Mono', monospace">Projects</a>
-          <a href="{{ url_for('talks') }}"
-            class="nav-link text-gray-600 dark:text-gray-300 hover:text-blue-600 font-medium transition-colors duration-200"
-            style="font-family: 'JetBrains Mono', monospace">Talks</a>
-          <a href="https://t.me/Qprogrammer"
-            class="flex items-center space-x-1 px-4 py-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200"
-            style="font-family: 'JetBrains Mono', monospace">
-            <i class="fab fa-telegram-plane"></i>
-            <span>Channel</span>
-          </a>
+			<!-- Mobile menu -->
+			<div id="mobile-menu" class="lg:hidden hidden">
+				<div class="px-2 pt-2 pb-3 space-y-1 bg-white dark:bg-gray-800 border-t dark:border-gray-700">
+					<a
+						href="{{ url_for('blog') }}"
+						class="block px-3 py-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-blue-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+						style="font-family: 'JetBrains Mono', monospace"
+						>Blog</a
+					>
+					<a
+						href="{{ url_for('projects') }}"
+						class="block px-3 py-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-blue-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+						style="font-family: 'JetBrains Mono', monospace"
+						>Projects</a
+					>
+					<a
+						href="{{ url_for('talks') }}"
+						class="block px-3 py-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-blue-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+						style="font-family: 'JetBrains Mono', monospace"
+						>Talks</a
+					>
+					<a
+						href="https://t.me/Qprogrammer"
+						class="block px-3 py-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-blue-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+						style="font-family: 'JetBrains Mono', monospace"
+					>
+						<i class="fab fa-telegram-plane mr-2"></i>Channel
+					</a>
+				</div>
+			</div>
+		</header>
 
+		<!-- Main content padding to account for fixed header -->
+		<main class="pt-16">
+			<!-- Your page content goes here -->
+		</main>
 
-        </nav>
-      </div>
-    </div>
+		<script>
+			const toggle = document.getElementById('toggle');
+			const mobileMenu = document.getElementById('mobile-menu');
+			let isOpen = false;
 
-    <!-- Mobile menu -->
-    <div id="mobile-menu" class="lg:hidden hidden">
-      <div class="px-2 pt-2 pb-3 space-y-1 bg-white dark:bg-gray-800 border-t dark:border-gray-700">
-        <a href="{{ url_for('blog') }}"
-          class="block px-3 py-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-blue-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
-          style="font-family: 'JetBrains Mono', monospace">Blog</a>
-        <a href="{{ url_for('projects') }}"
-          class="block px-3 py-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-blue-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
-          style="font-family: 'JetBrains Mono', monospace">Projects</a>
-        <a href="{{ url_for('talks') }}"
-          class="block px-3 py-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-blue-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
-          style="font-family: 'JetBrains Mono', monospace">Talks</a>
-        <a href="https://t.me/Qprogrammer"
-          class="block px-3 py-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-blue-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
-          style="font-family: 'JetBrains Mono', monospace">
-          <i class="fab fa-telegram-plane mr-2"></i>Channel
-        </a>
-      </div>
-    </div>
-  </header>
+			function toggleMenu() {
+				isOpen = !isOpen;
+				mobileMenu.classList.toggle('hidden');
 
-  <!-- Main content padding to account for fixed header -->
-  <main class="pt-16">
-    <!-- Your page content goes here -->
-  </main>
+				// Animate hamburger to X
+				const spans = toggle.getElementsByTagName('span');
+				if (isOpen) {
+					spans[0].style.transform = 'rotate(45deg) translate(5px, 5px)';
+					spans[1].style.opacity = '0';
+					spans[2].style.transform = 'rotate(-45deg) translate(5px, -5px)';
+				} else {
+					spans[0].style.transform = 'none';
+					spans[1].style.opacity = '1';
+					spans[2].style.transform = 'none';
+				}
+			}
 
-  <script>
-    const toggle = document.getElementById("toggle");
-    const mobileMenu = document.getElementById("mobile-menu");
-    let isOpen = false;
+			toggle.addEventListener('click', toggleMenu);
 
-    function toggleMenu() {
-      isOpen = !isOpen;
-      mobileMenu.classList.toggle("hidden");
+			// Close mobile menu when clicking outside
+			document.addEventListener('click', (e) => {
+				if (isOpen && !toggle.contains(e.target) && !mobileMenu.contains(e.target)) {
+					toggleMenu();
+				}
+			});
 
-      // Animate hamburger to X
-      const spans = toggle.getElementsByTagName("span");
-      if (isOpen) {
-        spans[0].style.transform = "rotate(45deg) translate(5px, 5px)";
-        spans[1].style.opacity = "0";
-        spans[2].style.transform = "rotate(-45deg) translate(5px, -5px)";
-      } else {
-        spans[0].style.transform = "none";
-        spans[1].style.opacity = "1";
-        spans[2].style.transform = "none";
-      }
-    }
+			// Close mobile menu when clicking links
+			const mobileLinks = mobileMenu.getElementsByTagName('a');
+			for (const link of mobileLinks) {
+				link.addEventListener('click', () => {
+					if (isOpen) toggleMenu();
+				});
+			}
 
-    toggle.addEventListener("click", toggleMenu);
+			// Handle window resize
+			window.addEventListener('resize', () => {
+				if (window.innerWidth >= 1024 && isOpen) {
+					toggleMenu();
+				}
+			});
 
-    // Close mobile menu when clicking outside
-    document.addEventListener("click", (e) => {
-      if (
-        isOpen &&
-        !toggle.contains(e.target) &&
-        !mobileMenu.contains(e.target)
-      ) {
-        toggleMenu();
-      }
-    });
+			// Dark Mode Toggle Script
+			function setTheme() {
+				const isDark =
+					localStorage.theme === 'dark' ||
+					(!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
-    // Close mobile menu when clicking links
-    const mobileLinks = mobileMenu.getElementsByTagName("a");
-    for (const link of mobileLinks) {
-      link.addEventListener("click", () => {
-        if (isOpen) toggleMenu();
-      });
-    }
+				// Apply the theme to the <html> element
+				document.documentElement.classList.toggle('dark', isDark);
 
-    // Handle window resize
-    window.addEventListener("resize", () => {
-      if (window.innerWidth >= 1024 && isOpen) {
-        toggleMenu();
-      }
-    });
+				// Update the icon based on the theme
+				const themeIcon = document.getElementById('theme-icon');
+				if (isDark) {
+					themeIcon.classList.replace('fa-moon', 'fa-sun'); // Show sun icon for dark mode
+				} else {
+					themeIcon.classList.replace('fa-sun', 'fa-moon'); // Show moon icon for light mode
+				}
+			}
 
-    // Dark Mode Toggle Script
-    function setTheme() {
-      const isDark =
-        localStorage.theme === 'dark' ||
-        (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+			// Set the initial theme when the page loads
+			setTheme();
 
-      // Apply the theme to the <html> element
-      document.documentElement.classList.toggle('dark', isDark);
+			// Add event listener to the theme toggle button
+			document.getElementById('theme-toggle').addEventListener('click', () => {
+				// Toggle the theme in localStorage
+				const isDark = document.documentElement.classList.toggle('dark');
+				localStorage.theme = isDark ? 'dark' : 'light';
 
-      // Update the icon based on the theme
-      const themeIcon = document.getElementById('theme-icon');
-      if (isDark) {
-        themeIcon.classList.replace('fa-moon', 'fa-sun'); // Show sun icon for dark mode
-      } else {
-        themeIcon.classList.replace('fa-sun', 'fa-moon'); // Show moon icon for light mode
-      }
-    }
+				// Update the icon
+				const themeIcon = document.getElementById('theme-icon');
+				if (isDark) {
+					themeIcon.classList.replace('fa-moon', 'fa-sun'); // Show sun icon for dark mode
+				} else {
+					themeIcon.classList.replace('fa-sun', 'fa-moon'); // Show moon icon for light mode
+				}
+			});
 
-    // Set the initial theme when the page loads
-    setTheme();
-
-    // Add event listener to the theme toggle button
-    document.getElementById('theme-toggle').addEventListener('click', () => {
-      // Toggle the theme in localStorage
-      const isDark = document.documentElement.classList.toggle('dark');
-      localStorage.theme = isDark ? 'dark' : 'light';
-
-      // Update the icon
-      const themeIcon = document.getElementById('theme-icon');
-      if (isDark) {
-        themeIcon.classList.replace('fa-moon', 'fa-sun'); // Show sun icon for dark mode
-      } else {
-        themeIcon.classList.replace('fa-sun', 'fa-moon'); // Show moon icon for light mode
-      }
-    });
-
-    // Watch for system theme changes
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-      if (!('theme' in localStorage)) {
-        setTheme(); // Update theme if no preference is set in localStorage
-      }
-    });
-  </script>
-</body>
-
+			// Watch for system theme changes
+			window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+				if (!('theme' in localStorage)) {
+					setTheme(); // Update theme if no preference is set in localStorage
+				}
+			});
+		</script>
+	</body>
 </html>

@@ -1,113 +1,141 @@
-<body
-  class="font-inter bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 min-h-screen flex flex-col"
->
-  {% include 'header.html' %}
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta
+			name="description"
+			content="Ollayor Maxammadnabiyev - Software Engineer passionate about code, math, physics, and computer science"
+		/>
+		<!-- Favicon with multiple formats and cache busting -->
+		<link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}?v=2" />
+		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}?v=2" />
+		<link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}?v=2" />
+		<script src="https://cdn.tailwindcss.com"></script>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+		<link
+			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+		<title>Ollayor Maxammadnabiyev - Software Engineer</title>
+		{% include 'analytics.html' %}
+	</head>
 
-  <main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8">
-    <section class="max-w-2xl mx-auto mt-28 text-center">
-      <!-- Profile Image with Ring Effect -->
-      <div class="relative inline-block">
-        <div
-          class="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full blur-md transform scale-110"
-        ></div>
-        <img
-          src="{{ url_for('static', filename='myself.jpg') }}"
-          alt="Ollayor Maxammadnabiyev"
-          class="relative w-36 h-36 rounded-full border-4 border-white dark:border-gray-700 object-cover shadow-lg"
-        />
-      </div>
+	<body
+		class="font-inter bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 min-h-screen flex flex-col"
+	>
+		{% include 'header.html' %}
 
-      <!-- Profile Content -->
-      <div class="mt-6 space-y-4">
-        <h1
-          class="text-4xl font-bold text-gray-800 dark:text-gray-200 transition-all duration-300 hover:text-gray-900 dark:hover:text-gray-100"
-          style="font-family: 'Geist Mono', monospace"
-        >
-          Ollayor Maxammadnabiyev
-        </h1>
+		<main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8">
+			<section class="max-w-2xl mx-auto mt-28 text-center">
+				<!-- Profile Image with Ring Effect -->
+				<div class="relative inline-block">
+					<div
+						class="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full blur-md transform scale-110"
+					></div>
+					<img
+						src="{{ url_for('static', filename='myself.jpg') }}"
+						alt="Ollayor Maxammadnabiyev"
+						class="relative w-36 h-36 rounded-full border-4 border-white dark:border-gray-700 object-cover shadow-lg"
+					/>
+				</div>
 
-        <h2
-          class="text-xl text-gray-600 dark:text-gray-400 font-medium transition-all duration-300 hover:text-gray-700 dark:hover:text-gray-300"
-          style="font-family: 'JetBrains Mono', monospace"
-        >
-          Software Engineer
-        </h2>
+				<!-- Profile Content -->
+				<div class="mt-6 space-y-4">
+					<h1
+						class="text-4xl font-bold text-gray-800 dark:text-gray-200 transition-all duration-300 hover:text-gray-900 dark:hover:text-gray-100"
+						style="font-family: 'Geist Mono', monospace"
+					>
+						Ollayor Maxammadnabiyev
+					</h1>
 
-        <p
-          class="text-gray-600 dark:text-gray-400 max-w-lg mx-auto transition-all duration-300 hover:text-gray-700 dark:hover:text-gray-300"
-          style="font-family: 'JetBrains Mono', monospace"
-        >
-          I like code, read, math, phy, cs and whatever makes a dent in the universe.
-        </p>
+					<h2
+						class="text-xl text-gray-600 dark:text-gray-400 font-medium transition-all duration-300 hover:text-gray-700 dark:hover:text-gray-300"
+						style="font-family: 'JetBrains Mono', monospace"
+					>
+						Software Engineer
+					</h2>
 
-        <!-- Social Links -->
-        <div class="flex justify-center space-x-6 mt-6">
-          <a
-            href="https://youtube.com"
-            target="_blank"
-            class="text-2xl text-gray-700 dark:text-gray-300 hover:text-red-600 transform transition-all duration-300 hover:-translate-y-1"
-          >
-            <i class="fab fa-youtube"></i>
-          </a>
-          <a
-            href="https://twitter.com/olllayor"
-            target="_blank"
-            class="text-2xl text-gray-700 dark:text-gray-300 hover:text-blue-400 transform transition-all duration-300 hover:-translate-y-1"
-          >
-            <i class="fab fa-twitter"></i>
-          </a>
-          <a
-            href="https://github.com/olllayor"
-            target="_blank"
-            class="text-2xl text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transform transition-all duration-300 hover:-translate-y-1"
-          >
-            <i class="fab fa-github"></i>
-          </a>
-          <a
-            href="https://www.linkedin.com/in/olllayor/"
-            target="_blank"
-            class="text-2xl text-gray-700 dark:text-gray-300 hover:text-blue-700 transform transition-all duration-300 hover:-translate-y-1"
-          >
-            <i class="fab fa-linkedin"></i>
-          </a>
-          <a
-            href="https://t.me/@Qprogrammer"
-            target="_blank"
-            class="text-2xl text-gray-700 dark:text-gray-300 hover:text-blue-500 transform transition-all duration-300 hover:-translate-y-1"
-          >
-            <i class="fab fa-telegram-plane"></i>
-          </a>
-        </div>
+					<p
+						class="text-gray-600 dark:text-gray-400 max-w-lg mx-auto transition-all duration-300 hover:text-gray-700 dark:hover:text-gray-300"
+						style="font-family: 'JetBrains Mono', monospace"
+					>
+						I like code, read, math, phy, cs and whatever makes a dent in the universe.
+					</p>
 
-        <!-- Action Buttons -->
-        <div class="flex flex-wrap justify-center gap-4 mt-8">
-          <a
-            href="{{ url_for('blog') }}"
-            class="group relative inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 hover:bg-blue-700"
-            style="font-family: 'JetBrains Mono', monospace"
-          >
-            <span
-              class="absolute inset-0 w-full h-full transition-all duration-300 transform translate-x-full group-hover:translate-x-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0"
-            ></span>
-            <i class="fas fa-book-reader mr-2"></i>
-            Read Blog
-          </a>
+					<!-- Social Links -->
+					<div class="flex justify-center space-x-6 mt-6">
+						<a
+							href="https://youtube.com"
+							target="_blank"
+							class="text-2xl text-gray-700 dark:text-gray-300 hover:text-red-600 transform transition-all duration-300 hover:-translate-y-1"
+						>
+							<i class="fab fa-youtube"></i>
+						</a>
+						<a
+							href="https://twitter.com/olllayor"
+							target="_blank"
+							class="text-2xl text-gray-700 dark:text-gray-300 hover:text-blue-400 transform transition-all duration-300 hover:-translate-y-1"
+						>
+							<i class="fab fa-twitter"></i>
+						</a>
+						<a
+							href="https://github.com/olllayor"
+							target="_blank"
+							class="text-2xl text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transform transition-all duration-300 hover:-translate-y-1"
+						>
+							<i class="fab fa-github"></i>
+						</a>
+						<a
+							href="https://www.linkedin.com/in/olllayor/"
+							target="_blank"
+							class="text-2xl text-gray-700 dark:text-gray-300 hover:text-blue-700 transform transition-all duration-300 hover:-translate-y-1"
+						>
+							<i class="fab fa-linkedin"></i>
+						</a>
+						<a
+							href="https://t.me/@Qprogrammer"
+							target="_blank"
+							class="text-2xl text-gray-700 dark:text-gray-300 hover:text-blue-500 transform transition-all duration-300 hover:-translate-y-1"
+						>
+							<i class="fab fa-telegram-plane"></i>
+						</a>
+					</div>
 
-          <a
-            href="{{ url_for('cv_redirect') }}"
-            class="group relative inline-flex items-center px-6 py-3 bg-gray-800 text-white font-semibold rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 hover:bg-gray-900"
-            style="font-family: 'JetBrains Mono', monospace"
-          >
-            <span
-              class="absolute inset-0 w-full h-full transition-all duration-300 transform translate-x-full group-hover:translate-x-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0"
-            ></span>
-            <i class="fas fa-user-circle mr-2"></i>
-            About Me
-          </a>
-        </div>
-      </div>
-    </section>
-  </main>
+					<!-- Action Buttons -->
+					<div class="flex flex-wrap justify-center gap-4 mt-8">
+						<a
+							href="{{ url_for('blog') }}"
+							class="group relative inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 hover:bg-blue-700"
+							style="font-family: 'JetBrains Mono', monospace"
+						>
+							<span
+								class="absolute inset-0 w-full h-full transition-all duration-300 transform translate-x-full group-hover:translate-x-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0"
+							></span>
+							<i class="fas fa-book-reader mr-2"></i>
+							Read Blog
+						</a>
 
-  {% include 'footer.html' %}
-</body>
+						<a
+							href="{{ url_for('cv_redirect') }}"
+							class="group relative inline-flex items-center px-6 py-3 bg-gray-800 text-white font-semibold rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 hover:bg-gray-900"
+							style="font-family: 'JetBrains Mono', monospace"
+						>
+							<span
+								class="absolute inset-0 w-full h-full transition-all duration-300 transform translate-x-full group-hover:translate-x-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0"
+							></span>
+							<i class="fas fa-user-circle mr-2"></i>
+							About Me
+						</a>
+					</div>
+				</div>
+			</section>
+		</main>
+
+		{% include 'footer.html' %}
+	</body>
+</html>

@@ -1,84 +1,112 @@
-<htm <title>Publish Article</title>
-  <!-- Include Quill stylesheet -->
-  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  {% include 'analytics.html' %}meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Publish Article</title>
-  <!-- Include Quill stylesheet -->
-  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  </head>
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Publish Article</title>
+		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+		<!-- Include Quill stylesheet -->
+		<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+		<script src="https://cdn.tailwindcss.com"></script>
+		{% include 'analytics.html' %}
+	</head>
 
-  <body class="font-inter bg-white dark:bg-gray-900 flex justify-center items-center h-screen">
-    <div id="form-container" class="bg-white dark:bg-gray-800 p-10 rounded-lg w-[700px] shadow-lg">
-      <form action="" method="POST">
-        <input type="text" id="title" name="title" placeholder="Title" required spellcheck="false"
-          class="w-[calc(100%-36px)] mb-5 p-4 border border-gray-300 dark:border-gray-700 rounded-md text-lg font-bold bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200"
-          style="font-family: 'JetBrains Mono', monospace" value="{{article.title if article else ''}}" />
-        <input type="hidden" name="content" id="content" value="{{article.content if article else ''}}" />
-        <div class="flex items-center mb-4">
-          <input type="checkbox" id="is_published" name="is_published" class="mr-2" {% if article and
-            article.is_published %} checked {% endif %} />
-          <label for="is_published" class="text-gray-700 dark:text-gray-300"
-            style="font-family: 'JetBrains Mono', monospace">Publish Now?</label>
-        </div>
-        <div id="editor"
-          class="h-[300px] bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md p-1 shadow-sm cursor-text text-gray-800 dark:text-gray-200">
-        </div>
+	<body class="font-inter bg-white dark:bg-gray-900 flex justify-center items-center h-screen">
+		<div id="form-container" class="bg-white dark:bg-gray-800 p-10 rounded-lg w-[700px] shadow-lg">
+			<form action="" method="POST">
+				<input
+					type="text"
+					id="title"
+					name="title"
+					placeholder="Title"
+					required
+					spellcheck="false"
+					class="w-[calc(100%-36px)] mb-5 p-4 border border-gray-300 dark:border-gray-700 rounded-md text-lg font-bold bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200"
+					style="font-family: 'JetBrains Mono', monospace"
+					value="{{article.title if article else ''}}"
+				/>
+				<input type="hidden" name="content" id="content" value="{{article.content if article else ''}}" />
+				<div class="flex items-center mb-4">
+					<input
+						type="checkbox"
+						id="is_published"
+						name="is_published"
+						class="mr-2"
+						{%
+						if
+						article
+						and
+						article.is_published
+						%}
+						checked
+						{%
+						endif
+						%}
+					/>
+					<label
+						for="is_published"
+						class="text-gray-700 dark:text-gray-300"
+						style="font-family: 'JetBrains Mono', monospace"
+						>Publish Now?</label
+					>
+				</div>
+				<div
+					id="editor"
+					class="h-[300px] bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md p-1 shadow-sm cursor-text text-gray-800 dark:text-gray-200"
+				></div>
 
-        <button type="submit" id="publish-button"
-          class="bg-white dark:bg-gray-800 text-black dark:text-white border-2 border-black dark:border-gray-700 font-bold py-2 px-4 rounded-2xl uppercase float-right mt-4 text-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
-          style="font-family: 'JetBrains Mono', monospace">
-          PUBLISH
-        </button>
-      </form>
-    </div>
+				<button
+					type="submit"
+					id="publish-button"
+					class="bg-white dark:bg-gray-800 text-black dark:text-white border-2 border-black dark:border-gray-700 font-bold py-2 px-4 rounded-2xl uppercase float-right mt-4 text-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+					style="font-family: 'JetBrains Mono', monospace"
+				>
+					PUBLISH
+				</button>
+			</form>
+		</div>
 
-    <!-- Include Quill library -->
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-    <!-- Initialize Quill editor -->
-    <script>
-      var toolbarOptions = [
-        [{ font: [] }],
-        ["bold", "italic", "underline", "strike"], // toggled buttons
-        ["image", "code-block"],
-        ["blockquote"],
-        [{ list: "ordered" }, { list: "bullet" }],
-        ["clean"], // remove formatting button
-      ];
-      var quill = new Quill("#editor", {
-        modules: {
-          toolbar: toolbarOptions,
-        },
-        placeholder: "Your story...",
-        theme: "snow",
-      });
+		<!-- Include Quill library -->
+		<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+		<!-- Initialize Quill editor -->
+		<script>
+			var toolbarOptions = [
+				[{ font: [] }],
+				['bold', 'italic', 'underline', 'strike'], // toggled buttons
+				['image', 'code-block'],
+				['blockquote'],
+				[{ list: 'ordered' }, { list: 'bullet' }],
+				['clean'], // remove formatting button
+			];
+			var quill = new Quill('#editor', {
+				modules: {
+					toolbar: toolbarOptions,
+				},
+				placeholder: 'Your story...',
+				theme: 'snow',
+			});
 
-      // Set spellcheck to false after initializing Quill
-      quill.root.setAttribute("spellcheck", false);
+			// Set spellcheck to false after initializing Quill
+			quill.root.setAttribute('spellcheck', false);
 
-      var form = document.querySelector("form");
-      form.onsubmit = function () {
-        // Set the value of the hidden input to the HTML from the Quill editor
-        var content = document.querySelector("input[name=content]");
-        content.value = quill.root.innerHTML;
-      };
-      var quillContent = document.getElementById("content").value;
-      quill.root.innerHTML = quillContent;
-    </script>
-  </body>
-
-  </html>
+			var form = document.querySelector('form');
+			form.onsubmit = function () {
+				// Set the value of the hidden input to the HTML from the Quill editor
+				var content = document.querySelector('input[name=content]');
+				content.value = quill.root.innerHTML;
+			};
+			var quillContent = document.getElementById('content').value;
+			quill.root.innerHTML = quillContent;
+		</script>
+	</body>
+</html>

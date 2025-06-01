@@ -1,153 +1,190 @@
 <!DOCTYPE html>
 <html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+		<script src="https://cdn.tailwindcss.com"></script>
+		<link
+			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+		<link
+			rel="stylesheet"
+			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+			integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+			crossorigin="anonymous"
+			referrerpolicy="no-referrer"
+		/>
+		<title>Projects</title>
+		{% include 'analytics.html' %}
+	</head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-    integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
-    crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <title>Projects</title>
-  {% include 'analytics.html' %}
-</head>
+	<body class="font-inter bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
+		{% include 'header.html' %}
+		<main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+			<h1
+				class="text-center text-4xl font-bold text-gray-800 dark:text-gray-200 mb-12"
+				style="font-family: 'Geist Mono', monospace"
+			>
+				My Projects
+			</h1>
 
-<body class="font-inter bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
-  {% include 'header.html' %}
-  <main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <h1 class="text-center text-4xl font-bold text-gray-800 dark:text-gray-200 mb-12"
-      style="font-family: 'Geist Mono', monospace">
-      My Projects
-    </h1>
+			{% if projects %}
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+				{% for project in projects %}
+				<div
+					class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105"
+				>
+					{% if project.image_url %}
+					<div class="cursor-pointer h-48 overflow-hidden" onclick="openModal('{{ project.image_url }}')">
+						<img
+							src="{{ project.image_url }}"
+							alt="{{ project.title }} Thumbnail"
+							class="w-full h-48 object-cover transition-transform duration-300 hover:scale-110"
+							loading="lazy"
+						/>
+					</div>
+					{% else %}
+					<div class="h-48 overflow-hidden">
+						<img
+							src="https://via.placeholder.com/400x250"
+							alt="{{ project.title }} Thumbnail - Placeholder"
+							class="w-full h-48 object-cover"
+							loading="lazy"
+						/>
+					</div>
+					{% endif %}
+					<div class="p-6">
+						<h2
+							class="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-2"
+							style="font-family: 'Geist', monospace"
+						>
+							{{ project.title }}
+						</h2>
+						<div class="description-area mb-4">
+							{% if project.description %}
+							<p
+								class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed project-description"
+								style="font-family: 'Geist', monospace"
+							>
+								{{ project.description | e }}
+							</p>
+							{% else %}
+							<p class="text-gray-600 dark:text-gray-400 text-sm italic">No description available.</p>
+							{% endif %}
+						</div>
+						<!-- Technologies -->
+						{% if project.technologies %}
+						<div class="mb-4 flex flex-wrap gap-2">
+							{% for tech in project.technologies %}
+							<span
+								class="inline-block bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-300 text-xs font-semibold px-2.5 py-0.5 rounded"
+								style="font-family: 'Geist Mono', monospace"
+								>{{ tech }}</span
+							>
+							{% endfor %}
+						</div>
+						{% endif %}
+						<div class="flex space-x-4">
+							{% if project.github_link %}
+							<a
+								href="{{ project.github_link }}"
+								target="_blank"
+								rel="noopener noreferrer"
+								class="text-blue-500 hover:text-blue-700 dark:hover:text-blue-400 font-medium transition-colors duration-300"
+								style="font-family: 'JetBrains Mono', monospace"
+							>
+								<i class="fab fa-github mr-1"></i> GitHub
+							</a>
+							{% endif %} {% if project.live_demo_link %}
+							<a
+								href="{{ project.live_demo_link }}"
+								target="_blank"
+								rel="noopener noreferrer"
+								class="text-green-500 hover:text-green-700 dark:hover:text-green-400 font-medium transition-colors duration-300"
+								style="font-family: 'JetBrains Mono', monospace"
+							>
+								<i class="fas fa-external-link-alt mr-1"></i> Live Demo
+							</a>
+							{% endif %}
+						</div>
+					</div>
+				</div>
+				{% endfor %}
+			</div>
+			{% else %}
+			<div class="text-center py-12">
+				<p class="text-gray-600 dark:text-gray-400 text-lg" style="font-family: 'JetBrains Mono', monospace">
+					No projects have been added yet. Check back soon!
+				</p>
+			</div>
+			{% endif %}
+		</main>
+		{% include 'footer.html' %}
 
-    {% if projects %}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {% for project in projects %}
-      <div
-        class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105">
-        {% if project.image_url %}
-        <div class="cursor-pointer h-48 overflow-hidden" onclick="openModal('{{ project.image_url }}')">
-          <img src="{{ project.image_url }}" alt="{{ project.title }} Thumbnail"
-            class="w-full h-48 object-cover transition-transform duration-300 hover:scale-110" loading="lazy" />
-        </div>
-        {% else %}
-        <div class="h-48 overflow-hidden">
-          <img src="https://via.placeholder.com/400x250" alt="{{ project.title }} Thumbnail - Placeholder"
-            class="w-full h-48 object-cover" loading="lazy" />
-        </div>
-        {% endif %}
-        <div class="p-6">
-          <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-2"
-            style="font-family: 'Geist', monospace">
-            {{ project.title }}
-          </h2>
-          <div class="description-area mb-4">
-            {% if project.description %}
-            <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed project-description"
-              style="font-family: 'Geist', monospace">
-              {{ project.description | e }}
-            </p>
-            {% else %}
-            <p class="text-gray-600 dark:text-gray-400 text-sm italic">
-              No description available.
-            </p>
-            {% endif %}
-          </div>
-          <!-- Technologies -->
-          {% if project.technologies %}
-          <div class="mb-4 flex flex-wrap gap-2">
-            {% for tech in project.technologies %}
-            <span
-              class="inline-block bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-300 text-xs font-semibold px-2.5 py-0.5 rounded"
-              style="font-family: 'Geist Mono', monospace">{{ tech }}</span>
-            {% endfor %}
-          </div>
-          {% endif %}
-          <div class="flex space-x-4">
-            {% if project.github_link %}
-            <a href="{{ project.github_link }}" target="_blank" rel="noopener noreferrer"
-              class="text-blue-500 hover:text-blue-700 dark:hover:text-blue-400 font-medium transition-colors duration-300"
-              style="font-family: 'JetBrains Mono', monospace">
-              <i class="fab fa-github mr-1"></i> GitHub
-            </a>
-            {% endif %}
-            {% if project.live_demo_link %}
-            <a href="{{ project.live_demo_link }}" target="_blank" rel="noopener noreferrer"
-              class="text-green-500 hover:text-green-700 dark:hover:text-green-400 font-medium transition-colors duration-300"
-              style="font-family: 'JetBrains Mono', monospace">
-              <i class="fas fa-external-link-alt mr-1"></i> Live Demo
-            </a>
-            {% endif %}
-          </div>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-    {% else %}
-    <div class="text-center py-12">
-      <p class="text-gray-600 dark:text-gray-400 text-lg" style="font-family: 'JetBrains Mono', monospace;">
-        No projects have been added yet. Check back soon!
-      </p>
-    </div>
-    {% endif %}
-  </main>
-  {% include 'footer.html' %}
+		<!-- Image Modal -->
+		<div
+			id="imageModal"
+			class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4 opacity-0 pointer-events-none transition-opacity duration-300 ease-in-out"
+		>
+			<img
+				id="modalImage"
+				src=""
+				alt="Project Image"
+				class="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+			/>
+			<span class="absolute top-4 right-6 text-white text-4xl cursor-pointer hover:text-gray-300" onclick="closeModal()"
+				>&times;</span
+			>
+		</div>
 
-  <!-- Image Modal -->
-  <div id="imageModal"
-    class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4 opacity-0 pointer-events-none transition-opacity duration-300 ease-in-out">
-    <img id="modalImage" src="" alt="Project Image" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl">
-    <span class="absolute top-4 right-6 text-white text-4xl cursor-pointer hover:text-gray-300"
-      onclick="closeModal()">&times;</span>
-  </div>
+		<script>
+			function openModal(imageUrl) {
+				const modal = document.getElementById('imageModal');
+				const modalImage = document.getElementById('modalImage');
+				if (modal && modalImage) {
+					modalImage.src = imageUrl;
+					modal.classList.remove('opacity-0', 'pointer-events-none');
+					modal.classList.add('opacity-100');
+					document.body.style.overflow = 'hidden'; // Prevent background scrolling
+				}
+			}
 
-  <script>
-    function openModal(imageUrl) {
-      const modal = document.getElementById('imageModal');
-      const modalImage = document.getElementById('modalImage');
-      if (modal && modalImage) {
-        modalImage.src = imageUrl;
-        modal.classList.remove('opacity-0', 'pointer-events-none');
-        modal.classList.add('opacity-100');
-        document.body.style.overflow = 'hidden'; // Prevent background scrolling
-      }
-    }
+			function closeModal() {
+				const modal = document.getElementById('imageModal');
+				if (modal) {
+					modal.classList.remove('opacity-100');
+					modal.classList.add('opacity-0', 'pointer-events-none');
+					document.body.style.overflow = 'auto'; // Restore scrolling
+					// It's good practice to clear the src after the transition or when opening next time
+					// For simplicity, we'll let it be overwritten on next openModal call.
+				}
+			}
 
-    function closeModal() {
-      const modal = document.getElementById('imageModal');
-      if (modal) {
-        modal.classList.remove('opacity-100');
-        modal.classList.add('opacity-0', 'pointer-events-none');
-        document.body.style.overflow = 'auto'; // Restore scrolling
-        // It's good practice to clear the src after the transition or when opening next time
-        // For simplicity, we'll let it be overwritten on next openModal call.
-      }
-    }
+			document.addEventListener('DOMContentLoaded', () => {
+				const modalElement = document.getElementById('imageModal');
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const modalElement = document.getElementById('imageModal');
+				if (modalElement) {
+					// Close modal on escape key
+					document.addEventListener('keydown', function (event) {
+						if (event.key === 'Escape' && modalElement.classList.contains('opacity-100')) {
+							closeModal();
+						}
+					});
 
-      if (modalElement) {
-        // Close modal on escape key
-        document.addEventListener('keydown', function (event) {
-          if (event.key === 'Escape' && modalElement.classList.contains('opacity-100')) {
-            closeModal();
-          }
-        });
-
-        // Close modal when clicking on the background (the modalElement itself)
-        modalElement.addEventListener('click', function (event) {
-          if (event.target === modalElement) {
-            closeModal();
-          }
-        });
-      }
-    });
-  </script>
-</body>
-
+					// Close modal when clicking on the background (the modalElement itself)
+					modalElement.addEventListener('click', function (event) {
+						if (event.target === modalElement) {
+							closeModal();
+						}
+					});
+				}
+			});
+		</script>
+	</body>
 </html>
