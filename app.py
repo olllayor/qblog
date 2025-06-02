@@ -12,8 +12,8 @@ from flask import Flask, flash, redirect, render_template, request, session, url
 from flask_caching import Cache
 
 from articles import Article
-from database import close_db, init_db  # Import get_db and close_db
-from projects import Project  # Add this import
+from database import close_db, init_db
+from projects import Project 
 
 load_dotenv()
 app = Flask(__name__)
@@ -34,13 +34,13 @@ def setup_cache():
 
             app.config["CACHE_TYPE"] = "RedisCache"
             app.config["CACHE_REDIS_URL"] = redis_url
-            app.config["CACHE_DEFAULT_TIMEOUT"] = 180
+            app.config["CACHE_DEFAULT_TIMEOUT"] = 300
             logger.info("Using Redis cache")
 
         except (redis.ConnectionError, redis.TimeoutError, Exception) as e:
             logger.warning(f"Redis connection failed: {e}. Falling back to SimpleCache")
             app.config["CACHE_TYPE"] = "SimpleCache"
-            app.config["CACHE_DEFAULT_TIMEOUT"] = 180
+            app.config["CACHE_DEFAULT_TIMEOUT"] = 300
     else:
         logger.info("No Redis URL provided. Using SimpleCache")
         app.config["CACHE_TYPE"] = "SimpleCache"

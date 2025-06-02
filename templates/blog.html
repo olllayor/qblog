@@ -4,6 +4,11 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<script>
+			tailwind.config = {
+				darkMode: 'class',
+			};
+		</script>
 
 		<!-- SEO and Social Media Meta Tags -->
 		{% set page_title = "Ollayor's Blog - Technical Articles & Insights" %} {% set page_description = "Technical and
@@ -21,6 +26,8 @@
 			href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap"
 			rel="stylesheet"
 		/>
+		<!-- Enhanced blog styling -->
+		<link rel="stylesheet" href="{{ url_for('static', filename='blog-styles.css') }}" />
 		{% include 'analytics.html' %}
 	</head>
 
@@ -44,13 +51,25 @@
 									>
 										{{ article.title }}
 									</h3>
-									<div
-										class="flex items-center text-gray-500 dark:text-gray-400 text-sm"
-										style="font-family: 'JetBrains Mono', monospace"
-									>
-										<i class="far fa-calendar-alt mr-2"></i>
-										{{ article.date_published.strftime('%d %B, %Y') }}
+									<!-- Enhanced metadata for blog listings -->
+									<div class="article-meta text-gray-600 dark:text-gray-400">
+										<div class="flex items-center gap-4">
+											<div class="meta-item">
+												<i class="far fa-calendar-alt mr-2"></i>
+												{{ article.date_published.strftime('%d %B, %Y') }}
+											</div>
+											<div class="meta-item">
+												<i class="far fa-clock mr-2"></i>
+												{{ article.get_reading_time() }} min read
+											</div>
+										</div>
 									</div>
+									<!-- Article summary if available -->
+									{% if article.get_summary(200) %}
+									<p class="font-mono text-gray-800 dark:text-gray-300 mt-3 text-sm leading-relaxed">
+										{{ article.get_summary(200) | safe }}
+									</p>
+									{% endif %}
 								</div>
 							</article>
 						</a>

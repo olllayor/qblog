@@ -4,6 +4,10 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<script>
+			tailwind.config = { darkMode: 'class' };
+		</script>
+		<script src="https://cdn.tailwindcss.com"></script>
 
 		<!-- SEO and Social Media Meta Tags for Articles -->
 		{% set page_title = article.title + " - Ollayor's Blog" %} {% set page_description = article.summary[:160] if
@@ -13,7 +17,6 @@
 		else "" %} {% include 'seo_meta.html' %}
 
 		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" />
-		<script src="https://cdn.tailwindcss.com"></script>
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
 		<link
 			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
@@ -23,6 +26,8 @@
 			href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap"
 			rel="stylesheet"
 		/>
+		<!-- Enhanced blog styling -->
+		<link rel="stylesheet" href="{{ url_for('static', filename='blog-styles.css') }}" />
 		{% include 'analytics.html' %}
 	</head>
 
@@ -34,30 +39,29 @@
 			<article class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
 				<header class="p-8 border-b border-gray-100 dark:border-gray-700">
 					<h1
-						class="text-4xl font-bold text-gray-800 dark:text-gray-200 mb-4"
+						class="text-4xl font-bold text-gray-800 dark:text-gray-100 mb-4"
 						style="font-family: 'Geist Mono', monospace"
 					>
 						{{ article.title }}
 					</h1>
-					<div
-						class="flex items-center text-gray-500 dark:text-gray-400 text-sm"
-						style="font-family: 'JetBrains Mono', monospace"
-					>
-						<i class="far fa-calendar-alt mr-2"></i>
-						{{ article.date_published.strftime('%d %B, %Y') }}
+					<!-- Enhanced article metadata -->
+					<div class="article-meta text-gray-600 dark:text-gray-200">
+						<div class="meta-item">
+							<i class="far fa-calendar-alt mr-2"></i>
+							{{ article.date_published.strftime('%d %B, %Y') }}
+						</div>
+						<div class="meta-item">
+							<i class="far fa-clock mr-2"></i>
+							{{ article.get_reading_time() }} min read
+						</div>
 					</div>
 				</header>
 
-				<section
-					class="prose prose-lg max-w-none p-8 text-gray-800 dark:text-gray-200 mb-4"
-					style="font-family: 'JetBrains Mono', monospace"
-				>
-					{{ article.content | safe }}
-				</section>
+				<section class="blog-content p-8 text-gray-800 dark:text-gray-100">{{ article.content | safe }}</section>
 			</article>
 			{% else %}
 			<div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 text-center">
-				<p class="text-gray-600 dark:text-gray-400" style="font-family: 'JetBrains Mono', monospace">
+				<p class="text-gray-600 dark:text-gray-200" style="font-family: 'JetBrains Mono', monospace">
 					Article not found or not published yet.
 				</p>
 			</div>

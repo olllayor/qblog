@@ -1,9 +1,11 @@
-import os
-from slugify import slugify
-from datetime import datetime
-import psycopg2
-from database import connect_db, get_db
 import logging
+import re
+from datetime import datetime
+
+import psycopg2
+from slugify import slugify
+
+from database import get_db
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +20,29 @@ class Article:
             self.date_published = date_published
         self.is_published = is_published
         self.slug = slug or slugify(title)
+
+    def get_reading_time(self):
+        """Calculate estimated reading time based on word count"""
+        # Remove HTML tags and count words
+        clean_text = re.sub(r"<[^>]+>", "", self.content)
+        word_count = len(clean_text.split())
+
+        # Average reading speed is 200-250 words per minute
+        # We'll use 225 as a middle ground
+        reading_time = max(1, round(word_count / 225))
+        return reading_time
+
+    def get_word_count(self):
+        """Get word count for the article"""
+        clean_text = re.sub(r"<[^>]+>", "", self.content)
+        return len(clean_text.split())
+
+    def get_summary(self, length=160):
+        """Get a summary of the article for meta descriptions"""
+        clean_text = re.sub(r"<[^>]+>", "", self.content)
+        if len(clean_text) <= length:
+            return clean_text
+        return clean_text[:length].rsplit(" ", 1)[0] + "..."
 
     @staticmethod
     def save_article(article):
