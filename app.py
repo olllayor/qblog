@@ -199,12 +199,21 @@ def cv_redirect():
 
 
 @app.route("/blog/<slug>")
-@safe_cached(timeout=180, query_string=False)
 def article(slug: str):
+    # Always track the view (not cached)
+    ip_address = request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR', 'unknown'))
+    user_agent = request.environ.get('HTTP_USER_AGENT', '')
+    Article.track_view(slug, ip_address, user_agent)
+    
+    # Get article (this can be cached)
     article = Article.get_by_slug(slug)
     if not article:
         return render_template("404.html"), 404
-    return render_template("article.html", article=article)
+    
+    # Get current view count (real-time, not cached)
+    view_count = Article.get_view_count(slug)
+    
+    return render_template("article.html", article=article, view_count=view_count)
 
 
 @app.route("/talks")

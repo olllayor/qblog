@@ -66,6 +66,16 @@ def init_db():
                 date_added TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS article_views (
+                id SERIAL PRIMARY KEY,
+                article_slug TEXT NOT NULL,
+                ip_address TEXT NOT NULL,
+                user_agent TEXT,
+                viewed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(article_slug, ip_address)
+            )
+        """)
         conn.commit()
         logger.info("Database initialized or already exists.")
         return True

@@ -54,6 +54,10 @@
 							<i class="far fa-clock mr-2"></i>
 							{{ article.get_reading_time() }} min read
 						</div>
+						<div class="meta-item">
+							<i class="far fa-eye mr-2"></i>
+							{{ view_count }} view{{ 's' if view_count != 1 else '' }}
+						</div>
 					</div>
 				</header>
 

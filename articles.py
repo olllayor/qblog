@@ -45,6 +45,49 @@ class Article:
         return clean_text[:length].rsplit(" ", 1)[0] + "..."
 
     @staticmethod
+    def track_view(slug, ip_address, user_agent=None):
+        """Track a view for an article with duplicate prevention"""
+        conn = get_db()
+        if conn is None:
+            logger.error("Failed to connect to the database.")
+            return False
+
+        try:
+            cur = conn.cursor()
+            # Use INSERT ... ON CONFLICT DO NOTHING for PostgreSQL
+            cur.execute("""
+                INSERT INTO article_views (article_slug, ip_address, user_agent)
+                VALUES (%s, %s, %s)
+                ON CONFLICT (article_slug, ip_address) DO NOTHING
+            """, (slug, ip_address, user_agent))
+            conn.commit()
+            return True
+        except psycopg2.Error as e:
+            logger.error(f"Error tracking article view: {e}")
+            return False
+        finally:
+            pass
+
+    @staticmethod
+    def get_view_count(slug):
+        """Get the total view count for an article"""
+        conn = get_db()
+        if conn is None:
+            logger.error("Failed to connect to the database.")
+            return 0
+
+        try:
+            cur = conn.cursor()
+            cur.execute("SELECT COUNT(*) FROM article_views WHERE article_slug = %s", (slug,))
+            result = cur.fetchone()
+            return result[0] if result else 0
+        except psycopg2.Error as e:
+            logger.error(f"Error getting view count: {e}")
+            return 0
+        finally:
+            pass
+
+    @staticmethod
     def save_article(article):
         conn = get_db()  # Use get_db()
         if conn is None:
