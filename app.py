@@ -200,15 +200,23 @@ def cv_redirect():
 
 @app.route("/blog/<slug>")
 def article(slug: str):
-    # Always track the view (not cached)
+    # Always track the view (not cached) - this should always run
     ip_address = request.environ.get(
         "HTTP_X_FORWARDED_FOR", request.environ.get("REMOTE_ADDR", "unknown")
     )
     user_agent = request.environ.get("HTTP_USER_AGENT", "")
     Article.track_view(slug, ip_address, user_agent)
 
-    # Get article (this can be cached)
-    article = Article.get_by_slug(slug)
+    # Get article with caching (article content rarely changes)
+    cache_key = f"article_content_{slug}"
+    article = cache.get(cache_key)
+    
+    if article is None:
+        article = Article.get_by_slug(slug)
+        if article:
+            # Cache article for 10 minutes (content doesn't change often)
+            cache.set(cache_key, article, timeout=600)
+    
     if not article:
         return render_template("404.html"), 404
 
@@ -216,7 +224,7 @@ def article(slug: str):
     if not article.is_published and "logged_in" not in session:
         return render_template("404.html"), 404
 
-    # Get current view count (real-time, not cached)
+    # Get current view count (real-time, not cached) - this should always be fresh
     view_count = Article.get_view_count(slug)
 
     return render_template("article.html", article=article, view_count=view_count)
@@ -244,8 +252,10 @@ def publish():
         # remove the article from cache
         try:
             invalidate_multiple_caches("blog", ("article", {"slug": new_article.slug}))
+            # Also clear the article content cache for new articles
+            cache.delete(f"article_content_{new_article.slug}")
             logger.info(
-                f"Blog caches invalidated after publishing new article: {new_article.slug}"
+                f"Blog and article caches invalidated after publishing new article: {new_article.slug}"
             )
         except Exception as e:
             logger.warning(f"Cache invalidation failed: {e}")
@@ -284,9 +294,12 @@ def edit_article(slug):
                 flash("Draft article updated successfully.", "info")
 
             try:
+                # Invalidate both blog list and specific article caches
                 invalidate_multiple_caches("blog", ("article", {"slug": article.slug}))
+                # Also clear the article content cache
+                cache.delete(f"article_content_{article.slug}")
                 logger.info(
-                    f"Blog caches invalidated after updating article: {article.slug}"
+                    f"Blog and article caches invalidated after updating article: {article.slug}"
                 )
             except Exception as e:
                 logger.warning(f"Cache invalidation failed: {e}")
@@ -313,7 +326,9 @@ def delete_article(slug):
 
         try:
             invalidate_multiple_caches("blog", ("article", {"slug": slug}))
-            logger.info(f"Blog caches invalidated after deleting article: {slug}")
+            # Also clear the article content cache
+            cache.delete(f"article_content_{slug}")
+            logger.info(f"Blog and article caches invalidated after deleting article: {slug}")
         except Exception as e:
             logger.warning(f"Cache invalidation failed: {e}")
     else:
@@ -455,7 +470,7 @@ def health_check():
     status = {
         "status": "healthy",
         "cache_type": app.config.get("CACHE_TYPE", "unknown"),
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
     # Test cache connection
