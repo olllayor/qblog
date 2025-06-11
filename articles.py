@@ -55,11 +55,14 @@ class Article:
         try:
             cur = conn.cursor()
             # Use INSERT ... ON CONFLICT DO NOTHING for PostgreSQL
-            cur.execute("""
+            cur.execute(
+                """
                 INSERT INTO article_views (article_slug, ip_address, user_agent)
                 VALUES (%s, %s, %s)
                 ON CONFLICT (article_slug, ip_address) DO NOTHING
-            """, (slug, ip_address, user_agent))
+            """,
+                (slug, ip_address, user_agent),
+            )
             conn.commit()
             return True
         except psycopg2.Error as e:
@@ -78,7 +81,9 @@ class Article:
 
         try:
             cur = conn.cursor()
-            cur.execute("SELECT COUNT(*) FROM article_views WHERE article_slug = %s", (slug,))
+            cur.execute(
+                "SELECT COUNT(*) FROM article_views WHERE article_slug = %s", (slug,)
+            )
             result = cur.fetchone()
             return result[0] if result else 0
         except psycopg2.Error as e:
@@ -168,6 +173,32 @@ class Article:
             Article(row[1], row[2], row[3], row[4], row[5]) for row in articles_data
         ]
         # The sorting is now done by the database, so the Python sort is removed.
+        return article_objects
+
+    @staticmethod
+    def get_published_articles():
+        """Get only published articles"""
+        conn = get_db()
+        if conn is None:
+            logger.error("Failed to connect to the database.")
+            return []
+
+        try:
+            cur = conn.cursor()
+            # Only fetch published articles, sorted by date_published in descending order
+            cur.execute(
+                "SELECT * FROM articles WHERE is_published = TRUE ORDER BY date_published DESC"
+            )
+            articles_data = cur.fetchall()
+        except psycopg2.Error as e:
+            logger.error(f"Error fetching published articles: {e}")
+            articles_data = []
+        finally:
+            pass
+
+        article_objects = [
+            Article(row[1], row[2], row[3], row[4], row[5]) for row in articles_data
+        ]
         return article_objects
 
     @staticmethod

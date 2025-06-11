@@ -13,7 +13,7 @@ from flask_caching import Cache
 
 from articles import Article
 from database import close_db, init_db
-from projects import Project 
+from projects import Project
 
 load_dotenv()
 app = Flask(__name__)
@@ -187,7 +187,7 @@ def projects():
 @safe_cached(timeout=180)
 def blog():
     start = time.time()
-    articles = Article.get_all_articles()
+    articles = Article.get_published_articles()  # Only get published articles
     duration = time.time() - start
     logger.info(f"/blog route executed in {duration:.3f} seconds")
     return render_template("blog.html", articles=articles)
@@ -201,18 +201,24 @@ def cv_redirect():
 @app.route("/blog/<slug>")
 def article(slug: str):
     # Always track the view (not cached)
-    ip_address = request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR', 'unknown'))
-    user_agent = request.environ.get('HTTP_USER_AGENT', '')
+    ip_address = request.environ.get(
+        "HTTP_X_FORWARDED_FOR", request.environ.get("REMOTE_ADDR", "unknown")
+    )
+    user_agent = request.environ.get("HTTP_USER_AGENT", "")
     Article.track_view(slug, ip_address, user_agent)
-    
+
     # Get article (this can be cached)
     article = Article.get_by_slug(slug)
     if not article:
         return render_template("404.html"), 404
-    
+
+    # Check if article is published (unless user is logged in as admin)
+    if not article.is_published and "logged_in" not in session:
+        return render_template("404.html"), 404
+
     # Get current view count (real-time, not cached)
     view_count = Article.get_view_count(slug)
-    
+
     return render_template("article.html", article=article, view_count=view_count)
 
 
@@ -488,6 +494,21 @@ Disallow: /publish
 
     response = app.response_class(robots_content, mimetype="text/plain")
     return response
+
+
+@app.route("/admin/clear-cache")
+@login_required
+def clear_cache():
+    """Clear all caches for testing"""
+    try:
+        cache.clear()
+        flash("Cache cleared successfully!", "success")
+        logger.info("All caches cleared manually")
+    except Exception as e:
+        flash(f"Error clearing cache: {e}", "error")
+        logger.error(f"Error clearing cache: {e}")
+
+    return redirect(url_for("blog"))
 
 
 if __name__ == "__main__":

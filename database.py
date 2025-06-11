@@ -1,17 +1,18 @@
-import os
-import psycopg2
 import logging
-from urllib.parse import urlparse
-from flask import g # Added import
+import os
+
+import psycopg2
+from flask import g  # Added import
 
 logger = logging.getLogger(__name__)
 
-DATABASE_URL = os.getenv('DATABASE_URL')
+DATABASE_URL = os.getenv("DATABASE_URL")
+
 
 def connect_db():
     if not DATABASE_URL:
-       logger.error("DATABASE_URL is not set.")
-       return None
+        logger.error("DATABASE_URL is not set.")
+        return None
     try:
         connection = psycopg2.connect(DATABASE_URL)
         logger.info("Connected to PostgreSQL database")
@@ -20,24 +21,27 @@ def connect_db():
         logger.error(f"Error connecting to database: {e}")
         return None
 
+
 def get_db():
     """Opens a new database connection if there is none yet for the
     current application context.
     """
-    if 'db' not in g:
+    if "db" not in g:
         g.db = connect_db()
     return g.db
 
+
 def close_db(e=None):
     """Closes the database connection."""
-    db = g.pop('db', None)
+    db = g.pop("db", None)
 
     if db is not None:
         db.close()
         logger.info("Database connection closed.")
 
+
 def init_db():
-    conn = get_db() # Use get_db instead of connect_db
+    conn = get_db()  # Use get_db instead of connect_db
     if conn is None:
         logger.error("Failed to connect to the database.")
         return False
