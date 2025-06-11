@@ -1,7 +1,7 @@
 import logging
 import os
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from functools import wraps
 
 import redis
@@ -234,7 +234,7 @@ def publish():
         title = request.form.get("title")
         content = request.form.get("content")
         is_published = request.form.get("is_published") == "on"
-        date_published = datetime.utcnow()
+        date_published = datetime.now(timezone.utc)
         if not title or not content:
             flash("Title or content is missing", "error")
             return redirect(url_for("publish"))
@@ -250,8 +250,12 @@ def publish():
         except Exception as e:
             logger.warning(f"Cache invalidation failed: {e}")
 
-        flash("Article saved successfully. You can publish it now.", "success")
-        return redirect(url_for("article", slug=new_article.slug))
+        if is_published:
+            flash("Article published successfully!", "success")
+            return redirect(url_for("article", slug=new_article.slug))
+        else:
+            flash("Article saved as draft. You can publish it later.", "info")
+            return redirect(url_for("edit_article", slug=new_article.slug))
 
     return render_template("publish.html")
 
@@ -263,12 +267,22 @@ def edit_article(slug):
     if not article:
         return render_template("404.html"), 404
     if request.method == "POST":
+        old_published_status = article.is_published
         article.title = request.form.get("title")
         article.content = request.form.get("content")
         article.is_published = request.form.get("is_published") == "on"
 
         if Article.update_article(article):
-            flash("Article updated successfully", "success")
+            # Provide appropriate flash message based on publish status
+            if article.is_published and not old_published_status:
+                flash("Article updated and published successfully!", "success")
+            elif not article.is_published and old_published_status:
+                flash("Article updated and moved to drafts.", "info")
+            elif article.is_published:
+                flash("Published article updated successfully!", "success")
+            else:
+                flash("Draft article updated successfully.", "info")
+
             try:
                 invalidate_multiple_caches("blog", ("article", {"slug": article.slug}))
                 logger.info(
