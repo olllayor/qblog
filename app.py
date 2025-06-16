@@ -3,6 +3,7 @@ import os
 import time
 from datetime import datetime, timezone
 from functools import wraps
+import sentry_sdk
 
 import redis
 
@@ -16,6 +17,14 @@ from database import close_db, init_db
 from projects import Project
 
 load_dotenv()
+
+sentry_sdk.init(
+    dsn="https://abb5b78f25e14da8713e4d4c8be6c5da@o4508810359144448.ingest.de.sentry.io/4509507866001488",
+    # Add data like request headers and IP for users,
+    # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+    send_default_pii=True,
+)
+
 app = Flask(__name__)
 
 logger = logging.getLogger(__name__)
@@ -210,13 +219,13 @@ def article(slug: str):
     # Get article with caching (article content rarely changes)
     cache_key = f"article_content_{slug}"
     article = cache.get(cache_key)
-    
+
     if article is None:
         article = Article.get_by_slug(slug)
         if article:
             # Cache article for 10 minutes (content doesn't change often)
             cache.set(cache_key, article, timeout=600)
-    
+
     if not article:
         return render_template("404.html"), 404
 
@@ -328,7 +337,9 @@ def delete_article(slug):
             invalidate_multiple_caches("blog", ("article", {"slug": slug}))
             # Also clear the article content cache
             cache.delete(f"article_content_{slug}")
-            logger.info(f"Blog and article caches invalidated after deleting article: {slug}")
+            logger.info(
+                f"Blog and article caches invalidated after deleting article: {slug}"
+            )
         except Exception as e:
             logger.warning(f"Cache invalidation failed: {e}")
     else:
