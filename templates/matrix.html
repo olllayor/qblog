@@ -29,8 +29,7 @@
 			canvas.height = window.innerHeight;
 
 			const characters =
-				'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789' +
-				'일이삼사오육칠팔구십你好世界'
+				'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789' + '일이삼사오육칠팔구십你好世界';
 			const fontSize = 16;
 			const columns = canvas.width / fontSize;
 
@@ -64,6 +63,21 @@
 			window.addEventListener('resize', () => {
 				canvas.width = window.innerWidth;
 				canvas.height = window.innerHeight;
+			});
+
+			document.body.addEventListener('click', () => {
+				const el = document.documentElement;
+				const enterFS =
+					el.requestFullscreen || el.mozRequestFullScreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+				if (enterFS) {
+					enterFS.call(el);
+					// Resize canvas and reset drop positions to start from top in fullscreen
+					canvas.width = window.innerWidth;
+					canvas.height = window.innerHeight;
+					const newColumns = Math.floor(canvas.width / fontSize);
+					drops.length = newColumns;
+					drops.fill(1);
+				}
 			});
 		</script>
 	</body>
