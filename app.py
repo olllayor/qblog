@@ -244,6 +244,11 @@ def talks():
     return render_template("talks.html")
 
 
+@app.route("/matrix")
+def matrix():
+    return render_template("matrix.html")
+
+
 @app.route("/publish", methods=["GET", "POST"])
 @login_required
 def publish():
