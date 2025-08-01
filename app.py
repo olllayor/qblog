@@ -470,6 +470,12 @@ def delete_project(project_id):
     return redirect(url_for("admin_projects"))
 
 
+@app.route("/compare")
+def compare_projects():
+    # Logic for comparing projects
+    return render_template("compare.html")
+
+
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template("404.html"), 404

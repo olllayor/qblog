@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Array vs Set Performance</title>
+		<style>
+			body {
+				font-family: 'Courier New', monospace;
+				max-width: 1000px;
+				margin: 0 auto;
+				padding: 20px;
+				background: #1a1a1a;
+				color: #e0e0e0;
+			}
+			.controls {
+				background: #2d2d2d;
+				padding: 20px;
+				border-radius: 8px;
+				margin-bottom: 20px;
+			}
+			.controls input,
+			.controls button {
+				background: #333;
+				color: #e0e0e0;
+				border: 1px solid #555;
+				padding: 8px 12px;
+				margin: 5px;
+				border-radius: 4px;
+			}
+			.controls button {
+				cursor: pointer;
+				background: #4caf50;
+			}
+			.controls button:hover {
+				background: #45a049;
+			}
+			.results {
+				background: #2d2d2d;
+				padding: 20px;
+				border-radius: 8px;
+				margin-bottom: 20px;
+			}
+			.result-row {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				padding: 10px 0;
+				border-bottom: 1px solid #444;
+			}
+			.result-row:last-child {
+				border-bottom: none;
+			}
+			.winner {
+				color: #4caf50;
+				font-weight: bold;
+			}
+			.loser {
+				color: #ff6b6b;
+			}
+			.chart {
+				background: #2d2d2d;
+				padding: 20px;
+				border-radius: 8px;
+				margin-bottom: 20px;
+			}
+			.bar {
+				height: 20px;
+				margin: 5px 0;
+				border-radius: 3px;
+				display: flex;
+				align-items: center;
+				padding: 0 10px;
+				color: white;
+				font-size: 12px;
+			}
+			.array-bar {
+				background: #ff6b6b;
+			}
+			.set-bar {
+				background: #4caf50;
+			}
+			pre {
+				background: #1e1e1e;
+				padding: 15px;
+				border-radius: 8px;
+				overflow-x: auto;
+				border-left: 4px solid #4caf50;
+			}
+			.explanation {
+				background: #2d2d2d;
+				padding: 20px;
+				border-radius: 8px;
+				margin-bottom: 20px;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Array vs Set: When Simple Beats Smart</h1>
+
+		<div class="controls">
+			<label>Collection Size: <input type="number" id="size" value="10" min="1" max="10000" /></label>
+			<label>Iterations: <input type="number" id="iterations" value="100000" min="1000" max="1000000" /></label>
+			<button onclick="runBenchmark()">Run Benchmark</button>
+			<button onclick="runProgressive()">Progressive Test (1-1000)</button>
+		</div>
+
+		<div class="results" id="results"></div>
+		<div class="chart" id="chart"></div>
+
+		<div class="explanation">
+			<h3>Why Array Can Be Faster Than Set</h3>
+			<p>
+				<strong>Memory Layout:</strong> Arrays store elements contiguously in memory. Your CPU cache loves this - it can
+				load multiple elements in one cache line.
+			</p>
+			<p>
+				<strong>CPU Cache:</strong> For small arrays (&lt;100 elements), the entire array fits in L1 cache. Linear scan
+				through 50 bytes is faster than hash table lookup.
+			</p>
+			<p>
+				<strong>V8 Optimizations:</strong> JavaScript engines heavily optimize <code>includes()</code> for small arrays
+				using SIMD instructions and loop unrolling.
+			</p>
+			<p>
+				<strong>Set Overhead:</strong> Hash computation, collision handling, and memory indirection add constant
+				overhead that only pays off at scale.
+			</p>
+		</div>
+
+		<pre id="code-example">
+// Here's what's happening under the hood:
+
+// ARRAY (Small size): 
+// Memory: [a][b][c][d] - contiguous, cache-friendly
+// Search: CPU loads all 4 bytes in one cache line, SIMD compare
+// Time: ~1-5 CPU cycles
+
+// SET (Any size):
+// Memory: hash_table -> bucket -> linked_list/tree
+// Search: hash(char) -> bucket lookup -> comparison
+// Time: ~10-20 CPU cycles + memory indirection
+
+// The crossover happens when Array's O(n) growth 
+// overtakes Set's constant overhead
+    </pre>
+
+		<script>
+			function generateTestData(size) {
+				const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+				return Array.from({ length: size }, (_, i) => chars[i % chars.length]);
+			}
+
+			function benchmarkArray(data, iterations) {
+				const start = performance.now();
+				let found = 0;
+
+				for (let i = 0; i < iterations; i++) {
+					const target = data[Math.floor(Math.random() * data.length)];
+					if (data.includes(target)) found++;
+				}
+
+				return performance.now() - start;
+			}
+
+			function benchmarkSet(data, iterations) {
+				const set = new Set(data);
+				const start = performance.now();
+				let found = 0;
+
+				for (let i = 0; i < iterations; i++) {
+					const target = data[Math.floor(Math.random() * data.length)];
+					if (set.has(target)) found++;
+				}
+
+				return performance.now() - start;
+			}
+
+			function runBenchmark() {
+				const size = parseInt(document.getElementById('size').value);
+				const iterations = parseInt(document.getElementById('iterations').value);
+
+				const data = generateTestData(size);
+
+				// Warm up
+				benchmarkArray(data, 1000);
+				benchmarkSet(data, 1000);
+
+				const arrayTime = benchmarkArray(data, iterations);
+				const setTime = benchmarkSet(data, iterations);
+
+				displayResults([{ size, arrayTime, setTime }]);
+			}
+
+			function runProgressive() {
+				const iterations = 50000;
+				const results = [];
+				const sizes = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000];
+
+				document.getElementById('results').innerHTML = '<div>Running progressive test...</div>';
+
+				setTimeout(() => {
+					for (const size of sizes) {
+						const data = generateTestData(size);
+
+						// Multiple runs for accuracy
+						let arrayTotal = 0,
+							setTotal = 0;
+						for (let run = 0; run < 3; run++) {
+							arrayTotal += benchmarkArray(data, iterations);
+							setTotal += benchmarkSet(data, iterations);
+						}
+
+						results.push({
+							size,
+							arrayTime: arrayTotal / 3,
+							setTime: setTotal / 3,
+						});
+					}
+
+					displayResults(results);
+					displayChart(results);
+				}, 100);
+			}
+
+			function displayResults(results) {
+				const resultsDiv = document.getElementById('results');
+				let html = '<h3>Results</h3>';
+
+				results.forEach(({ size, arrayTime, setTime }) => {
+					const arrayFaster = arrayTime < setTime;
+					const ratio = arrayFaster ? (setTime / arrayTime).toFixed(2) : (arrayTime / setTime).toFixed(2);
+					const winner = arrayFaster ? 'Array' : 'Set';
+
+					html += `
+                    <div class="result-row">
+                        <span>Size: ${size}</span>
+                        <span>Array: ${arrayTime.toFixed(2)}ms</span>
+                        <span>Set: ${setTime.toFixed(2)}ms</span>
+                        <span class="${arrayFaster ? 'winner' : 'loser'}">
+                            ${winner} wins by ${ratio}x
+                        </span>
+                    </div>
+                `;
+				});
+
+				resultsDiv.innerHTML = html;
+			}
+
+			function displayChart(results) {
+				const chartDiv = document.getElementById('chart');
+				let html = '<h3>Performance Visualization</h3>';
+
+				const maxTime = Math.max(...results.flatMap((r) => [r.arrayTime, r.setTime]));
+
+				results.forEach(({ size, arrayTime, setTime }) => {
+					const arrayWidth = (arrayTime / maxTime) * 100;
+					const setWidth = (setTime / maxTime) * 100;
+
+					html += `
+                    <div>Size ${size}:</div>
+                    <div class="bar array-bar" style="width: ${arrayWidth}%">
+                        Array: ${arrayTime.toFixed(1)}ms
+                    </div>
+                    <div class="bar set-bar" style="width: ${setWidth}%">
+                        Set: ${setTime.toFixed(1)}ms
+                    </div>
+                    <br>
+                `;
+				});
+
+				chartDiv.innerHTML = html;
+			}
+
+			// Run initial benchmark
+			setTimeout(runBenchmark, 100);
+		</script>
+	</body>
+</html>
