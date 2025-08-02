@@ -3,9 +3,9 @@ import os
 import time
 from datetime import datetime, timezone
 from functools import wraps
-import sentry_sdk
 
 import redis
+import sentry_sdk
 
 # from api_analytics.flask import add_middleware
 from dotenv import load_dotenv
@@ -236,7 +236,12 @@ def article(slug: str):
     # Get current view count (real-time, not cached) - this should always be fresh
     view_count = Article.get_view_count(slug)
 
-    return render_template("article.html", article=article, view_count=view_count)
+    # Extract first image for social media sharing
+    first_image = article.get_first_image(request.url_root.rstrip("/"))
+
+    return render_template(
+        "article.html", article=article, view_count=view_count, first_image=first_image
+    )
 
 
 @app.route("/talks")

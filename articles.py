@@ -44,6 +44,28 @@ class Article:
             return clean_text
         return clean_text[:length].rsplit(" ", 1)[0] + "..."
 
+    def get_first_image(self, base_url="https://ollayor.uz"):
+        """Extract the first image from article content for social media sharing"""
+        if not self.content:
+            return None
+
+        # Look for img tags in the content
+        img_pattern = r'<img[^>]+src=["\']([^"\']+)["\'][^>]*>'
+        matches = re.findall(img_pattern, self.content, re.IGNORECASE)
+
+        if matches:
+            img_src = matches[0]
+            # Convert relative URLs to absolute URLs
+            if img_src.startswith("/"):
+                return f"{base_url}{img_src}"
+            elif img_src.startswith("http"):
+                return img_src
+            else:
+                # Relative path without leading slash
+                return f"{base_url}/{img_src}"
+
+        return None
+
     @staticmethod
     def track_view(slug, ip_address, user_agent=None):
         """Track a view for an article with duplicate prevention"""

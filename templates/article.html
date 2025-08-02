@@ -10,9 +10,9 @@
 		<script src="https://cdn.tailwindcss.com"></script>
 
 		<!-- SEO and Social Media Meta Tags for Articles -->
-		{% set page_title = article.title + " - Ollayor's Blog" %} {% set page_description = article.summary[:160] if
-		article.summary else (article.content[:160] + "..." if article.content else "Technical article by Ollayor
-		Maxammadnabiyev") %} {% set page_type = "article" %} {% set article_date = article.date_published.isoformat() if
+		{% set page_title = article.title + " - Ollayor's Blog" %} {% set page_description = article.get_summary(160) %} {%
+		set page_type = "article" %} {% set page_image = first_image if first_image else url_for('static',
+		filename='myself-social.jpg', _external=True) %} {% set article_date = article.date_published.isoformat() if
 		article.date_published else "" %} {% set article_modified = article.date_updated.isoformat() if article.date_updated
 		else "" %} {% include 'seo_meta.html' %}
 
