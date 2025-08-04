@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ 'Edit Story' if article else 'Write your story' }} - Ollayor's Blog</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Charter:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'charter': ['Charter', 'Georgia', 'Cambria', 'serif'],
+                        'inter': ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    fontSize: {
+                        'title': ['2.5rem', { lineHeight: '1.2', letterSpacing: '-0.02em' }],
+                        'body': ['1.125rem', { lineHeight: '1.7' }],
+                    }
+                }
+            },
+            darkMode: 'class'
+        }
+    </script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Medium-style custom styles */
+        .medium-editor {
+            font-family: Charter, Georgia, Cambria, serif;
+            font-size: 1.125rem;
+            line-height: 1.7;
+            color: #292929;
+        }
+        
+        .medium-editor:focus {
+            outline: none;
+        }
+        
+        .medium-title {
+            font-family: Charter, Georgia, Cambria, serif;
+            font-size: 2.5rem;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+            font-weight: 700;
+            color: #292929;
+            border: none;
+            outline: none;
+            resize: none;
+            overflow: hidden;
+        }
+        
+        .medium-title::placeholder {
+            color: #9e9e9e;
+        }
+        
+        .medium-editor::placeholder {
+            color: #9e9e9e;
+        }
+        
+        /* Floating toolbar styles */
+        .floating-toolbar {
+            position: absolute;
+            background: #242424;
+            border-radius: 6px;
+            padding: 8px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.2s ease;
+            pointer-events: none;
+        }
+        
+        .floating-toolbar.show {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+        
+        .toolbar-btn {
+            background: none;
+            border: none;
+            color: white;
+            padding: 8px 10px;
+            margin: 0 2px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        
+        .toolbar-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .toolbar-btn.active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Top toolbar styles */
+        .top-toolbar {
+            position: sticky;
+            top: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #e6e6e6;
+            z-index: 100;
+        }
+        
+        /* Dropdown menu styles */
+        .dropdown-container {
+            position: relative;
+        }
+        
+        /* Dark mode styles */
+        .dark .medium-editor {
+            color: #e6e6e6;
+            background: #1a1a1a;
+        }
+        
+        .dark .medium-title {
+            color: #e6e6e6;
+            background: #1a1a1a;
+        }
+        
+        .dark .top-toolbar {
+            background: rgba(26, 26, 26, 0.95);
+            border-bottom-color: #404040;
+        }
+        
+        /* Story stats */
+        .story-stats {
+            font-family: Inter, system-ui, sans-serif;
+            font-size: 0.875rem;
+            color: #6b6b6b;
+        }
+        
+        /* Auto-save indicator */
+        .auto-save {
+            font-size: 0.75rem;
+            color: #6b6b6b;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .auto-save.saving {
+            color: #1a8917;
+        }
+        
+        .auto-save.saved {
+            color: #6b6b6b;
+        }
+        
+        .auto-save.error {
+            color: #dc2626;
+        }
+        
+        /* Publish button */
+        .publish-btn {
+            background: #1a8917;
+            color: white;
+            border: none;
+            border-radius: 24px;
+            padding: 8px 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .publish-btn:hover {
+            background: #156d13;
+        }
+        
+        .publish-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        /* Draft indicator */
+        .draft-badge {
+            background: #f7931e;
+            color: white;
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+        
+        /* Content area */
+        .content-area {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .medium-title {
+                font-size: 2rem;
+            }
+            
+            .content-area {
+                padding: 20px 16px;
+            }
+            
+            .floating-toolbar {
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                position: fixed;
+            }
+            
+            .floating-toolbar.show {
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-white dark:bg-gray-900 min-h-screen font-inter">
+    <!-- Top Toolbar -->
+    <div class="top-toolbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Left side -->
+                <div class="flex items-center space-x-4">
+                    <a href="{{ url_for('blog') }}" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <span class="text-sm text-gray-500 dark:text-gray-400">Draft in</span>
+                    <span class="text-sm font-medium text-gray-900 dark:text-gray-100">Ollayor's Blog</span>
+                </div>
+                
+                <!-- Center - Auto-save status -->
+                <div class="auto-save" id="autoSaveStatus">
+                    <i class="fas fa-circle text-gray-400" id="saveIcon"></i>
+                    <span id="saveText">Saved</span>
+                </div>
+                
+                <!-- Right side -->
+                <div class="flex items-center space-x-4">
+                    {% if article and not article.is_published %}
+                        <span class="draft-badge">Draft</span>
+                    {% endif %}
+                    
+                    <button type="button" id="publishBtn" class="publish-btn">
+                        {% if article and article.is_published %}
+                            Update
+                        {% else %}
+                            Publish
+                        {% endif %}
+                    </button>
+                    
+                    <div class="dropdown-container">
+                        <button type="button" id="menuBtn" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors relative">
+                            <i class="fas fa-ellipsis-h"></i>
+                        </button>
+                        
+                        <!-- Dropdown Menu -->
+                        <div id="dropdownMenu" class="absolute right-0 top-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-2 min-w-48 z-50 hidden">
+                            <a href="{{ url_for('blog') }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <i class="fas fa-list mr-2"></i>All Stories
+                            </a>
+                            <a href="{{ url_for('publish_classic') }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <i class="fas fa-edit mr-2"></i>Classic Editor
+                            </a>
+                            <div class="border-t border-gray-200 dark:border-gray-600 my-1"></div>
+                            <button type="button" id="darkModeToggle" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <i class="fas fa-moon mr-2 dark:hidden"></i>
+                                <i class="fas fa-sun mr-2 hidden dark:inline"></i>
+                                <span class="dark:hidden">Dark Mode</span>
+                                <span class="hidden dark:inline">Light Mode</span>
+                            </button>
+                            {% if article %}
+                            <div class="border-t border-gray-200 dark:border-gray-600 my-1"></div>
+                            <button type="button" id="deleteBtn" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900">
+                                <i class="fas fa-trash mr-2"></i>Delete Story
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content-area">
+        <form id="storyForm" method="POST">
+            <!-- Title Input -->
+            <textarea 
+                id="titleInput"
+                name="title" 
+                class="medium-title w-full bg-transparent border-none resize-none overflow-hidden"
+                placeholder="Title"
+                rows="1"
+                required
+            >{% if article %}{{ article.title }}{% endif %}</textarea>
+            
+            <!-- Content Editor -->
+            <div class="mt-8">
+                <div 
+                    id="contentEditor"
+                    class="medium-editor w-full bg-transparent border-none resize-none min-h-96 focus:outline-none"
+                    contenteditable="true"
+                    data-placeholder="Tell your story..."
+                >{% if article %}{{ article.content | safe }}{% endif %}</div>
+                
+                <!-- Hidden input for content -->
+                <input type="hidden" name="content" id="contentInput">
+                <input type="hidden" name="is_published" id="isPublishedInput" value="{% if article %}{{ 'on' if article.is_published else '' }}{% endif %}">
+            </div>
+            
+            <!-- Story Stats -->
+            <div class="story-stats mt-8 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between flex-wrap gap-4">
+                    <div class="flex items-center space-x-6">
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-file-word text-blue-500"></i>
+                            <span id="wordCount" class="font-medium">0 words</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-clock text-green-500"></i>
+                            <span id="readingTime" class="font-medium">1 min read</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-keyboard text-purple-500"></i>
+                            <span id="charCount" class="font-medium">0 characters</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Floating Toolbar -->
+    <div id="floatingToolbar" class="floating-toolbar">
+        <button type="button" class="toolbar-btn" data-command="bold" title="Bold (Ctrl+B)">
+            <i class="fas fa-bold"></i>
+        </button>
+        <button type="button" class="toolbar-btn" data-command="italic" title="Italic (Ctrl+I)">
+            <i class="fas fa-italic"></i>
+        </button>
+        <button type="button" class="toolbar-btn" data-command="underline" title="Underline (Ctrl+U)">
+            <i class="fas fa-underline"></i>
+        </button>
+        <div class="w-px h-6 bg-gray-600 mx-1"></div>
+        <button type="button" class="toolbar-btn" data-command="createLink" title="Add Link (Ctrl+K)">
+            <i class="fas fa-link"></i>
+        </button>
+        <button type="button" class="toolbar-btn" data-command="insertHTML" data-value="<blockquote>" title="Quote">
+            <i class="fas fa-quote-left"></i>
+        </button>
+        <button type="button" class="toolbar-btn" data-command="formatBlock" data-value="h2" title="Heading">
+            <i class="fas fa-heading"></i>
+        </button>
+    </div>
+
+    <!-- Publish Modal -->
+    <div id="publishModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    {% if article and article.is_published %}Update Story{% else %}Publish Story{% endif %}
+                </h3>
+                <button type="button" id="closeModal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="flex items-center space-x-3">
+                    <input type="radio" id="publishNow" name="publishOption" value="publish" checked class="text-green-600">
+                    <label for="publishNow" class="text-gray-900 dark:text-gray-100">Publish now</label>
+                </div>
+                
+                <div class="flex items-center space-x-3">
+                    <input type="radio" id="saveDraft" name="publishOption" value="draft" class="text-green-600">
+                    <label for="saveDraft" class="text-gray-900 dark:text-gray-100">Save as draft</label>
+                </div>
+            </div>
+            
+            <div class="flex justify-end space-x-3 mt-6">
+                <button type="button" id="cancelPublish" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
+                    Cancel
+                </button>
+                <button type="button" id="confirmPublish" class="publish-btn">
+                    {% if article and article.is_published %}Update{% else %}Publish{% endif %}
+                </button>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <script>
+        // Medium-style Editor JavaScript
+        class MediumStyleEditor {
+            constructor() {
+                this.titleInput = document.getElementById('titleInput');
+                this.contentEditor = document.getElementById('contentEditor');
+                this.contentInput = document.getElementById('contentInput');
+                this.floatingToolbar = document.getElementById('floatingToolbar');
+                this.publishBtn = document.getElementById('publishBtn');
+                this.publishModal = document.getElementById('publishModal');
+                this.wordCount = document.getElementById('wordCount');
+                this.readingTime = document.getElementById('readingTime');
+                this.charCount = document.getElementById('charCount');
+                this.autoSaveStatus = document.getElementById('autoSaveStatus');
+                this.menuBtn = document.getElementById('menuBtn');
+                this.dropdownMenu = document.getElementById('dropdownMenu');
+                this.darkModeToggle = document.getElementById('darkModeToggle');
+                this.deleteBtn = document.getElementById('deleteBtn');
+                
+                this.autoSaveTimeout = null;
+                this.isDirty = false;
+                
+                this.init();
+            }
+            
+            init() {
+                this.setupEventListeners();
+                this.setupAutoResize();
+                this.setupFloatingToolbar();
+                this.updateStats();
+                this.setupAutoSave();
+                this.setupKeyboardShortcuts();
+                this.setupMenu();
+                this.setupDarkMode();
+            }
+            
+            setupEventListeners() {
+                // Title auto-resize
+                this.titleInput.addEventListener('input', () => {
+                    this.autoResize(this.titleInput);
+                    this.markDirty();
+                });
+                
+                // Content editor events
+                this.contentEditor.addEventListener('input', () => {
+                    this.updateStats();
+                    this.markDirty();
+                });
+                
+                this.contentEditor.addEventListener('keydown', (e) => {
+                    this.handleKeydown(e);
+                });
+                
+                // Selection change for floating toolbar
+                document.addEventListener('selectionchange', () => {
+                    this.handleSelectionChange();
+                });
+                
+                // Toolbar buttons
+                this.floatingToolbar.addEventListener('click', (e) => {
+                    if (e.target.closest('.toolbar-btn')) {
+                        this.handleToolbarClick(e.target.closest('.toolbar-btn'));
+                    }
+                });
+                
+                // Publish button
+                this.publishBtn.addEventListener('click', () => {
+                    this.showPublishModal();
+                });
+                
+                // Modal events
+                document.getElementById('closeModal').addEventListener('click', () => {
+                    this.hidePublishModal();
+                });
+                
+                document.getElementById('cancelPublish').addEventListener('click', () => {
+                    this.hidePublishModal();
+                });
+                
+                document.getElementById('confirmPublish').addEventListener('click', () => {
+                    this.handlePublish();
+                });
+                
+                // Menu events
+                if (this.menuBtn) {
+                    this.menuBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.toggleMenu();
+                    });
+                }
+                
+                // Click outside to close menu
+                document.addEventListener('click', (e) => {
+                    if (this.dropdownMenu && !this.dropdownMenu.contains(e.target)) {
+                        this.hideMenu();
+                    }
+                });
+                
+                // Dark mode toggle
+                if (this.darkModeToggle) {
+                    this.darkModeToggle.addEventListener('click', () => {
+                        this.toggleDarkMode();
+                    });
+                }
+                
+                // Delete button
+                if (this.deleteBtn) {
+                    this.deleteBtn.addEventListener('click', () => {
+                        this.handleDelete();
+                    });
+                }
+            }
+            
+            setupAutoResize() {
+                this.autoResize(this.titleInput);
+            }
+            
+            autoResize(element) {
+                element.style.height = 'auto';
+                element.style.height = element.scrollHeight + 'px';
+            }
+            
+            setupFloatingToolbar() {
+                // Hide toolbar initially
+                this.floatingToolbar.classList.remove('show');
+            }
+            
+            handleSelectionChange() {
+                const selection = window.getSelection();
+                
+                if (selection.rangeCount === 0 || selection.isCollapsed) {
+                    this.hideFloatingToolbar();
+                    return;
+                }
+                
+                const range = selection.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+                
+                if (rect.width === 0 || rect.height === 0) {
+                    this.hideFloatingToolbar();
+                    return;
+                }
+                
+                // Check if selection is within content editor
+                if (!this.contentEditor.contains(range.commonAncestorContainer)) {
+                    this.hideFloatingToolbar();
+                    return;
+                }
+                
+                this.showFloatingToolbar(rect);
+            }
+            
+            showFloatingToolbar(selectionRect) {
+                const toolbar = this.floatingToolbar;
+                const toolbarRect = toolbar.getBoundingClientRect();
+                
+                // Position above selection
+                const left = selectionRect.left + (selectionRect.width / 2) - (toolbarRect.width / 2);
+                const top = selectionRect.top - toolbarRect.height - 10;
+                
+                toolbar.style.left = Math.max(10, Math.min(left, window.innerWidth - toolbarRect.width - 10)) + 'px';
+                toolbar.style.top = Math.max(10, top) + 'px';
+                
+                toolbar.classList.add('show');
+            }
+            
+            hideFloatingToolbar() {
+                this.floatingToolbar.classList.remove('show');
+            }
+            
+            handleToolbarClick(button) {
+                const command = button.dataset.command;
+                const value = button.dataset.value;
+                
+                if (command === 'createLink') {
+                    const url = prompt('Enter URL:');
+                    if (url) {
+                        document.execCommand(command, false, url);
+                    }
+                } else if (command === 'insertHTML') {
+                    document.execCommand(command, false, value);
+                } else {
+                    document.execCommand(command, false, value);
+                }
+                
+                // Update toolbar button states
+                this.updateToolbarStates();
+                
+                // Focus back to editor
+                this.contentEditor.focus();
+            }
+            
+            updateToolbarStates() {
+                const buttons = this.floatingToolbar.querySelectorAll('.toolbar-btn');
+                buttons.forEach(button => {
+                    const command = button.dataset.command;
+                    if (command && document.queryCommandState(command)) {
+                        button.classList.add('active');
+                    } else {
+                        button.classList.remove('active');
+                    }
+                });
+            }
+            
+            handleKeydown(e) {
+                // Handle Enter key for better line spacing
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    // Allow default behavior
+                }
+                
+                // Handle Tab key
+                if (e.key === 'Tab') {
+                    e.preventDefault();
+                    document.execCommand('insertHTML', false, '&nbsp;&nbsp;&nbsp;&nbsp;');
+                }
+            }
+            
+            setupKeyboardShortcuts() {
+                document.addEventListener('keydown', (e) => {
+                    if (e.ctrlKey || e.metaKey) {
+                        switch (e.key) {
+                            case 'b':
+                                e.preventDefault();
+                                document.execCommand('bold');
+                                break;
+                            case 'i':
+                                e.preventDefault();
+                                document.execCommand('italic');
+                                break;
+                            case 'u':
+                                e.preventDefault();
+                                document.execCommand('underline');
+                                break;
+                            case 'k':
+                                e.preventDefault();
+                                const url = prompt('Enter URL:');
+                                if (url) {
+                                    document.execCommand('createLink', false, url);
+                                }
+                                break;
+                            case 's':
+                                e.preventDefault();
+                                this.autoSave();
+                                break;
+                        }
+                    }
+                });
+            }
+            
+            updateStats() {
+                const content = this.contentEditor.textContent || '';
+                const words = content.trim().split(/\s+/).filter(word => word.length > 0);
+                const wordCount = content.trim() === '' ? 0 : words.length;
+                const charCount = content.length;
+                const readingTime = Math.max(1, Math.ceil(wordCount / 200)); // 200 words per minute
+                
+                // Update display with better formatting
+                this.wordCount.textContent = `${wordCount.toLocaleString()} ${wordCount === 1 ? 'word' : 'words'}`;
+                this.readingTime.textContent = `${readingTime} min read`;
+                this.charCount.textContent = `${charCount.toLocaleString()} ${charCount === 1 ? 'character' : 'characters'}`;
+            }
+            
+            markDirty() {
+                this.isDirty = true;
+                this.scheduleAutoSave();
+            }
+            
+            scheduleAutoSave() {
+                if (this.autoSaveTimeout) {
+                    clearTimeout(this.autoSaveTimeout);
+                }
+                
+                this.autoSaveTimeout = setTimeout(() => {
+                    this.autoSave();
+                }, 2000); // Auto-save after 2 seconds of inactivity
+            }
+            
+            setupAutoSave() {
+                // Set initial state
+                this.updateAutoSaveStatus('saved');
+            }
+            
+            autoSave() {
+                if (!this.isDirty) return;
+                
+                this.updateAutoSaveStatus('saving');
+                
+                const data = {
+                    title: this.titleInput.value.trim(),
+                    content: this.contentEditor.innerHTML,
+                    slug: '{% if article %}{{ article.slug }}{% endif %}' || null
+                };
+                
+                fetch('/api/auto-save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.status === 'success') {
+                        this.isDirty = false;
+                        this.updateAutoSaveStatus('saved');
+                        
+                        // Update URL if this is a new article
+                        if (result.slug && !window.location.pathname.includes('/edit')) {
+                            const newUrl = `/blog/${result.slug}/edit`;
+                            window.history.replaceState({}, '', newUrl);
+                        }
+                    } else {
+                        this.updateAutoSaveStatus('error');
+                        console.error('Auto-save failed:', result.message);
+                    }
+                })
+                .catch(error => {
+                    this.updateAutoSaveStatus('error');
+                    console.error('Auto-save error:', error);
+                });
+            }
+            
+            updateAutoSaveStatus(status) {
+                const icon = document.getElementById('saveIcon');
+                const text = document.getElementById('saveText');
+                
+                if (status === 'saving') {
+                    icon.className = 'fas fa-spinner fa-spin text-green-600';
+                    text.textContent = 'Saving...';
+                    this.autoSaveStatus.classList.add('saving');
+                    this.autoSaveStatus.classList.remove('saved', 'error');
+                } else if (status === 'error') {
+                    icon.className = 'fas fa-exclamation-triangle text-red-600';
+                    text.textContent = 'Save failed';
+                    this.autoSaveStatus.classList.add('error');
+                    this.autoSaveStatus.classList.remove('saving', 'saved');
+                } else {
+                    icon.className = 'fas fa-circle text-gray-400';
+                    text.textContent = 'Saved';
+                    this.autoSaveStatus.classList.add('saved');
+                    this.autoSaveStatus.classList.remove('saving', 'error');
+                }
+            }
+            
+            showPublishModal() {
+                this.publishModal.classList.remove('hidden');
+                this.publishModal.style.display = 'flex';
+            }
+            
+            hidePublishModal() {
+                this.publishModal.classList.add('hidden');
+                this.publishModal.style.display = 'none';
+            }
+            
+            handlePublish() {
+                const publishOption = document.querySelector('input[name="publishOption"]:checked').value;
+                const isPublished = publishOption === 'publish';
+                
+                // Update form data
+                this.contentInput.value = this.contentEditor.innerHTML;
+                document.getElementById('isPublishedInput').value = isPublished ? 'on' : '';
+                
+                // Submit form
+                document.getElementById('storyForm').submit();
+            }
+            
+            setupMenu() {
+                // Initialize menu state
+                this.hideMenu();
+            }
+            
+            toggleMenu() {
+                if (this.dropdownMenu.classList.contains('hidden')) {
+                    this.showMenu();
+                } else {
+                    this.hideMenu();
+                }
+            }
+            
+            showMenu() {
+                this.dropdownMenu.classList.remove('hidden');
+            }
+            
+            hideMenu() {
+                this.dropdownMenu.classList.add('hidden');
+            }
+            
+            setupDarkMode() {
+                // Check for saved theme preference or default to light mode
+                const savedTheme = localStorage.getItem('theme');
+                if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                }
+            }
+            
+            toggleDarkMode() {
+                const isDark = document.documentElement.classList.contains('dark');
+                
+                if (isDark) {
+                    document.documentElement.classList.remove('dark');
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    document.documentElement.classList.add('dark');
+                    localStorage.setItem('theme', 'dark');
+                }
+                
+                this.hideMenu();
+            }
+            
+            handleDelete() {
+                if (confirm('Are you sure you want to delete this story? This action cannot be undone.')) {
+                    const slug = '{% if article %}{{ article.slug }}{% endif %}';
+                    if (slug) {
+                        window.location.href = `/blog/${slug}/delete`;
+                    }
+                }
+                this.hideMenu();
+            }
+        }
+        
+        // Initialize editor when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new MediumStyleEditor();
+        });
+        
+        // Handle placeholder for content editor
+        document.addEventListener('DOMContentLoaded', () => {
+            const contentEditor = document.getElementById('contentEditor');
+            
+            function updatePlaceholder() {
+                if (contentEditor.textContent.trim() === '') {
+                    contentEditor.classList.add('empty');
+                    if (!contentEditor.querySelector('.placeholder')) {
+                        const placeholder = document.createElement('div');
+                        placeholder.className = 'placeholder';
+                        placeholder.style.cssText = 'position: absolute; color: #9e9e9e; pointer-events: none;';
+                        placeholder.textContent = 'Tell your story...';
+                        contentEditor.style.position = 'relative';
+                        contentEditor.appendChild(placeholder);
+                    }
+                } else {
+                    contentEditor.classList.remove('empty');
+                    const placeholder = contentEditor.querySelector('.placeholder');
+                    if (placeholder) {
+                        placeholder.remove();
+                    }
+                }
+            }
+            
+            contentEditor.addEventListener('input', updatePlaceholder);
+            contentEditor.addEventListener('focus', updatePlaceholder);
+            contentEditor.addEventListener('blur', updatePlaceholder);
+            
+            // Initial check
+            updatePlaceholder();
+        });
+    </script>
+</body>
+</html>
