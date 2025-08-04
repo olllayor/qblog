@@ -101,8 +101,105 @@
 				color: #93c5fd;
 			}
 
-			.preview-toggle {
-				transition: all 0.3s ease;
+			/* Slash command menu styling */
+			.slash-menu {
+				position: absolute;
+				background: white;
+				border: 1px solid #e5e7eb;
+				border-radius: 8px;
+				box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+				padding: 0.5rem 0;
+				display: none;
+				z-index: 1000;
+				min-width: 200px;
+				max-height: 200px;
+				overflow-y: auto;
+			}
+
+			.dark .slash-menu {
+				background: #374151;
+				border-color: #4b5563;
+			}
+
+			.slash-item {
+				padding: 0.75rem 1rem;
+				cursor: pointer;
+				display: flex;
+				align-items: center;
+				gap: 0.75rem;
+				color: #374151;
+				border: none;
+				background: none;
+				width: 100%;
+				text-align: left;
+			}
+
+			.slash-item:hover,
+			.slash-item.selected {
+				background: #f3f4f6;
+			}
+
+			.dark .slash-item {
+				color: #d1d5db;
+			}
+
+			.dark .slash-item:hover,
+			.dark .slash-item.selected {
+				background: #4b5563;
+			}
+
+			.slash-item-icon {
+				width: 1.25rem;
+				height: 1.25rem;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 0.875rem;
+			}
+
+			.slash-item-content {
+				flex: 1;
+			}
+
+			.slash-item-title {
+				font-weight: 500;
+				font-size: 0.875rem;
+			}
+
+			.slash-item-desc {
+				font-size: 0.75rem;
+				color: #6b7280;
+				margin-top: 0.125rem;
+			}
+
+			.dark .slash-item-desc {
+				color: #9ca3af;
+			}
+
+			/* Media floating button */
+			.media-float-btn {
+				position: fixed;
+				bottom: 2rem;
+				right: 2rem;
+				width: 56px;
+				height: 56px;
+				border-radius: 50%;
+				background: #2563eb;
+				color: white;
+				border: none;
+				box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+				cursor: pointer;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 1.25rem;
+				transition: all 0.2s;
+				z-index: 999;
+			}
+
+			.media-float-btn:hover {
+				background: #1d4ed8;
+				transform: scale(1.1);
 			}
 
 			.preview-mode .editor-section {
@@ -286,7 +383,6 @@
 								spellcheck="false"
 							></div>
 							
-							<!-- Inline formatting toolbar -->
 							<div id="format-toolbar" class="format-toolbar">
 								<button type="button" class="format-btn" data-command="bold" title="Bold (Ctrl+B)">
 									<i class="fas fa-bold"></i>
@@ -317,6 +413,73 @@
 								<div class="border-l border-gray-300 dark:border-gray-600 mx-1"></div>
 								<button type="button" class="format-btn" data-command="createLink" title="Insert Link">
 									<i class="fas fa-link"></i>
+								</button>
+							</div>
+
+							<!-- Slash command menu -->
+							<div id="slash-menu" class="slash-menu">
+								<button type="button" class="slash-item" data-command="heading1">
+									<div class="slash-item-icon">
+										<i class="fas fa-heading"></i>
+									</div>
+									<div class="slash-item-content">
+										<div class="slash-item-title">Heading 1</div>
+										<div class="slash-item-desc">Large section heading</div>
+									</div>
+								</button>
+								<button type="button" class="slash-item" data-command="heading2">
+									<div class="slash-item-icon">
+										<i class="fas fa-heading"></i>
+									</div>
+									<div class="slash-item-content">
+										<div class="slash-item-title">Heading 2</div>
+										<div class="slash-item-desc">Medium section heading</div>
+									</div>
+								</button>
+								<button type="button" class="slash-item" data-command="heading3">
+									<div class="slash-item-icon">
+										<i class="fas fa-heading"></i>
+									</div>
+									<div class="slash-item-content">
+										<div class="slash-item-title">Heading 3</div>
+										<div class="slash-item-desc">Small section heading</div>
+									</div>
+								</button>
+								<button type="button" class="slash-item" data-command="code">
+									<div class="slash-item-icon">
+										<i class="fas fa-code"></i>
+									</div>
+									<div class="slash-item-content">
+										<div class="slash-item-title">Code Block</div>
+										<div class="slash-item-desc">Insert code snippet</div>
+									</div>
+								</button>
+								<button type="button" class="slash-item" data-command="image">
+									<div class="slash-item-icon">
+										<i class="fas fa-image"></i>
+									</div>
+									<div class="slash-item-content">
+										<div class="slash-item-title">Image</div>
+										<div class="slash-item-desc">Upload or embed image</div>
+									</div>
+								</button>
+								<button type="button" class="slash-item" data-command="bulletlist">
+									<div class="slash-item-icon">
+										<i class="fas fa-list-ul"></i>
+									</div>
+									<div class="slash-item-content">
+										<div class="slash-item-title">Bullet List</div>
+										<div class="slash-item-desc">Create bulleted list</div>
+									</div>
+								</button>
+								<button type="button" class="slash-item" data-command="numberedlist">
+									<div class="slash-item-icon">
+										<i class="fas fa-list-ol"></i>
+									</div>
+									<div class="slash-item-content">
+										<div class="slash-item-title">Numbered List</div>
+										<div class="slash-item-desc">Create numbered list</div>
+									</div>
 								</button>
 							</div>
 						</div>
@@ -370,23 +533,35 @@
 			</div>
 		</main>
 
+		<!-- Floating media button -->
+		<button type="button" id="media-float-btn" class="media-float-btn" title="Add Media">
+			<i class="fas fa-plus"></i>
+		</button>
+
 		<!-- Modern editor JavaScript -->
 		<script>
 			class ModernEditor {
 				constructor() {
 					this.editor = document.getElementById('modern-editor');
 					this.toolbar = document.getElementById('format-toolbar');
+					this.slashMenu = document.getElementById('slash-menu');
+					this.mediaBtn = document.getElementById('media-float-btn');
 					this.titleInput = document.getElementById('title');
 					this.contentInput = document.getElementById('content');
 					this.previewContent = document.getElementById('preview-content');
 					this.isPreviewMode = false;
 					this.autoSaveTimeout = null;
+					this.slashMenuVisible = false;
+					this.slashRange = null;
+					this.selectedSlashIndex = 0;
 					
 					this.init();
 				}
 
 				init() {
 					this.setupEventListeners();
+					this.setupSlashCommands();
+					this.setupMediaButton();
 					this.loadExistingContent();
 					this.setupPublishControls();
 					this.setupPreviewMode();
@@ -402,11 +577,12 @@
 					// Editor events
 					this.editor.addEventListener('input', () => {
 						this.updatePreview();
-						this.triggerAutoSave();
+						this.saveToLocalStorage();
 					});
 
 					this.editor.addEventListener('keydown', (e) => {
 						this.handleKeyboardShortcuts(e);
+						this.handleSlashCommands(e);
 					});
 
 					// Toolbar button events
@@ -484,7 +660,7 @@
 					this.editor.focus();
 					this.updateToolbarState();
 					this.updatePreview();
-					this.triggerAutoSave();
+					this.saveToLocalStorage();
 				}
 
 				handleKeyboardShortcuts(e) {
@@ -504,7 +680,7 @@
 								break;
 						}
 						this.updatePreview();
-						this.triggerAutoSave();
+						this.saveToLocalStorage();
 					}
 				}
 
@@ -626,23 +802,297 @@
 				}
 
 				setupAutoSave() {
-					const autoSave = () => {
-						clearTimeout(this.autoSaveTimeout);
-						this.autoSaveTimeout = setTimeout(() => {
-							const content = this.editor.innerHTML;
-							localStorage.setItem(
-								'article_draft_modern',
-								JSON.stringify({
-									title: this.titleInput.value,
-									content: content,
-									timestamp: Date.now(),
-								}),
-							);
-						}, 2000);
-					};
+					// Simple auto-save using debounced localStorage - avoid duplicate listeners
+					this.saveToLocalStorage();
+				}
 
-					this.editor.addEventListener('input', autoSave);
-					this.titleInput.addEventListener('input', autoSave);
+				saveToLocalStorage() {
+					clearTimeout(this.autoSaveTimeout);
+					this.autoSaveTimeout = setTimeout(() => {
+						const content = this.editor.innerHTML;
+						localStorage.setItem(
+							'article_draft_modern',
+							JSON.stringify({
+								title: this.titleInput.value,
+								content: content,
+								timestamp: Date.now(),
+							}),
+						);
+					}, 2000);
+				}
+
+				triggerAutoSave() {
+					this.saveToLocalStorage();
+				}
+
+				// Slash command functionality
+				setupSlashCommands() {
+					// Handle slash menu item clicks
+					this.slashMenu.addEventListener('click', (e) => {
+						const item = e.target.closest('.slash-item');
+						if (item) {
+							this.executeSlashCommand(item.dataset.command);
+						}
+					});
+
+					// Hide slash menu when clicking outside
+					document.addEventListener('click', (e) => {
+						if (!this.slashMenu.contains(e.target) && !this.editor.contains(e.target)) {
+							this.hideSlashMenu();
+						}
+					});
+				}
+
+				handleSlashCommands(e) {
+					if (this.slashMenuVisible) {
+						switch (e.key) {
+							case 'ArrowDown':
+								e.preventDefault();
+								this.navigateSlashMenu(1);
+								break;
+							case 'ArrowUp':
+								e.preventDefault();
+								this.navigateSlashMenu(-1);
+								break;
+							case 'Enter':
+								e.preventDefault();
+								const selectedItem = this.slashMenu.children[this.selectedSlashIndex];
+								this.executeSlashCommand(selectedItem.dataset.command);
+								break;
+							case 'Escape':
+								e.preventDefault();
+								this.hideSlashMenu();
+								break;
+						}
+					} else if (e.key === '/') {
+						// Check if we're at the start of a line or after whitespace
+						const selection = window.getSelection();
+						if (selection.rangeCount > 0) {
+							const range = selection.getRangeAt(0);
+							const textNode = range.startContainer;
+							const offset = range.startOffset;
+							
+							if (textNode.nodeType === Node.TEXT_NODE) {
+								const beforeText = textNode.textContent.substring(0, offset);
+								if (beforeText === '' || beforeText.match(/\s$/)) {
+									// Store the range for replacing the slash
+									setTimeout(() => {
+										this.showSlashMenu();
+									}, 0);
+								}
+							}
+						}
+					}
+				}
+
+				showSlashMenu() {
+					const selection = window.getSelection();
+					if (selection.rangeCount === 0) return;
+
+					const range = selection.getRangeAt(0);
+					this.slashRange = range.cloneRange();
+					
+					// Position the menu
+					const rect = range.getBoundingClientRect();
+					this.slashMenu.style.left = `${rect.left}px`;
+					this.slashMenu.style.top = `${rect.bottom + 5}px`;
+					this.slashMenu.style.display = 'block';
+					this.slashMenuVisible = true;
+					this.selectedSlashIndex = 0;
+					this.updateSlashMenuSelection();
+				}
+
+				hideSlashMenu() {
+					this.slashMenu.style.display = 'none';
+					this.slashMenuVisible = false;
+					this.slashRange = null;
+				}
+
+				navigateSlashMenu(direction) {
+					const items = this.slashMenu.children;
+					this.selectedSlashIndex = Math.max(0, Math.min(items.length - 1, this.selectedSlashIndex + direction));
+					this.updateSlashMenuSelection();
+				}
+
+				updateSlashMenuSelection() {
+					const items = this.slashMenu.children;
+					for (let i = 0; i < items.length; i++) {
+						items[i].classList.toggle('selected', i === this.selectedSlashIndex);
+					}
+				}
+
+				executeSlashCommand(command) {
+					if (!this.slashRange) return;
+
+					// Remove the slash character
+					this.slashRange.setStart(this.slashRange.startContainer, this.slashRange.startOffset - 1);
+					this.slashRange.deleteContents();
+
+					// Execute the command
+					switch (command) {
+						case 'heading1':
+							this.insertElement('h1', 'Heading 1');
+							break;
+						case 'heading2':
+							this.insertElement('h2', 'Heading 2');
+							break;
+						case 'heading3':
+							this.insertElement('h3', 'Heading 3');
+							break;
+						case 'code':
+							this.insertCodeBlock();
+							break;
+						case 'image':
+							this.insertImage();
+							break;
+						case 'bulletlist':
+							document.execCommand('insertUnorderedList');
+							break;
+						case 'numberedlist':
+							document.execCommand('insertOrderedList');
+							break;
+					}
+
+					this.hideSlashMenu();
+					this.updatePreview();
+					this.saveToLocalStorage();
+				}
+
+				insertElement(tag, placeholder) {
+					const element = document.createElement(tag);
+					element.textContent = placeholder;
+					
+					if (this.slashRange) {
+						this.slashRange.insertNode(element);
+						
+						// Select the text for editing
+						const range = document.createRange();
+						range.selectNodeContents(element);
+						const selection = window.getSelection();
+						selection.removeAllRanges();
+						selection.addRange(range);
+					}
+				}
+
+				insertCodeBlock() {
+					const pre = document.createElement('pre');
+					const code = document.createElement('code');
+					code.textContent = 'Your code here...';
+					code.style.display = 'block';
+					code.style.background = '#f6f8fa';
+					code.style.padding = '1rem';
+					code.style.borderRadius = '6px';
+					code.style.fontFamily = 'monospace';
+					code.style.border = '1px solid #e1e4e8';
+					pre.appendChild(code);
+					
+					if (this.slashRange) {
+						this.slashRange.insertNode(pre);
+						
+						// Select the code text for editing
+						const range = document.createRange();
+						range.selectNodeContents(code);
+						const selection = window.getSelection();
+						selection.removeAllRanges();
+						selection.addRange(range);
+					}
+				}
+
+				insertImage() {
+					const url = prompt('Enter image URL:', 'https://');
+					if (url) {
+						const img = document.createElement('img');
+						img.src = url;
+						img.alt = 'Image';
+						img.style.maxWidth = '100%';
+						img.style.height = 'auto';
+						img.style.margin = '1rem 0';
+						
+						if (this.slashRange) {
+							this.slashRange.insertNode(img);
+						}
+					}
+				}
+
+				// Media button functionality
+				setupMediaButton() {
+					this.mediaBtn.addEventListener('click', () => {
+						this.showMediaMenu();
+					});
+				}
+
+				showMediaMenu() {
+					// Simple media insertion for now
+					const choice = prompt('Enter media type:\n1. Image URL\n2. YouTube URL\n3. File upload (coming soon)', '1');
+					
+					switch (choice) {
+						case '1':
+							const imageUrl = prompt('Enter image URL:', 'https://');
+							if (imageUrl) {
+								this.insertImageAtCursor(imageUrl);
+							}
+							break;
+						case '2':
+							const youtubeUrl = prompt('Enter YouTube URL:', 'https://youtube.com/watch?v=');
+							if (youtubeUrl) {
+								this.insertVideoAtCursor(youtubeUrl);
+							}
+							break;
+						default:
+							alert('File upload feature coming soon!');
+					}
+				}
+
+				insertImageAtCursor(url) {
+					const img = document.createElement('img');
+					img.src = url;
+					img.alt = 'Image';
+					img.style.maxWidth = '100%';
+					img.style.height = 'auto';
+					img.style.margin = '1rem 0';
+					
+					this.insertAtCursor(img);
+				}
+
+				insertVideoAtCursor(url) {
+					// Convert YouTube URL to embed format
+					let embedUrl = url;
+					if (url.includes('youtube.com/watch?v=')) {
+						const videoId = url.split('v=')[1].split('&')[0];
+						embedUrl = `https://www.youtube.com/embed/${videoId}`;
+					}
+					
+					const iframe = document.createElement('iframe');
+					iframe.src = embedUrl;
+					iframe.width = '560';
+					iframe.height = '315';
+					iframe.style.maxWidth = '100%';
+					iframe.style.margin = '1rem 0';
+					iframe.frameBorder = '0';
+					iframe.allowFullscreen = true;
+					
+					this.insertAtCursor(iframe);
+				}
+
+				insertAtCursor(element) {
+					const selection = window.getSelection();
+					if (selection.rangeCount > 0) {
+						const range = selection.getRangeAt(0);
+						range.deleteContents();
+						range.insertNode(element);
+						
+						// Move cursor after the inserted element
+						range.setStartAfter(element);
+						range.setEndAfter(element);
+						selection.removeAllRanges();
+						selection.addRange(range);
+					} else {
+						// If no selection, append to the end
+						this.editor.appendChild(element);
+					}
+					
+					this.updatePreview();
+					this.saveToLocalStorage();
 				}
 
 				loadExistingContent() {
@@ -662,22 +1112,6 @@
 							this.editor.innerHTML = draft.content || '';
 						}
 					}
-				}
-
-				triggerAutoSave() {
-					// Trigger the auto-save functionality manually without causing input event
-					clearTimeout(this.autoSaveTimeout);
-					this.autoSaveTimeout = setTimeout(() => {
-						const content = this.editor.innerHTML;
-						localStorage.setItem(
-							'article_draft_modern',
-							JSON.stringify({
-								title: this.titleInput.value,
-								content: content,
-								timestamp: Date.now(),
-							}),
-						);
-					}, 2000);
 				}
 			}
 
