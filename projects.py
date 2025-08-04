@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import psycopg2
 
@@ -27,7 +27,7 @@ class Project:
         self.technologies = technologies  # Should be a comma-separated string or list
         self.github_link = github_link
         self.live_demo_link = live_demo_link
-        self.date_added = date_added or datetime.now(timezone.utc)
+        self.date_added = date_added or datetime.now(UTC)
 
     @staticmethod
     def save_project(project):

@@ -1,7 +1,7 @@
 import logging
 import os
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from functools import wraps
 
 import redis
@@ -261,7 +261,7 @@ def publish():
         title = request.form.get("title")
         content = request.form.get("content")
         is_published = request.form.get("is_published") == "on"
-        date_published = datetime.now(timezone.utc)
+        date_published = datetime.now(UTC)
         if not title or not content:
             flash("Title or content is missing", "error")
             return redirect(url_for("publish"))
@@ -296,7 +296,7 @@ def publish_classic():
         title = request.form.get("title")
         content = request.form.get("content")
         is_published = request.form.get("is_published") == "on"
-        date_published = datetime.now(timezone.utc)
+        date_published = datetime.now(UTC)
         if not title or not content:
             flash("Title or content is missing", "error")
             return redirect(url_for("publish_classic"))
@@ -532,7 +532,7 @@ def health_check():
     status = {
         "status": "healthy",
         "cache_type": app.config.get("CACHE_TYPE", "unknown"),
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
     # Test cache connection
@@ -652,7 +652,7 @@ def auto_save():
             new_article = Article(
                 title=title,
                 content=content,
-                date_published=datetime.now(timezone.utc),
+                date_published=datetime.now(UTC),
                 is_published=False,
                 slug=final_slug,
             )
