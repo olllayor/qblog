@@ -608,55 +608,64 @@ def auto_save():
     """Auto-save endpoint for the modern editor"""
     try:
         data = request.get_json()
-        title = data.get('title', '')
-        content = data.get('content', '')
-        slug = data.get('slug')
-        
+        title = data.get("title", "")
+        content = data.get("content", "")
+        slug = data.get("slug")
+
         if not title.strip():
             return {"status": "error", "message": "Title is required"}, 400
-            
+
         if slug:
             # Update existing article
             article = Article.get_by_slug(slug)
             if not article:
                 return {"status": "error", "message": "Article not found"}, 404
-                
+
             article.title = title
             article.content = content
-            
+
             if Article.update_article(article):
                 # Clear cache
                 cache.delete(f"article_content_{article.slug}")
-                return {"status": "success", "message": "Auto-saved", "slug": article.slug}
+                return {
+                    "status": "success",
+                    "message": "Auto-saved",
+                    "slug": article.slug,
+                }
             else:
                 return {"status": "error", "message": "Failed to save"}, 500
         else:
             # Create new draft - check if title already exists and append timestamp
-            from slugify import slugify
             import time
-            
+
+            from slugify import slugify
+
             base_slug = slugify(title)
             final_slug = base_slug
-            
+
             # Check if slug exists and make it unique
             existing_article = Article.get_by_slug(final_slug)
             if existing_article:
                 timestamp = int(time.time())
                 final_slug = f"{base_slug}-{timestamp}"
-            
+
             new_article = Article(
                 title=title,
                 content=content,
                 date_published=datetime.now(timezone.utc),
                 is_published=False,
-                slug=final_slug
+                slug=final_slug,
             )
-            
+
             if Article.save_article(new_article):
-                return {"status": "success", "message": "Draft created", "slug": new_article.slug}
+                return {
+                    "status": "success",
+                    "message": "Draft created",
+                    "slug": new_article.slug,
+                }
             else:
                 return {"status": "error", "message": "Failed to create draft"}, 500
-                
+
     except Exception as e:
         logger.error(f"Auto-save error: {e}")
         return {"status": "error", "message": "Server error"}, 500
