@@ -256,7 +256,6 @@ def matrix():
 
 
 @app.route("/publish", methods=["GET", "POST"])
-@login_required
 def publish():
     if request.method == "POST":
         title = request.form.get("title")
@@ -285,9 +284,9 @@ def publish():
             return redirect(url_for("article", slug=new_article.slug))
         else:
             flash("Article saved as draft. You can publish it later.", "info")
-            return redirect(url_for("edit_article", slug=new_article.slug))
+            return redirect(url_for("edit_article_modern", slug=new_article.slug))
 
-    return render_template("publish.html")
+    return render_template("publish_modern.html")
 
 
 @app.route("/publish/modern", methods=["GET", "POST"])
@@ -361,7 +360,7 @@ def edit_article(slug):
         else:
             flash("Error updating article", "error")
 
-    return render_template("publish.html", article=article)
+    return render_template("publish_modern.html", article=article)
 
 
 @app.route("/blog/<slug>/edit/modern", methods=["GET", "POST"])

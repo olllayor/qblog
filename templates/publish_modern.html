@@ -202,6 +202,11 @@
 				transform: scale(1.1);
 			}
 
+			/* Advanced settings */
+			.rotate-90 {
+				transform: rotate(90deg);
+			}
+
 			.preview-mode .editor-section {
 				display: none;
 			}
@@ -283,7 +288,7 @@
 				<div class="flex items-center justify-between">
 					<h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100" style="font-family: 'Geist Mono', monospace">
 						<i class="fas fa-pen-fancy mr-2 text-blue-600"></i>
-						{{ 'Edit Article' if article else 'Publish New Article' }} <span class="text-sm text-blue-600">(Modern)</span>
+						{{ 'Edit Article' if article else 'Publish New Article' }}
 					</h1>
 					<div class="flex items-center space-x-4">
 						<button
@@ -500,11 +505,134 @@
 						</div>
 					</div>
 
+					<!-- Advanced Settings Panel -->
+					<div class="mt-8">
+						<button 
+							type="button" 
+							id="advanced-toggle" 
+							class="inline-flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+							style="font-family: 'JetBrains Mono', monospace"
+						>
+							<i class="fas fa-cog mr-2"></i>
+							<span>Advanced Settings</span>
+							<i id="advanced-chevron" class="fas fa-chevron-right ml-2 transition-transform duration-200"></i>
+						</button>
+						
+						<div id="advanced-panel" class="mt-4 p-6 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 hidden">
+							<!-- SEO Settings -->
+							<div class="mb-6">
+								<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3" style="font-family: 'JetBrains Mono', monospace">
+									<i class="fas fa-search mr-2 text-green-600"></i>
+									SEO Settings
+								</h3>
+								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+									<div>
+										<label for="meta-description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+											Meta Description
+										</label>
+										<textarea 
+											id="meta-description" 
+											name="meta_description"
+											rows="3" 
+											placeholder="A brief description of your article for search engines..."
+											class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+										></textarea>
+										<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Recommended: 150-160 characters</p>
+									</div>
+									<div>
+										<label for="seo-tags" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+											Tags (comma-separated)
+										</label>
+										<input 
+											type="text" 
+											id="seo-tags" 
+											name="tags"
+											placeholder="technology, programming, tutorial"
+											class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+										/>
+										<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Help readers discover your content</p>
+									</div>
+								</div>
+							</div>
+
+							<!-- Publishing Schedule -->
+							<div class="mb-6">
+								<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3" style="font-family: 'JetBrains Mono', monospace">
+									<i class="fas fa-calendar-alt mr-2 text-purple-600"></i>
+									Publishing Schedule
+								</h3>
+								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+									<div>
+										<label for="publish-date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+											Publish Date
+										</label>
+										<input 
+											type="datetime-local" 
+											id="publish-date" 
+											name="publish_date"
+											class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+										/>
+										<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Leave empty to publish immediately</p>
+									</div>
+									<div>
+										<label for="canonical-url" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+											Canonical URL
+										</label>
+										<input 
+											type="url" 
+											id="canonical-url" 
+											name="canonical_url"
+											placeholder="https://example.com/original-article"
+											class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+										/>
+										<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">If this is a repost or cross-post</p>
+									</div>
+								</div>
+							</div>
+
+							<!-- Social Media Preview -->
+							<div>
+								<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3" style="font-family: 'JetBrains Mono', monospace">
+									<i class="fas fa-share-alt mr-2 text-blue-600"></i>
+									Social Media Preview
+								</h3>
+								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+									<div>
+										<label for="social-image" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+											Featured Image URL
+										</label>
+										<input 
+											type="url" 
+											id="social-image" 
+											name="featured_image"
+											placeholder="https://example.com/image.jpg"
+											class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+										/>
+									</div>
+									<div>
+										<label for="reading-time" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+											Estimated Reading Time
+										</label>
+										<input 
+											type="number" 
+											id="reading-time" 
+											name="reading_time"
+											placeholder="5"
+											min="1"
+											class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+										/>
+										<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Minutes (auto-calculated if empty)</p>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
 					<!-- Action Buttons -->
 					<div class="flex justify-between items-center mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
 						<div class="text-sm text-gray-500 dark:text-gray-400" style="font-family: 'JetBrains Mono', monospace">
 							<i class="fas fa-lightbulb mr-1"></i>
-							Tip: Select text to see formatting options, use preview to see how your article will look
+							Tip: Select text for formatting options, type "/" for commands, use advanced settings for SEO
 						</div>
 						<div class="space-x-4">
 							{% if article %}
@@ -562,6 +690,7 @@
 					this.setupEventListeners();
 					this.setupSlashCommands();
 					this.setupMediaButton();
+					this.setupAdvancedSettings();
 					this.loadExistingContent();
 					this.setupPublishControls();
 					this.setupPreviewMode();
@@ -1021,6 +1150,35 @@
 					});
 				}
 
+				// Advanced settings panel
+				setupAdvancedSettings() {
+					const advancedToggle = document.getElementById('advanced-toggle');
+					const advancedPanel = document.getElementById('advanced-panel');
+					const advancedChevron = document.getElementById('advanced-chevron');
+
+					advancedToggle.addEventListener('click', () => {
+						const isHidden = advancedPanel.classList.contains('hidden');
+						
+						if (isHidden) {
+							advancedPanel.classList.remove('hidden');
+							advancedChevron.classList.add('rotate-90');
+						} else {
+							advancedPanel.classList.add('hidden');
+							advancedChevron.classList.remove('rotate-90');
+						}
+					});
+
+					// Auto-calculate reading time
+					const readingTimeInput = document.getElementById('reading-time');
+					this.editor.addEventListener('input', () => {
+						if (!readingTimeInput.value) {
+							const wordCount = this.editor.innerText.split(/\s+/).filter(word => word.length > 0).length;
+							const estimatedTime = Math.ceil(wordCount / 225); // Average reading speed
+							readingTimeInput.placeholder = `${estimatedTime} (auto-calculated)`;
+						}
+					});
+				}
+
 				showMediaMenu() {
 					// Simple media insertion for now
 					const choice = prompt('Enter media type:\n1. Image URL\n2. YouTube URL\n3. File upload (coming soon)', '1');
@@ -1103,13 +1261,19 @@
 						return;
 					}
 
-					// Try to load draft from localStorage
+					// Try to load draft from localStorage (simplified to prevent confirm dialog issues)
 					const savedDraft = localStorage.getItem('article_draft_modern');
-					if (savedDraft) {
-						const draft = JSON.parse(savedDraft);
-						if (confirm('Found a saved draft. Would you like to restore it?')) {
-							this.titleInput.value = draft.title || '';
-							this.editor.innerHTML = draft.content || '';
+					if (savedDraft && !existingContent) {
+						try {
+							const draft = JSON.parse(savedDraft);
+							// Only restore if there's substantial content
+							if (draft.content && draft.content.length > 50) {
+								this.titleInput.value = draft.title || '';
+								this.editor.innerHTML = draft.content || '';
+							}
+						} catch (e) {
+							// Ignore JSON parse errors
+							localStorage.removeItem('article_draft_modern');
 						}
 					}
 				}
