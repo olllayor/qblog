@@ -672,4 +672,4 @@ def auto_save():
 
 
 if __name__ == "__main__":
-    app.run(port=4200, debug=True)
+    app.run(port=4200, debug=False)
