@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>{{ 'Edit Article' if article else 'Publish New Article' }} - Ollayor's Blog</title>
+		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+		<script src="https://cdn.tailwindcss.com"></script>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+		<!-- Enhanced blog styling for editor preview -->
+		<link rel="stylesheet" href="{{ url_for('static', filename='blog-styles.css') }}" />
+		{% include 'analytics.html' %}
+		<style>
+			/* Modern editor styling */
+			.editor-container {
+				min-height: 400px;
+				border-radius: 12px;
+				overflow: hidden;
+				position: relative;
+			}
+
+			.modern-editor {
+				font-family: 'Geist Mono', monospace;
+				font-size: 1.1rem;
+				line-height: 1.7;
+				outline: none;
+				min-height: 400px;
+				padding: 1.5rem;
+				border: none;
+				background: inherit;
+				color: inherit;
+			}
+
+			.modern-editor:empty:before {
+				content: 'Start writing your amazing article...';
+				color: #9ca3af;
+				font-style: italic;
+			}
+
+			.dark .modern-editor:empty:before {
+				color: #6b7280;
+			}
+
+			/* Inline formatting toolbar */
+			.format-toolbar {
+				position: absolute;
+				background: white;
+				border: 1px solid #e5e7eb;
+				border-radius: 8px;
+				box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+				padding: 0.5rem;
+				display: none;
+				z-index: 1000;
+				gap: 0.25rem;
+			}
+
+			.dark .format-toolbar {
+				background: #374151;
+				border-color: #4b5563;
+			}
+
+			.format-btn {
+				padding: 0.5rem;
+				border: none;
+				background: transparent;
+				border-radius: 4px;
+				cursor: pointer;
+				color: #374151;
+				transition: background-color 0.2s;
+			}
+
+			.format-btn:hover {
+				background: #f3f4f6;
+			}
+
+			.dark .format-btn {
+				color: #d1d5db;
+			}
+
+			.dark .format-btn:hover {
+				background: #4b5563;
+			}
+
+			.format-btn.active {
+				background: #dbeafe;
+				color: #1d4ed8;
+			}
+
+			.dark .format-btn.active {
+				background: #1e3a8a;
+				color: #93c5fd;
+			}
+
+			/* Slash command menu styling */
+			.slash-menu {
+				position: absolute;
+				background: white;
+				border: 1px solid #e5e7eb;
+				border-radius: 8px;
+				box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+				padding: 0.5rem 0;
+				display: none;
+				z-index: 1000;
+				min-width: 200px;
+				max-height: 200px;
+				overflow-y: auto;
+			}
+
+			.dark .slash-menu {
+				background: #374151;
+				border-color: #4b5563;
+			}
+
+			.slash-item {
+				padding: 0.75rem 1rem;
+				cursor: pointer;
+				display: flex;
+				align-items: center;
+				gap: 0.75rem;
+				color: #374151;
+				border: none;
+				background: none;
+				width: 100%;
+				text-align: left;
+			}
+
+			.slash-item:hover,
+			.slash-item.selected {
+				background: #f3f4f6;
+			}
+
+			.dark .slash-item {
+				color: #d1d5db;
+			}
+
+			.dark .slash-item:hover,
+			.dark .slash-item.selected {
+				background: #4b5563;
+			}
+
+			.slash-item-icon {
+				width: 1.25rem;
+				height: 1.25rem;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 0.875rem;
+			}
+
+			.slash-item-content {
+				flex: 1;
+			}
+
+			.slash-item-title {
+				font-weight: 500;
+				font-size: 0.875rem;
+			}
+
+			.slash-item-desc {
+				font-size: 0.75rem;
+				color: #6b7280;
+				margin-top: 0.125rem;
+			}
+
+			.dark .slash-item-desc {
+				color: #9ca3af;
+			}
+
+			/* Media floating button */
+			.media-float-btn {
+				position: fixed;
+				bottom: 2rem;
+				right: 2rem;
+				width: 56px;
+				height: 56px;
+				border-radius: 50%;
+				background: #2563eb;
+				color: white;
+				border: none;
+				box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+				cursor: pointer;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 1.25rem;
+				transition: all 0.2s;
+				z-index: 999;
+			}
+
+			.media-float-btn:hover {
+				background: #1d4ed8;
+				transform: scale(1.1);
+			}
+
+			/* Advanced settings */
+			.rotate-90 {
+				transform: rotate(90deg);
+			}
+
+			.preview-mode .editor-section {
+				display: none;
+			}
+
+			.preview-section {
+				display: none;
+			}
+
+			.preview-mode .preview-section {
+				display: block;
+			}
+
+			/* Enhanced content styling */
+			.modern-editor h1, .modern-editor h2, .modern-editor h3, 
+			.modern-editor h4, .modern-editor h5, .modern-editor h6 {
+				font-weight: bold;
+				margin: 1rem 0 0.5rem 0;
+			}
+
+			.modern-editor h1 { font-size: 2rem; }
+			.modern-editor h2 { font-size: 1.5rem; }
+			.modern-editor h3 { font-size: 1.25rem; }
+			.modern-editor h4 { font-size: 1.125rem; }
+			.modern-editor h5 { font-size: 1rem; }
+			.modern-editor h6 { font-size: 0.875rem; }
+
+			.modern-editor ul, .modern-editor ol {
+				margin: 1rem 0;
+				padding-left: 2rem;
+			}
+
+			.modern-editor ul {
+				list-style-type: disc;
+			}
+
+			.modern-editor ol {
+				list-style-type: decimal;
+			}
+
+			.modern-editor li {
+				margin: 0.25rem 0;
+			}
+
+			.modern-editor a {
+				color: #2563eb;
+				text-decoration: underline;
+			}
+
+			.modern-editor strong {
+				font-weight: bold;
+			}
+
+			.modern-editor em {
+				font-style: italic;
+			}
+
+			.modern-editor u {
+				text-decoration: underline;
+			}
+
+			.modern-editor p {
+				margin: 1rem 0;
+			}
+
+			.modern-editor p:first-child {
+				margin-top: 0;
+			}
+
+			.modern-editor p:last-child {
+				margin-bottom: 0;
+			}
+		</style>
+	</head>
+
+	<body class="font-inter bg-gray-50 dark:bg-gray-900 min-h-screen">
+		<!-- Enhanced Header -->
+		<header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+			<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+				<div class="flex items-center justify-between">
+					<h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100" style="font-family: 'Geist Mono', monospace">
+						<i class="fas fa-pen-fancy mr-2 text-blue-600"></i>
+						{{ 'Edit Article' if article else 'Publish New Article' }}
+					</h1>
+					<div class="flex items-center space-x-4">
+						<button
+							type="button"
+							id="preview-toggle"
+							class="preview-toggle inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200"
+							style="font-family: 'JetBrains Mono', monospace"
+						>
+							<i class="fas fa-eye mr-2"></i>
+							<span id="preview-text">Preview</span>
+						</button>
+						<a
+							href="{{ url_for('blog') }}"
+							class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200"
+							style="font-family: 'JetBrains Mono', monospace"
+						>
+							<i class="fas fa-arrow-left mr-2"></i>
+							Back to Blog
+						</a>
+					</div>
+				</div>
+			</div>
+		</header>
+
+		<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+			<div id="form-container" class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+				<form action="" method="POST" class="p-8">
+					<!-- Title Input -->
+					<div class="mb-6">
+						<label
+							for="title"
+							class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+							style="font-family: 'JetBrains Mono', monospace"
+						>
+							Article Title
+						</label>
+						<input
+							type="text"
+							id="title"
+							name="title"
+							placeholder="Enter your article title..."
+							required
+							spellcheck="false"
+							class="w-full p-4 border border-gray-300 dark:border-gray-600 rounded-lg text-xl font-bold bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+							style="font-family: 'Geist Mono', monospace"
+							value="{{article.title if article else ''}}"
+						/>
+					</div>
+
+					<!-- Article Metadata -->
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+						<div class="flex items-center">
+							<input
+								type="checkbox"
+								id="is_published"
+								name="is_published"
+								class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+								{%
+								if
+								article
+								and
+								article.is_published
+								%}checked{%
+								endif
+								%}
+							/>
+							<label
+								for="is_published"
+								class="ml-2 block text-sm text-gray-700 dark:text-gray-300"
+								style="font-family: 'JetBrains Mono', monospace"
+							>
+								<i class="fas fa-globe mr-1"></i>
+								<span id="publish-label">Publish immediately</span>
+							</label>
+						</div>
+						<div class="text-sm text-gray-500 dark:text-gray-400" style="font-family: 'JetBrains Mono', monospace">
+							<i class="fas fa-info-circle mr-1"></i>
+							<span id="status-indicator">{{ 'Editing existing article' if article else 'Creating new article' }}</span>
+						</div>
+					</div>
+
+					<input type="hidden" name="content" id="content" value="{{article.content if article else ''}}" />
+
+					<!-- Editor Section -->
+					<div id="editor-section" class="editor-section">
+						<label
+							class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+							style="font-family: 'JetBrains Mono', monospace"
+						>
+							Content
+						</label>
+						<div class="editor-container border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
+							<div 
+								id="modern-editor" 
+								class="modern-editor text-gray-900 dark:text-gray-100"
+								contenteditable="true"
+								spellcheck="false"
+							></div>
+							
+							<div id="format-toolbar" class="format-toolbar">
+								<button type="button" class="format-btn" data-command="bold" title="Bold (Ctrl+B)">
+									<i class="fas fa-bold"></i>
+								</button>
+								<button type="button" class="format-btn" data-command="italic" title="Italic (Ctrl+I)">
+									<i class="fas fa-italic"></i>
+								</button>
+								<button type="button" class="format-btn" data-command="underline" title="Underline (Ctrl+U)">
+									<i class="fas fa-underline"></i>
+								</button>
+								<div class="border-l border-gray-300 dark:border-gray-600 mx-1"></div>
+								<button type="button" class="format-btn" data-command="formatBlock" data-value="h1" title="Heading 1">
+									H1
+								</button>
+								<button type="button" class="format-btn" data-command="formatBlock" data-value="h2" title="Heading 2">
+									H2
+								</button>
+								<button type="button" class="format-btn" data-command="formatBlock" data-value="h3" title="Heading 3">
+									H3
+								</button>
+								<div class="border-l border-gray-300 dark:border-gray-600 mx-1"></div>
+								<button type="button" class="format-btn" data-command="insertUnorderedList" title="Bullet List">
+									<i class="fas fa-list-ul"></i>
+								</button>
+								<button type="button" class="format-btn" data-command="insertOrderedList" title="Numbered List">
+									<i class="fas fa-list-ol"></i>
+								</button>
+								<div class="border-l border-gray-300 dark:border-gray-600 mx-1"></div>
+								<button type="button" class="format-btn" data-command="createLink" title="Insert Link">
+									<i class="fas fa-link"></i>
+								</button>
+							</div>
+
+							<!-- Slash command menu -->
+							<div id="slash-menu" class="slash-menu">
+								<button type="button" class="slash-item" data-command="heading1">
+									<div class="slash-item-icon">
+										<i class="fas fa-heading"></i>
+									</div>
+									<div class="slash-item-content">
+										<div class="slash-item-title">Heading 1</div>
+										<div class="slash-item-desc">Large section heading</div>
+									</div>
+								</button>
+								<button type="button" class="slash-item" data-command="heading2">
+									<div class="slash-item-icon">
+										<i class="fas fa-heading"></i>
+									</div>
+									<div class="slash-item-content">
+										<div class="slash-item-title">Heading 2</div>
+										<div class="slash-item-desc">Medium section heading</div>
+									</div>
+								</button>
+								<button type="button" class="slash-item" data-command="heading3">
+									<div class="slash-item-icon">
+										<i class="fas fa-heading"></i>
+									</div>
+									<div class="slash-item-content">
+										<div class="slash-item-title">Heading 3</div>
+										<div class="slash-item-desc">Small section heading</div>
+									</div>
+								</button>
+								<button type="button" class="slash-item" data-command="code">
+									<div class="slash-item-icon">
+										<i class="fas fa-code"></i>
+									</div>
+									<div class="slash-item-content">
+										<div class="slash-item-title">Code Block</div>
+										<div class="slash-item-desc">Insert code snippet</div>
+									</div>
+								</button>
+								<button type="button" class="slash-item" data-command="image">
+									<div class="slash-item-icon">
+										<i class="fas fa-image"></i>
+									</div>
+									<div class="slash-item-content">
+										<div class="slash-item-title">Image</div>
+										<div class="slash-item-desc">Upload or embed image</div>
+									</div>
+								</button>
+								<button type="button" class="slash-item" data-command="bulletlist">
+									<div class="slash-item-icon">
+										<i class="fas fa-list-ul"></i>
+									</div>
+									<div class="slash-item-content">
+										<div class="slash-item-title">Bullet List</div>
+										<div class="slash-item-desc">Create bulleted list</div>
+									</div>
+								</button>
+								<button type="button" class="slash-item" data-command="numberedlist">
+									<div class="slash-item-icon">
+										<i class="fas fa-list-ol"></i>
+									</div>
+									<div class="slash-item-content">
+										<div class="slash-item-title">Numbered List</div>
+										<div class="slash-item-desc">Create numbered list</div>
+									</div>
+								</button>
+							</div>
+						</div>
+					</div>
+
+					<!-- Preview Section -->
+					<div id="preview-section" class="preview-section">
+						<label
+							class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+							style="font-family: 'JetBrains Mono', monospace"
+						>
+							Preview
+						</label>
+						<div class="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+							<div id="preview-content" class="blog-content bg-white dark:bg-gray-700 p-8 min-h-[400px]">
+								<p class="text-gray-500 dark:text-gray-400 italic">Start writing to see preview...</p>
+							</div>
+						</div>
+					</div>
+
+					<!-- Advanced Settings Panel -->
+					<div class="mt-8">
+						<button 
+							type="button" 
+							id="advanced-toggle" 
+							class="inline-flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-200"
+							style="font-family: 'JetBrains Mono', monospace"
+						>
+							<i class="fas fa-cog mr-2"></i>
+							<span>Advanced Settings</span>
+							<i id="advanced-chevron" class="fas fa-chevron-right ml-2 transition-transform duration-200"></i>
+						</button>
+						
+						<div id="advanced-panel" class="mt-4 p-6 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 hidden">
+							<!-- SEO Settings -->
+							<div class="mb-6">
+								<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3" style="font-family: 'JetBrains Mono', monospace">
+									<i class="fas fa-search mr-2 text-green-600"></i>
+									SEO Settings
+								</h3>
+								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+									<div>
+										<label for="meta-description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+											Meta Description
+										</label>
+										<textarea 
+											id="meta-description" 
+											name="meta_description"
+											rows="3" 
+											placeholder="A brief description of your article for search engines..."
+											class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+										></textarea>
+										<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Recommended: 150-160 characters</p>
+									</div>
+									<div>
+										<label for="seo-tags" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+											Tags (comma-separated)
+										</label>
+										<input 
+											type="text" 
+											id="seo-tags" 
+											name="tags"
+											placeholder="technology, programming, tutorial"
+											class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+										/>
+										<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Help readers discover your content</p>
+									</div>
+								</div>
+							</div>
+
+							<!-- Publishing Schedule -->
+							<div class="mb-6">
+								<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3" style="font-family: 'JetBrains Mono', monospace">
+									<i class="fas fa-calendar-alt mr-2 text-purple-600"></i>
+									Publishing Schedule
+								</h3>
+								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+									<div>
+										<label for="publish-date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+											Publish Date
+										</label>
+										<input 
+											type="datetime-local" 
+											id="publish-date" 
+											name="publish_date"
+											class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+										/>
+										<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Leave empty to publish immediately</p>
+									</div>
+									<div>
+										<label for="canonical-url" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+											Canonical URL
+										</label>
+										<input 
+											type="url" 
+											id="canonical-url" 
+											name="canonical_url"
+											placeholder="https://example.com/original-article"
+											class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+										/>
+										<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">If this is a repost or cross-post</p>
+									</div>
+								</div>
+							</div>
+
+							<!-- Social Media Preview -->
+							<div>
+								<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3" style="font-family: 'JetBrains Mono', monospace">
+									<i class="fas fa-share-alt mr-2 text-blue-600"></i>
+									Social Media Preview
+								</h3>
+								<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+									<div>
+										<label for="social-image" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+											Featured Image URL
+										</label>
+										<input 
+											type="url" 
+											id="social-image" 
+											name="featured_image"
+											placeholder="https://example.com/image.jpg"
+											class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+										/>
+									</div>
+									<div>
+										<label for="reading-time" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+											Estimated Reading Time
+										</label>
+										<input 
+											type="number" 
+											id="reading-time" 
+											name="reading_time"
+											placeholder="5"
+											min="1"
+											class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+										/>
+										<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Minutes (auto-calculated if empty)</p>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Action Buttons -->
+					<div class="flex justify-between items-center mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+						<div class="text-sm text-gray-500 dark:text-gray-400" style="font-family: 'JetBrains Mono', monospace">
+							<i class="fas fa-lightbulb mr-1"></i>
+							Tip: Select text for formatting options, type "/" for commands, use advanced settings for SEO
+						</div>
+						<div class="space-x-4">
+							{% if article %}
+							<button
+								type="button"
+								onclick="if(confirm('Are you sure you want to delete this article?')) { window.location.href='{{ url_for('delete_article', slug=article.slug) }}'; }"
+								class="inline-flex items-center px-4 py-2 border border-red-300 text-red-700 dark:text-red-400 dark:border-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900 transition-colors duration-200"
+								style="font-family: 'JetBrains Mono', monospace"
+							>
+								<i class="fas fa-trash mr-2"></i>
+								Delete
+							</button>
+							{% endif %}
+							<button
+								type="submit"
+								id="publish-button"
+								class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+								style="font-family: 'JetBrains Mono', monospace"
+							>
+								<i class="fas fa-rocket mr-2"></i>
+								{{ 'Update Article' if article else 'Publish Article' }}
+							</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</main>
+
+		<!-- Floating media button -->
+		<button type="button" id="media-float-btn" class="media-float-btn" title="Add Media">
+			<i class="fas fa-plus"></i>
+		</button>
+
+		<!-- Modern editor JavaScript -->
+		<script>
+			class ModernEditor {
+				constructor() {
+					this.editor = document.getElementById('modern-editor');
+					this.toolbar = document.getElementById('format-toolbar');
+					this.slashMenu = document.getElementById('slash-menu');
+					this.mediaBtn = document.getElementById('media-float-btn');
+					this.titleInput = document.getElementById('title');
+					this.contentInput = document.getElementById('content');
+					this.previewContent = document.getElementById('preview-content');
+					this.isPreviewMode = false;
+					this.autoSaveTimeout = null;
+					this.slashMenuVisible = false;
+					this.slashRange = null;
+					this.selectedSlashIndex = 0;
+					
+					this.init();
+				}
+
+				init() {
+					this.setupEventListeners();
+					this.setupSlashCommands();
+					this.setupMediaButton();
+					this.setupAdvancedSettings();
+					this.loadExistingContent();
+					this.setupPublishControls();
+					this.setupPreviewMode();
+					this.setupAutoSave();
+				}
+
+				setupEventListeners() {
+					// Selection change for toolbar positioning
+					document.addEventListener('selectionchange', () => {
+						this.handleSelectionChange();
+					});
+
+					// Editor events
+					this.editor.addEventListener('input', () => {
+						this.updatePreview();
+						this.saveToLocalStorage();
+					});
+
+					this.editor.addEventListener('keydown', (e) => {
+						this.handleKeyboardShortcuts(e);
+						this.handleSlashCommands(e);
+					});
+
+					// Toolbar button events
+					this.toolbar.addEventListener('click', (e) => {
+						if (e.target.classList.contains('format-btn') || e.target.parentElement.classList.contains('format-btn')) {
+							e.preventDefault();
+							const btn = e.target.classList.contains('format-btn') ? e.target : e.target.parentElement;
+							this.executeCommand(btn);
+						}
+					});
+
+					// Prevent toolbar from losing focus
+					this.toolbar.addEventListener('mousedown', (e) => {
+						e.preventDefault();
+					});
+				}
+
+				handleSelectionChange() {
+					const selection = window.getSelection();
+					if (selection.rangeCount === 0) {
+						this.hideToolbar();
+						return;
+					}
+
+					const range = selection.getRangeAt(0);
+					if (selection.isCollapsed || !this.editor.contains(range.commonAncestorContainer)) {
+						this.hideToolbar();
+						return;
+					}
+
+					this.showToolbar(range);
+					this.updateToolbarState();
+				}
+
+				showToolbar(range) {
+					const rect = range.getBoundingClientRect();
+					const editorRect = this.editor.getBoundingClientRect();
+					
+					const left = Math.max(0, rect.left + (rect.width / 2) - (this.toolbar.offsetWidth / 2));
+					const top = rect.top - this.toolbar.offsetHeight - 10;
+
+					this.toolbar.style.left = `${left}px`;
+					this.toolbar.style.top = `${top}px`;
+					this.toolbar.style.display = 'flex';
+				}
+
+				hideToolbar() {
+					this.toolbar.style.display = 'none';
+				}
+
+				updateToolbarState() {
+					const buttons = this.toolbar.querySelectorAll('.format-btn');
+					buttons.forEach(btn => {
+						const command = btn.dataset.command;
+						const isActive = document.queryCommandState(command);
+						btn.classList.toggle('active', isActive);
+					});
+				}
+
+				executeCommand(button) {
+					const command = button.dataset.command;
+					const value = button.dataset.value;
+
+					if (command === 'createLink') {
+						const url = prompt('Enter link URL:', 'https://');
+						if (url) {
+							document.execCommand(command, false, url);
+						}
+					} else if (value) {
+						document.execCommand(command, false, value);
+					} else {
+						document.execCommand(command, false, null);
+					}
+
+					this.editor.focus();
+					this.updateToolbarState();
+					this.updatePreview();
+					this.saveToLocalStorage();
+				}
+
+				handleKeyboardShortcuts(e) {
+					if (e.ctrlKey || e.metaKey) {
+						switch (e.key) {
+							case 'b':
+								e.preventDefault();
+								document.execCommand('bold');
+								break;
+							case 'i':
+								e.preventDefault();
+								document.execCommand('italic');
+								break;
+							case 'u':
+								e.preventDefault();
+								document.execCommand('underline');
+								break;
+						}
+						this.updatePreview();
+						this.saveToLocalStorage();
+					}
+				}
+
+				updatePreview() {
+					if (!this.isPreviewMode) return;
+
+					const title = this.titleInput.value || 'Untitled Article';
+					const content = this.editor.innerHTML;
+
+					this.previewContent.innerHTML = `
+						<header class="border-b border-gray-200 dark:border-gray-700 pb-6 mb-8">
+							<h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4" style="font-family: 'Geist Mono', monospace">
+								${title}
+							</h1>
+							<div class="article-meta">
+								<div class="meta-item">
+									<i class="far fa-calendar-alt mr-2"></i>
+									${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+								</div>
+								<div class="meta-item">
+									<i class="far fa-clock mr-2"></i>
+									${Math.ceil(content.replace(/<[^>]*>/g, '').split(' ').length / 225)} min read
+								</div>
+							</div>
+						</header>
+						<div class="blog-content">
+							${content || '<p class="text-gray-500 dark:text-gray-400 italic">Start writing to see your content...</p>'}
+						</div>
+					`;
+				}
+
+				setupPreviewMode() {
+					const previewToggle = document.getElementById('preview-toggle');
+					const previewText = document.getElementById('preview-text');
+					const formContainer = document.getElementById('form-container');
+
+					previewToggle.addEventListener('click', () => {
+						this.isPreviewMode = !this.isPreviewMode;
+
+						if (this.isPreviewMode) {
+							formContainer.classList.add('preview-mode');
+							previewText.textContent = 'Edit';
+							previewToggle.querySelector('i').className = 'fas fa-edit mr-2';
+							this.updatePreview();
+							this.hideToolbar();
+						} else {
+							formContainer.classList.remove('preview-mode');
+							previewText.textContent = 'Preview';
+							previewToggle.querySelector('i').className = 'fas fa-eye mr-2';
+						}
+					});
+
+					// Update preview on title change
+					this.titleInput.addEventListener('input', () => {
+						if (this.isPreviewMode) {
+							this.updatePreview();
+						}
+					});
+				}
+
+				setupPublishControls() {
+					const publishCheckbox = document.getElementById('is_published');
+					const publishButton = document.getElementById('publish-button');
+					const statusIndicator = document.getElementById('status-indicator');
+					const publishLabel = document.getElementById('publish-label');
+					const isEditMode = {{ 'true' if article else 'false' }};
+
+					function updatePublishState() {
+						const isChecked = publishCheckbox.checked;
+
+						if (isEditMode) {
+							if (isChecked) {
+								publishButton.innerHTML = '<i class="fas fa-rocket mr-2"></i>Update & Publish';
+								statusIndicator.innerHTML = '<i class="fas fa-globe mr-1"></i>Will be published';
+								publishLabel.textContent = 'Publish this article';
+							} else {
+								publishButton.innerHTML = '<i class="fas fa-save mr-2"></i>Save as Draft';
+								statusIndicator.innerHTML = '<i class="fas fa-file-alt mr-1"></i>Will be saved as draft';
+								publishLabel.textContent = 'Save as draft only';
+							}
+						} else {
+							if (isChecked) {
+								publishButton.innerHTML = '<i class="fas fa-rocket mr-2"></i>Publish Article';
+								statusIndicator.innerHTML = '<i class="fas fa-globe mr-1"></i>Will be published immediately';
+								publishLabel.textContent = 'Publish immediately';
+							} else {
+								publishButton.innerHTML = '<i class="fas fa-save mr-2"></i>Save as Draft';
+								statusIndicator.innerHTML = '<i class="fas fa-file-alt mr-1"></i>Will be saved as draft';
+								publishLabel.textContent = 'Save as draft only';
+							}
+						}
+					}
+
+					updatePublishState();
+					publishCheckbox.addEventListener('change', updatePublishState);
+
+					// Form submission
+					document.querySelector('form').addEventListener('submit', (e) => {
+						const publishButton = document.getElementById('publish-button');
+						const originalText = publishButton.innerHTML;
+						const isPublishing = publishCheckbox.checked;
+
+						if (isPublishing) {
+							publishButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Publishing...';
+						} else {
+							publishButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+						}
+						publishButton.disabled = true;
+
+						// Set the value of the hidden input to the HTML from the modern editor
+						this.contentInput.value = this.editor.innerHTML;
+
+						// Reset button state after a delay (in case of errors)
+						setTimeout(() => {
+							publishButton.innerHTML = originalText;
+							publishButton.disabled = false;
+						}, 5000);
+					});
+				}
+
+				setupAutoSave() {
+					// Simple auto-save using debounced localStorage - avoid duplicate listeners
+					this.saveToLocalStorage();
+				}
+
+				saveToLocalStorage() {
+					clearTimeout(this.autoSaveTimeout);
+					this.autoSaveTimeout = setTimeout(() => {
+						const content = this.editor.innerHTML;
+						localStorage.setItem(
+							'article_draft_modern',
+							JSON.stringify({
+								title: this.titleInput.value,
+								content: content,
+								timestamp: Date.now(),
+							}),
+						);
+					}, 2000);
+				}
+
+				triggerAutoSave() {
+					this.saveToLocalStorage();
+				}
+
+				// Slash command functionality
+				setupSlashCommands() {
+					// Handle slash menu item clicks
+					this.slashMenu.addEventListener('click', (e) => {
+						const item = e.target.closest('.slash-item');
+						if (item) {
+							this.executeSlashCommand(item.dataset.command);
+						}
+					});
+
+					// Hide slash menu when clicking outside
+					document.addEventListener('click', (e) => {
+						if (!this.slashMenu.contains(e.target) && !this.editor.contains(e.target)) {
+							this.hideSlashMenu();
+						}
+					});
+				}
+
+				handleSlashCommands(e) {
+					if (this.slashMenuVisible) {
+						switch (e.key) {
+							case 'ArrowDown':
+								e.preventDefault();
+								this.navigateSlashMenu(1);
+								break;
+							case 'ArrowUp':
+								e.preventDefault();
+								this.navigateSlashMenu(-1);
+								break;
+							case 'Enter':
+								e.preventDefault();
+								const selectedItem = this.slashMenu.children[this.selectedSlashIndex];
+								this.executeSlashCommand(selectedItem.dataset.command);
+								break;
+							case 'Escape':
+								e.preventDefault();
+								this.hideSlashMenu();
+								break;
+						}
+					} else if (e.key === '/') {
+						// Check if we're at the start of a line or after whitespace
+						const selection = window.getSelection();
+						if (selection.rangeCount > 0) {
+							const range = selection.getRangeAt(0);
+							const textNode = range.startContainer;
+							const offset = range.startOffset;
+							
+							if (textNode.nodeType === Node.TEXT_NODE) {
+								const beforeText = textNode.textContent.substring(0, offset);
+								if (beforeText === '' || beforeText.match(/\s$/)) {
+									// Store the range for replacing the slash
+									setTimeout(() => {
+										this.showSlashMenu();
+									}, 0);
+								}
+							}
+						}
+					}
+				}
+
+				showSlashMenu() {
+					const selection = window.getSelection();
+					if (selection.rangeCount === 0) return;
+
+					const range = selection.getRangeAt(0);
+					this.slashRange = range.cloneRange();
+					
+					// Position the menu
+					const rect = range.getBoundingClientRect();
+					this.slashMenu.style.left = `${rect.left}px`;
+					this.slashMenu.style.top = `${rect.bottom + 5}px`;
+					this.slashMenu.style.display = 'block';
+					this.slashMenuVisible = true;
+					this.selectedSlashIndex = 0;
+					this.updateSlashMenuSelection();
+				}
+
+				hideSlashMenu() {
+					this.slashMenu.style.display = 'none';
+					this.slashMenuVisible = false;
+					this.slashRange = null;
+				}
+
+				navigateSlashMenu(direction) {
+					const items = this.slashMenu.children;
+					this.selectedSlashIndex = Math.max(0, Math.min(items.length - 1, this.selectedSlashIndex + direction));
+					this.updateSlashMenuSelection();
+				}
+
+				updateSlashMenuSelection() {
+					const items = this.slashMenu.children;
+					for (let i = 0; i < items.length; i++) {
+						items[i].classList.toggle('selected', i === this.selectedSlashIndex);
+					}
+				}
+
+				executeSlashCommand(command) {
+					if (!this.slashRange) return;
+
+					// Remove the slash character
+					this.slashRange.setStart(this.slashRange.startContainer, this.slashRange.startOffset - 1);
+					this.slashRange.deleteContents();
+
+					// Execute the command
+					switch (command) {
+						case 'heading1':
+							this.insertElement('h1', 'Heading 1');
+							break;
+						case 'heading2':
+							this.insertElement('h2', 'Heading 2');
+							break;
+						case 'heading3':
+							this.insertElement('h3', 'Heading 3');
+							break;
+						case 'code':
+							this.insertCodeBlock();
+							break;
+						case 'image':
+							this.insertImage();
+							break;
+						case 'bulletlist':
+							document.execCommand('insertUnorderedList');
+							break;
+						case 'numberedlist':
+							document.execCommand('insertOrderedList');
+							break;
+					}
+
+					this.hideSlashMenu();
+					this.updatePreview();
+					this.saveToLocalStorage();
+				}
+
+				insertElement(tag, placeholder) {
+					const element = document.createElement(tag);
+					element.textContent = placeholder;
+					
+					if (this.slashRange) {
+						this.slashRange.insertNode(element);
+						
+						// Select the text for editing
+						const range = document.createRange();
+						range.selectNodeContents(element);
+						const selection = window.getSelection();
+						selection.removeAllRanges();
+						selection.addRange(range);
+					}
+				}
+
+				insertCodeBlock() {
+					const pre = document.createElement('pre');
+					const code = document.createElement('code');
+					code.textContent = 'Your code here...';
+					code.style.display = 'block';
+					code.style.background = '#f6f8fa';
+					code.style.padding = '1rem';
+					code.style.borderRadius = '6px';
+					code.style.fontFamily = 'monospace';
+					code.style.border = '1px solid #e1e4e8';
+					pre.appendChild(code);
+					
+					if (this.slashRange) {
+						this.slashRange.insertNode(pre);
+						
+						// Select the code text for editing
+						const range = document.createRange();
+						range.selectNodeContents(code);
+						const selection = window.getSelection();
+						selection.removeAllRanges();
+						selection.addRange(range);
+					}
+				}
+
+				insertImage() {
+					const url = prompt('Enter image URL:', 'https://');
+					if (url) {
+						const img = document.createElement('img');
+						img.src = url;
+						img.alt = 'Image';
+						img.style.maxWidth = '100%';
+						img.style.height = 'auto';
+						img.style.margin = '1rem 0';
+						
+						if (this.slashRange) {
+							this.slashRange.insertNode(img);
+						}
+					}
+				}
+
+				// Media button functionality
+				setupMediaButton() {
+					this.mediaBtn.addEventListener('click', () => {
+						this.showMediaMenu();
+					});
+				}
+
+				// Advanced settings panel
+				setupAdvancedSettings() {
+					const advancedToggle = document.getElementById('advanced-toggle');
+					const advancedPanel = document.getElementById('advanced-panel');
+					const advancedChevron = document.getElementById('advanced-chevron');
+
+					advancedToggle.addEventListener('click', () => {
+						const isHidden = advancedPanel.classList.contains('hidden');
+						
+						if (isHidden) {
+							advancedPanel.classList.remove('hidden');
+							advancedChevron.classList.add('rotate-90');
+						} else {
+							advancedPanel.classList.add('hidden');
+							advancedChevron.classList.remove('rotate-90');
+						}
+					});
+
+					// Auto-calculate reading time
+					const readingTimeInput = document.getElementById('reading-time');
+					this.editor.addEventListener('input', () => {
+						if (!readingTimeInput.value) {
+							const wordCount = this.editor.innerText.split(/\s+/).filter(word => word.length > 0).length;
+							const estimatedTime = Math.ceil(wordCount / 225); // Average reading speed
+							readingTimeInput.placeholder = `${estimatedTime} (auto-calculated)`;
+						}
+					});
+				}
+
+				showMediaMenu() {
+					// Simple media insertion for now
+					const choice = prompt('Enter media type:\n1. Image URL\n2. YouTube URL\n3. File upload (coming soon)', '1');
+					
+					switch (choice) {
+						case '1':
+							const imageUrl = prompt('Enter image URL:', 'https://');
+							if (imageUrl) {
+								this.insertImageAtCursor(imageUrl);
+							}
+							break;
+						case '2':
+							const youtubeUrl = prompt('Enter YouTube URL:', 'https://youtube.com/watch?v=');
+							if (youtubeUrl) {
+								this.insertVideoAtCursor(youtubeUrl);
+							}
+							break;
+						default:
+							alert('File upload feature coming soon!');
+					}
+				}
+
+				insertImageAtCursor(url) {
+					const img = document.createElement('img');
+					img.src = url;
+					img.alt = 'Image';
+					img.style.maxWidth = '100%';
+					img.style.height = 'auto';
+					img.style.margin = '1rem 0';
+					
+					this.insertAtCursor(img);
+				}
+
+				insertVideoAtCursor(url) {
+					// Convert YouTube URL to embed format
+					let embedUrl = url;
+					if (url.includes('youtube.com/watch?v=')) {
+						const videoId = url.split('v=')[1].split('&')[0];
+						embedUrl = `https://www.youtube.com/embed/${videoId}`;
+					}
+					
+					const iframe = document.createElement('iframe');
+					iframe.src = embedUrl;
+					iframe.width = '560';
+					iframe.height = '315';
+					iframe.style.maxWidth = '100%';
+					iframe.style.margin = '1rem 0';
+					iframe.frameBorder = '0';
+					iframe.allowFullscreen = true;
+					
+					this.insertAtCursor(iframe);
+				}
+
+				insertAtCursor(element) {
+					const selection = window.getSelection();
+					if (selection.rangeCount > 0) {
+						const range = selection.getRangeAt(0);
+						range.deleteContents();
+						range.insertNode(element);
+						
+						// Move cursor after the inserted element
+						range.setStartAfter(element);
+						range.setEndAfter(element);
+						selection.removeAllRanges();
+						selection.addRange(range);
+					} else {
+						// If no selection, append to the end
+						this.editor.appendChild(element);
+					}
+					
+					this.updatePreview();
+					this.saveToLocalStorage();
+				}
+
+				loadExistingContent() {
+					// Load existing content from server
+					const existingContent = this.contentInput.value;
+					if (existingContent) {
+						this.editor.innerHTML = existingContent;
+						return;
+					}
+
+					// Try to load draft from localStorage (simplified to prevent confirm dialog issues)
+					const savedDraft = localStorage.getItem('article_draft_modern');
+					if (savedDraft && !existingContent) {
+						try {
+							const draft = JSON.parse(savedDraft);
+							// Only restore if there's substantial content
+							if (draft.content && draft.content.length > 50) {
+								this.titleInput.value = draft.title || '';
+								this.editor.innerHTML = draft.content || '';
+							}
+						} catch (e) {
+							// Ignore JSON parse errors
+							localStorage.removeItem('article_draft_modern');
+						}
+					}
+				}
+			}
+
+			// Initialize the modern editor when DOM is ready
+			if (document.readyState === 'loading') {
+				document.addEventListener('DOMContentLoaded', () => new ModernEditor());
+			} else {
+				new ModernEditor();
+			}
+		</script>
+	</body>
+</html>

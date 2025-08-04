@@ -26,6 +26,7 @@ sentry_sdk.init(
 )
 
 app = Flask(__name__)
+app.secret_key = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
 
 logger = logging.getLogger(__name__)
 
@@ -255,7 +256,6 @@ def matrix():
 
 
 @app.route("/publish", methods=["GET", "POST"])
-@login_required
 def publish():
     if request.method == "POST":
         title = request.form.get("title")
@@ -284,9 +284,43 @@ def publish():
             return redirect(url_for("article", slug=new_article.slug))
         else:
             flash("Article saved as draft. You can publish it later.", "info")
-            return redirect(url_for("edit_article", slug=new_article.slug))
+            return redirect(url_for("edit_article_modern", slug=new_article.slug))
 
-    return render_template("publish.html")
+    return render_template("publish_modern.html")
+
+
+@app.route("/publish/modern", methods=["GET", "POST"])
+def publish_modern():
+    if request.method == "POST":
+        title = request.form.get("title")
+        content = request.form.get("content")
+        is_published = request.form.get("is_published") == "on"
+        date_published = datetime.now(timezone.utc)
+        if not title or not content:
+            flash("Title or content is missing", "error")
+            return redirect(url_for("publish_modern"))
+
+        new_article = Article(title, content, date_published, is_published=is_published)
+        Article.save_article(new_article)
+        # remove the article from cache
+        try:
+            invalidate_multiple_caches("blog", ("article", {"slug": new_article.slug}))
+            # Also clear the article content cache for new articles
+            cache.delete(f"article_content_{new_article.slug}")
+            logger.info(
+                f"Blog and article caches invalidated after publishing new article: {new_article.slug}"
+            )
+        except Exception as e:
+            logger.warning(f"Cache invalidation failed: {e}")
+
+        if is_published:
+            flash("Article published successfully!", "success")
+            return redirect(url_for("article", slug=new_article.slug))
+        else:
+            flash("Article saved as draft. You can publish it later.", "info")
+            return redirect(url_for("edit_article_modern", slug=new_article.slug))
+
+    return render_template("publish_modern.html")
 
 
 @app.route("/blog/<slug>/edit", methods=["GET", "POST"])
@@ -326,7 +360,47 @@ def edit_article(slug):
         else:
             flash("Error updating article", "error")
 
-    return render_template("publish.html", article=article)
+    return render_template("publish_modern.html", article=article)
+
+
+@app.route("/blog/<slug>/edit/modern", methods=["GET", "POST"])
+@login_required
+def edit_article_modern(slug):
+    article = Article.get_by_slug(slug)
+    if not article:
+        return render_template("404.html"), 404
+    if request.method == "POST":
+        old_published_status = article.is_published
+        article.title = request.form.get("title")
+        article.content = request.form.get("content")
+        article.is_published = request.form.get("is_published") == "on"
+
+        if Article.update_article(article):
+            # Provide appropriate flash message based on publish status
+            if article.is_published and not old_published_status:
+                flash("Article updated and published successfully!", "success")
+            elif not article.is_published and old_published_status:
+                flash("Article updated and moved to drafts.", "info")
+            elif article.is_published:
+                flash("Published article updated successfully!", "success")
+            else:
+                flash("Draft article updated successfully.", "info")
+
+            try:
+                # Invalidate both blog list and specific article caches
+                invalidate_multiple_caches("blog", ("article", {"slug": article.slug}))
+                # Also clear the article content cache
+                cache.delete(f"article_content_{article.slug}")
+                logger.info(
+                    f"Blog and article caches invalidated after updating article: {article.slug}"
+                )
+            except Exception as e:
+                logger.warning(f"Cache invalidation failed: {e}")
+            return redirect(url_for("article", slug=article.slug))
+        else:
+            flash("Error updating article", "error")
+
+    return render_template("publish_modern.html", article=article)
 
 
 @app.route("/blog/<slug>/delete", methods=["DELETE", "POST", "GET"])
