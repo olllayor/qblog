@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        enable-cache: true
+    
+    - name: Install dependencies
+      run: uv sync --dev
+    
+    - name: Run tests
+      run: |
+        # Add your test commands here
+        # For now, just check if the app starts
+        uv run python -c "import app; print('App imports successfully')"
+    
+    - name: Check code style
+      run: |
+        # Install and run basic linting
+        uv add --dev flake8
+        uv run flake8 --select=E9,F63,F7,F82 --show-source --statistics *.py
+
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run security scan
+      uses: github/super-linter@v4
+      env:
+        DEFAULT_BRANCH: main
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        VALIDATE_PYTHON: true
+        VALIDATE_PYTHON_FLAKE8: true
