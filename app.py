@@ -286,6 +286,41 @@ def publish():
             flash("Article saved as draft. You can publish it later.", "info")
             return redirect(url_for("edit_article", slug=new_article.slug))
 
+    return render_template("publish_modern.html")
+
+
+@app.route("/publish/classic", methods=["GET", "POST"])
+@login_required
+def publish_classic():
+    if request.method == "POST":
+        title = request.form.get("title")
+        content = request.form.get("content")
+        is_published = request.form.get("is_published") == "on"
+        date_published = datetime.now(timezone.utc)
+        if not title or not content:
+            flash("Title or content is missing", "error")
+            return redirect(url_for("publish_classic"))
+
+        new_article = Article(title, content, date_published, is_published=is_published)
+        Article.save_article(new_article)
+        # remove the article from cache
+        try:
+            invalidate_multiple_caches("blog", ("article", {"slug": new_article.slug}))
+            # Also clear the article content cache for new articles
+            cache.delete(f"article_content_{new_article.slug}")
+            logger.info(
+                f"Blog and article caches invalidated after publishing new article: {new_article.slug}"
+            )
+        except Exception as e:
+            logger.warning(f"Cache invalidation failed: {e}")
+
+        if is_published:
+            flash("Article published successfully!", "success")
+            return redirect(url_for("article", slug=new_article.slug))
+        else:
+            flash("Article saved as draft. You can publish it later.", "info")
+            return redirect(url_for("edit_article", slug=new_article.slug))
+
     return render_template("publish.html")
 
 
@@ -326,7 +361,7 @@ def edit_article(slug):
         else:
             flash("Error updating article", "error")
 
-    return render_template("publish.html", article=article)
+    return render_template("publish_modern.html", article=article)
 
 
 @app.route("/blog/<slug>/delete", methods=["DELETE", "POST", "GET"])
@@ -565,6 +600,66 @@ def clear_cache():
         logger.error(f"Error clearing cache: {e}")
 
     return redirect(url_for("blog"))
+
+
+@app.route("/api/auto-save", methods=["POST"])
+@login_required
+def auto_save():
+    """Auto-save endpoint for the modern editor"""
+    try:
+        data = request.get_json()
+        title = data.get('title', '')
+        content = data.get('content', '')
+        slug = data.get('slug')
+        
+        if not title.strip():
+            return {"status": "error", "message": "Title is required"}, 400
+            
+        if slug:
+            # Update existing article
+            article = Article.get_by_slug(slug)
+            if not article:
+                return {"status": "error", "message": "Article not found"}, 404
+                
+            article.title = title
+            article.content = content
+            
+            if Article.update_article(article):
+                # Clear cache
+                cache.delete(f"article_content_{article.slug}")
+                return {"status": "success", "message": "Auto-saved", "slug": article.slug}
+            else:
+                return {"status": "error", "message": "Failed to save"}, 500
+        else:
+            # Create new draft - check if title already exists and append timestamp
+            from slugify import slugify
+            import time
+            
+            base_slug = slugify(title)
+            final_slug = base_slug
+            
+            # Check if slug exists and make it unique
+            existing_article = Article.get_by_slug(final_slug)
+            if existing_article:
+                timestamp = int(time.time())
+                final_slug = f"{base_slug}-{timestamp}"
+            
+            new_article = Article(
+                title=title,
+                content=content,
+                date_published=datetime.now(timezone.utc),
+                is_published=False,
+                slug=final_slug
+            )
+            
+            if Article.save_article(new_article):
+                return {"status": "success", "message": "Draft created", "slug": new_article.slug}
+            else:
+                return {"status": "error", "message": "Failed to create draft"}, 500
+                
+    except Exception as e:
+        logger.error(f"Auto-save error: {e}")
+        return {"status": "error", "message": "Server error"}, 500
 
 
 if __name__ == "__main__":
