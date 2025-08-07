@@ -400,6 +400,92 @@
 			<button type="button" class="toolbar-btn" data-command="formatBlock" data-value="h2" title="Heading">
 				<i class="fas fa-heading"></i>
 			</button>
+			<div class="w-px h-6 bg-gray-600 mx-1"></div>
+			<button type="button" class="toolbar-btn" id="insertCodeBlock" title="Code Block">
+				<i class="fas fa-code"></i>
+			</button>
+			<button type="button" class="toolbar-btn" id="insertDiagram" title="Diagram">
+				<i class="fas fa-project-diagram"></i>
+			</button>
+			<button type="button" class="toolbar-btn" id="insertTemplate" title="Templates">
+				<i class="fas fa-file-alt"></i>
+			</button>
+		</div>
+
+		<!-- Template Modal -->
+		<div id="templateModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+			<div class="flex items-center justify-center min-h-screen p-4">
+				<div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4">
+					<div class="flex items-center justify-between mb-4">
+						<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Insert Template</h3>
+						<button type="button" id="closeTemplateModal" class="text-gray-500 hover:text-gray-700">
+							<i class="fas fa-times"></i>
+						</button>
+					</div>
+
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<button type="button" class="template-option" data-template="code-walkthrough">
+							<div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+								<div class="flex items-center mb-2">
+									<i class="fas fa-code text-blue-500 mr-2"></i>
+									<h4 class="font-semibold">Code Walkthrough</h4>
+								</div>
+								<p class="text-sm text-gray-600 dark:text-gray-400">Step-by-step code explanation with annotations</p>
+							</div>
+						</button>
+
+						<button type="button" class="template-option" data-template="tutorial">
+							<div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+								<div class="flex items-center mb-2">
+									<i class="fas fa-graduation-cap text-green-500 mr-2"></i>
+									<h4 class="font-semibold">Tutorial Template</h4>
+								</div>
+								<p class="text-sm text-gray-600 dark:text-gray-400">Complete hands-on tutorial with prerequisites</p>
+							</div>
+						</button>
+
+						<button type="button" class="template-option" data-template="comparison">
+							<div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+								<div class="flex items-center mb-2">
+									<i class="fas fa-balance-scale text-purple-500 mr-2"></i>
+									<h4 class="font-semibold">Before/After Comparison</h4>
+								</div>
+								<p class="text-sm text-gray-600 dark:text-gray-400">Side-by-side code or concept comparison</p>
+							</div>
+						</button>
+
+						<button type="button" class="template-option" data-template="challenge">
+							<div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+								<div class="flex items-center mb-2">
+									<i class="fas fa-trophy text-yellow-500 mr-2"></i>
+									<h4 class="font-semibold">Reader Challenge</h4>
+								</div>
+								<p class="text-sm text-gray-600 dark:text-gray-400">Interactive challenge with reflection questions</p>
+							</div>
+						</button>
+
+						<button type="button" class="template-option" data-template="architecture">
+							<div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+								<div class="flex items-center mb-2">
+									<i class="fas fa-sitemap text-red-500 mr-2"></i>
+									<h4 class="font-semibold">Architecture Diagram</h4>
+								</div>
+								<p class="text-sm text-gray-600 dark:text-gray-400">System architecture visualization</p>
+							</div>
+						</button>
+
+						<button type="button" class="template-option" data-template="series">
+							<div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+								<div class="flex items-center mb-2">
+									<i class="fas fa-list-ol text-indigo-500 mr-2"></i>
+									<h4 class="font-semibold">Series Article</h4>
+								</div>
+								<p class="text-sm text-gray-600 dark:text-gray-400">Part of a learning series with navigation</p>
+							</div>
+						</button>
+					</div>
+				</div>
+			</div>
 		</div>
 
 		<!-- Publish Modal -->
@@ -548,15 +634,39 @@
 						});
 					}
 
-					// Delete button
-					if (this.deleteBtn) {
-						this.deleteBtn.addEventListener('click', () => {
-							this.handleDelete();
-						});
-					}
+				// Delete button
+				if (this.deleteBtn) {
+					this.deleteBtn.addEventListener('click', () => {
+						this.handleDelete();
+					});
 				}
 
-				setupAutoResize() {
+				// Template and enhancement buttons
+				document.getElementById('insertTemplate').addEventListener('click', () => {
+					this.showTemplateModal();
+				});
+
+				document.getElementById('insertCodeBlock').addEventListener('click', () => {
+					this.insertCodeBlock();
+				});
+
+				document.getElementById('insertDiagram').addEventListener('click', () => {
+					this.insertDiagram();
+				});
+
+				// Template modal events
+				document.getElementById('closeTemplateModal').addEventListener('click', () => {
+					this.hideTemplateModal();
+				});
+
+				document.querySelectorAll('.template-option').forEach(button => {
+					button.addEventListener('click', (e) => {
+						const template = e.currentTarget.dataset.template;
+						this.insertTemplate(template);
+						this.hideTemplateModal();
+					});
+				});
+			}				setupAutoResize() {
 					this.autoResize(this.titleInput);
 				}
 
@@ -863,6 +973,270 @@
 						}
 					}
 					this.hideMenu();
+				}
+
+				showTemplateModal() {
+					document.getElementById('templateModal').classList.remove('hidden');
+					document.getElementById('templateModal').style.display = 'flex';
+				}
+
+				hideTemplateModal() {
+					document.getElementById('templateModal').classList.add('hidden');
+					document.getElementById('templateModal').style.display = 'none';
+				}
+
+				insertTemplate(templateType) {
+					const templates = {
+						'code-walkthrough': `
+<div class="code-walkthrough">
+	<h3>🔍 Code Walkthrough: [Title]</h3>
+	
+	<div class="code-step">
+		<div class="code-step-number">1</div>
+		<h4>Step 1: [Description]</h4>
+		<pre><code class="language-javascript">// Your code here
+console.log('Hello, World!');</code></pre>
+		<div class="code-annotation">
+			<h4>💡 Explanation</h4>
+			<p>Explain what this code does and why it's important.</p>
+		</div>
+	</div>
+	
+	<div class="code-step">
+		<div class="code-step-number">2</div>
+		<h4>Step 2: [Description]</h4>
+		<pre><code class="language-javascript">// Next code snippet
+const result = someFunction();</code></pre>
+		<div class="code-annotation">
+			<h4>💡 Explanation</h4>
+			<p>Explain the next step in detail.</p>
+		</div>
+	</div>
+</div>
+						`,
+						'tutorial': `
+<div class="visual-highlight">
+	<h2>🎓 Tutorial: [Title]</h2>
+	<p><strong>What you'll learn:</strong> List the key learning outcomes</p>
+	<p><strong>Prerequisites:</strong> What readers should know beforehand</p>
+	<p><strong>Time to complete:</strong> X minutes</p>
+</div>
+
+<h3>📋 Prerequisites</h3>
+<ul>
+	<li>Basic knowledge of [topic]</li>
+	<li>Development environment setup</li>
+	<li>Required tools/software</li>
+</ul>
+
+<h3>🚀 Let's Get Started</h3>
+
+<div class="timeline">
+	<div class="timeline-item">
+		<div class="timeline-step">STEP 1</div>
+		<h4>[Step Title]</h4>
+		<p>Detailed explanation of the first step.</p>
+		<pre><code class="language-bash"># Command to run
+npm install example-package</code></pre>
+	</div>
+	
+	<div class="timeline-item">
+		<div class="timeline-step">STEP 2</div>
+		<h4>[Step Title]</h4>
+		<p>Detailed explanation of the second step.</p>
+	</div>
+</div>
+
+<h3>✅ Verification</h3>
+<p>How to verify that everything is working correctly.</p>
+
+<h3>🎯 Next Steps</h3>
+<p>What to explore next or links to related tutorials.</p>
+						`,
+						'comparison': `
+<h3>📊 Before vs After Comparison</h3>
+
+<div class="code-comparison">
+	<div class="code-comparison-section code-comparison-before">
+		<div class="code-comparison-header">❌ Before (Problematic Approach)</div>
+		<pre><code class="language-javascript">// Old, problematic code
+function badExample() {
+    // Explain what's wrong with this approach
+    return 'bad result';
+}</code></pre>
+	</div>
+	
+	<div class="code-comparison-section code-comparison-after">
+		<div class="code-comparison-header">✅ After (Improved Approach)</div>
+		<pre><code class="language-javascript">// Improved, better code
+function goodExample() {
+    // Explain why this approach is better
+    return 'good result';
+}</code></pre>
+	</div>
+</div>
+
+<h4>🔍 Key Improvements:</h4>
+<ul>
+	<li><strong>Performance:</strong> Explain performance benefits</li>
+	<li><strong>Maintainability:</strong> Why it's easier to maintain</li>
+	<li><strong>Readability:</strong> How it's more readable</li>
+</ul>
+						`,
+						'challenge': `
+<div class="callout callout-warning">
+	<div class="callout-title">🏆 Reader Challenge</div>
+	<div class="callout-content">
+		<p><strong>Your Mission:</strong> [Describe the challenge]</p>
+		
+		<h4>📝 Requirements:</h4>
+		<ul>
+			<li>Requirement 1</li>
+			<li>Requirement 2</li>
+			<li>Requirement 3</li>
+		</ul>
+		
+		<h4>💭 Reflection Questions:</h4>
+		<ol>
+			<li>What was the most challenging part?</li>
+			<li>How would you optimize this further?</li>
+			<li>What did you learn from this exercise?</li>
+		</ol>
+		
+		<h4>💡 Bonus Points:</h4>
+		<p>Try extending the solution with [additional features]</p>
+		
+		<p><strong>Share your solution:</strong> Tag me on Twitter <a href="https://twitter.com/olllayor">@olllayor</a> with your implementation!</p>
+	</div>
+</div>
+						`,
+						'architecture': `
+<div class="diagram-container">
+	<div class="diagram-title">🏗️ System Architecture Overview</div>
+	
+	<div class="architecture-diagram">
+		<div class="arch-component">
+			<h4>Client</h4>
+			<p>Web Browser<br/>Mobile App</p>
+		</div>
+		<div class="arch-arrow">→</div>
+		<div class="arch-component">
+			<h4>Load Balancer</h4>
+			<p>Nginx<br/>Traffic Distribution</p>
+		</div>
+		<div class="arch-arrow">→</div>
+		<div class="arch-component">
+			<h4>Application Server</h4>
+			<p>Node.js/Python<br/>Business Logic</p>
+		</div>
+		<div class="arch-arrow">→</div>
+		<div class="arch-component">
+			<h4>Database</h4>
+			<p>PostgreSQL<br/>Data Storage</p>
+		</div>
+	</div>
+	
+	<p><em>You can also use Mermaid diagrams for more complex visualizations:</em></p>
+	
+	<div class="mermaid">
+graph TD
+    A[Client Request] --> B[Load Balancer]
+    B --> C[App Server 1]
+    B --> D[App Server 2]
+    C --> E[Database]
+    D --> E[Database]
+    E --> F[Cache Layer]
+	</div>
+</div>
+
+<h4>🔧 Component Details:</h4>
+<ul>
+	<li><strong>Load Balancer:</strong> Distributes incoming requests</li>
+	<li><strong>Application Servers:</strong> Handle business logic</li>
+	<li><strong>Database:</strong> Persistent data storage</li>
+	<li><strong>Cache:</strong> Improves response times</li>
+</ul>
+						`,
+						'series': `
+<div class="callout callout-info">
+	<div class="callout-title">📚 Series: [Series Name]</div>
+	<div class="callout-content">
+		<p>This is <strong>Part X of Y</strong> in our comprehensive series on [topic].</p>
+		
+		<h4>📖 Series Overview:</h4>
+		<ul>
+			<li>Part 1: [Previous Article Title]</li>
+			<li><strong>Part 2: [Current Article] ← You are here</strong></li>
+			<li>Part 3: [Next Article Title] (Coming soon)</li>
+		</ul>
+		
+		<p>🔗 <strong>Missed the previous parts?</strong> Start from <a href="#">Part 1</a> or catch up with our <a href="#">series overview</a>.</p>
+	</div>
+</div>
+
+<h3>🎯 What We'll Cover Today</h3>
+<p>In this installment, we'll dive into:</p>
+<ul>
+	<li>Topic 1</li>
+	<li>Topic 2</li>
+	<li>Topic 3</li>
+</ul>
+
+<h3>🔄 Quick Recap</h3>
+<p>In the previous part, we covered [brief summary]. Today we'll build upon that knowledge.</p>
+
+<!-- Your main content goes here -->
+
+<div class="callout callout-success">
+	<div class="callout-title">✅ What's Next?</div>
+	<div class="callout-content">
+		<p>In the next part of this series, we'll explore [preview of next article].</p>
+		<p>🔔 <strong>Stay updated:</strong> Follow me on <a href="https://twitter.com/olllayor">Twitter</a> or subscribe to my <a href="https://t.me/Qprogrammer">Telegram channel</a> for notifications when new parts are published!</p>
+	</div>
+</div>
+						`
+					};
+
+					const template = templates[templateType];
+					if (template) {
+						document.execCommand('insertHTML', false, template);
+						this.contentEditor.focus();
+						this.markDirty();
+					}
+				}
+
+				insertCodeBlock() {
+					const codeBlock = `
+<div class="code-block-with-filename">
+	<div class="code-filename">filename.js</div>
+	<pre><code class="language-javascript">// Your code here
+function example() {
+    console.log('Hello, World!');
+}</code></pre>
+</div>
+					`;
+					document.execCommand('insertHTML', false, codeBlock);
+					this.contentEditor.focus();
+					this.markDirty();
+				}
+
+				insertDiagram() {
+					const diagram = `
+<div class="diagram-container">
+	<div class="diagram-title">Diagram Title</div>
+	<div class="mermaid">
+graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Action 1]
+    B -->|No| D[Action 2]
+    C --> E[End]
+    D --> E[End]
+	</div>
+</div>
+					`;
+					document.execCommand('insertHTML', false, diagram);
+					this.contentEditor.focus();
+					this.markDirty();
 				}
 			}
 

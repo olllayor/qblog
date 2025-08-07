@@ -28,6 +28,24 @@
 		/>
 		<!-- Enhanced blog styling -->
 		<link rel="stylesheet" href="{{ url_for('static', filename='blog-styles.css') }}" />
+		
+		<!-- Mermaid for diagrams -->
+		<script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+		<script>
+			mermaid.initialize({ 
+				startOnLoad: true, 
+				theme: 'default',
+				themeVariables: {
+					primaryColor: '#3b82f6',
+					primaryTextColor: '#1f2937',
+					primaryBorderColor: '#e5e7eb',
+					lineColor: '#6b7280',
+					secondaryColor: '#f3f4f6',
+					tertiaryColor: '#ffffff'
+				}
+			});
+		</script>
+		
 		{% include 'analytics.html' %}
 	</head>
 

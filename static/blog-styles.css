@@ -306,20 +306,391 @@ Inspired by modern MDX blog features with enhanced typography, code blocks, and 
 
 .code-filename {
     background: var(--code-border);
-    color: var(--blog-dark-text-primary);
+    color: var(--code-text);
     padding: 0.5rem 1rem;
-    border-radius: 0.5rem 0.5rem 0 0;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.85rem;
+    font-size: 0.875rem;
     font-weight: 500;
-    border: 1px solid var(--code-border);
-    border-bottom: none;
+    border-radius: 0.5rem 0.5rem 0 0;
+    border-bottom: 1px solid var(--blog-border);
+    font-family: 'Geist Mono', monospace;
 }
 
-.code-block-with-filename pre {
+.dark .code-filename {
+    background: var(--dark-code-border);
+    color: var(--dark-code-text);
+    border-bottom-color: var(--blog-dark-border);
+}
+
+/* Code annotation styles */
+.code-annotation {
+    background: var(--blog-bg-secondary);
+    border: 1px solid var(--blog-border);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 1rem 0;
+    position: relative;
+}
+
+.dark .code-annotation {
+    background: var(--blog-dark-bg-secondary);
+    border-color: var(--blog-dark-border);
+}
+
+.code-annotation::before {
+    content: "💡";
+    position: absolute;
+    top: -8px;
+    left: 16px;
+    background: var(--blog-bg-primary);
+    padding: 0 8px;
+    font-size: 1.2rem;
+}
+
+.dark .code-annotation::before {
+    background: var(--blog-dark-bg-primary);
+}
+
+.code-annotation h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--blog-link-color);
+}
+
+.code-annotation p {
     margin: 0;
-    border-radius: 0 0 0.5rem 0.5rem;
-    border-top: none;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* Step-by-step code walkthrough */
+.code-walkthrough {
+    margin: 2rem 0;
+}
+
+.code-step {
+    margin: 1.5rem 0;
+    border-left: 4px solid var(--blog-link-color);
+    padding-left: 1rem;
+}
+
+.code-step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: var(--blog-link-color);
+    color: white;
+    border-radius: 50%;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.code-step h4 {
+    display: inline-block;
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+/* Interactive code examples */
+.interactive-example {
+    background: var(--blog-bg-secondary);
+    border: 2px solid var(--blog-border);
+    border-radius: 0.75rem;
+    margin: 2rem 0;
+    overflow: hidden;
+}
+
+.dark .interactive-example {
+    background: var(--blog-dark-bg-secondary);
+    border-color: var(--blog-dark-border);
+}
+
+.interactive-example-header {
+    background: var(--blog-border);
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--blog-border);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.dark .interactive-example-header {
+    background: var(--blog-dark-border);
+    border-bottom-color: var(--blog-dark-border);
+}
+
+.interactive-example-content {
+    padding: 1rem;
+}
+
+/* Before/After code comparison */
+.code-comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 2rem 0;
+}
+
+@media (max-width: 768px) {
+    .code-comparison {
+        grid-template-columns: 1fr;
+    }
+}
+
+.code-comparison-section {
+    border: 1px solid var(--blog-border);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.dark .code-comparison-section {
+    border-color: var(--blog-dark-border);
+}
+
+.code-comparison-header {
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.code-comparison-before .code-comparison-header {
+    background: #fef2f2;
+    color: #dc2626;
+    border-bottom: 1px solid #fecaca;
+}
+
+.code-comparison-after .code-comparison-header {
+    background: #f0fdf4;
+    color: #16a34a;
+    border-bottom: 1px solid #bbf7d0;
+}
+
+.dark .code-comparison-before .code-comparison-header {
+    background: #451a1a;
+    color: #fca5a5;
+    border-bottom-color: #7f1d1d;
+}
+
+.dark .code-comparison-after .code-comparison-header {
+    background: #14532d;
+    color: #86efac;
+    border-bottom-color: #166534;
+}
+
+/* Diagram and visual aids */
+.diagram-container {
+    background: var(--blog-bg-secondary);
+    border: 1px solid var(--blog-border);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    text-align: center;
+}
+
+.dark .diagram-container {
+    background: var(--blog-dark-bg-secondary);
+    border-color: var(--blog-dark-border);
+}
+
+.diagram-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    color: var(--blog-text-primary);
+}
+
+.dark .diagram-title {
+    color: var(--blog-dark-text-primary);
+}
+
+/* Mermaid diagram styling */
+.mermaid {
+    margin: 1.5rem 0;
+    background: transparent;
+}
+
+/* Visual callouts and highlights */
+.visual-highlight {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    margin: 2rem 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.visual-highlight::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.1) 75%, rgba(255,255,255,0.1)),
+                linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.1) 75%, rgba(255,255,255,0.1));
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
+}
+
+.visual-highlight h3,
+.visual-highlight h4 {
+    margin-top: 0;
+    color: white;
+}
+
+/* Architecture diagrams */
+.architecture-diagram {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin: 2rem 0;
+    padding: 2rem;
+    background: var(--blog-bg-secondary);
+    border: 1px solid var(--blog-border);
+    border-radius: 0.75rem;
+}
+
+.dark .architecture-diagram {
+    background: var(--blog-dark-bg-secondary);
+    border-color: var(--blog-dark-border);
+}
+
+@media (max-width: 768px) {
+    .architecture-diagram {
+        flex-direction: column;
+    }
+}
+
+.arch-component {
+    flex: 1;
+    text-align: center;
+    padding: 1rem;
+    background: var(--blog-bg-primary);
+    border: 2px solid var(--blog-link-color);
+    border-radius: 0.5rem;
+    position: relative;
+}
+
+.dark .arch-component {
+    background: var(--blog-dark-bg-primary);
+}
+
+.arch-component h4 {
+    margin: 0 0 0.5rem 0;
+    color: var(--blog-link-color);
+    font-size: 1rem;
+}
+
+.arch-arrow {
+    font-size: 1.5rem;
+    color: var(--blog-link-color);
+    margin: 0 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .arch-arrow {
+        transform: rotate(90deg);
+        margin: 0.5rem 0;
+    }
+}
+
+/* Timeline visualization */
+.timeline {
+    position: relative;
+    margin: 2rem 0;
+    padding: 1rem 0;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 2rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--blog-link-color);
+}
+
+.timeline-item {
+    position: relative;
+    margin-left: 4rem;
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: var(--blog-bg-secondary);
+    border-radius: 0.5rem;
+    border: 1px solid var(--blog-border);
+}
+
+.dark .timeline-item {
+    background: var(--blog-dark-bg-secondary);
+    border-color: var(--blog-dark-border);
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -3rem;
+    top: 1.5rem;
+    width: 12px;
+    height: 12px;
+    background: var(--blog-link-color);
+    border-radius: 50%;
+    border: 3px solid var(--blog-bg-primary);
+}
+
+.dark .timeline-item::before {
+    border-color: var(--blog-dark-bg-primary);
+}
+
+.timeline-step {
+    font-weight: 600;
+    color: var(--blog-link-color);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Performance metrics visualization */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin: 2rem 0;
+}
+
+.metric-card {
+    background: var(--blog-bg-secondary);
+    border: 1px solid var(--blog-border);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.dark .metric-card {
+    background: var(--blog-dark-bg-secondary);
+    border-color: var(--blog-dark-border);
+}
+
+.metric-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--blog-link-color);
+    display: block;
+}
+
+.metric-label {
+    font-size: 0.9rem;
+    color: var(--blog-text-secondary);
+    margin-top: 0.5rem;
+}
+
+.dark .metric-label {
+    color: var(--blog-dark-text-secondary);
 }
 
 /* Terminal styling */
