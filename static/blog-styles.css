@@ -306,7 +306,7 @@ Inspired by modern MDX blog features with enhanced typography, code blocks, and 
 
 .code-filename {
     background: var(--code-border);
-    color: var(--blog-dark-text-primary);
+    color: var(--blog-text-primary);
     padding: 0.5rem 1rem;
     border-radius: 0.5rem 0.5rem 0 0;
     font-family: 'JetBrains Mono', monospace;
@@ -320,6 +320,13 @@ Inspired by modern MDX blog features with enhanced typography, code blocks, and 
     margin: 0;
     border-radius: 0 0 0.5rem 0.5rem;
     border-top: none;
+}
+
+/* Dark mode filename bar */
+.dark .code-filename {
+    background-color: #303236;
+    color: var(--blog-dark-text-primary);
+    border-color: #303236;
 }
 
 /* Terminal styling */

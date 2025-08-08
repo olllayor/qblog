@@ -45,7 +45,7 @@
 						{{ article.title }}
 					</h1>
 					<!-- Enhanced article metadata -->
-					<div class="article-meta text-gray-600 dark:text-gray-200">
+					<div class="article-meta">
 						<div class="meta-item">
 							<i class="far fa-calendar-alt mr-2"></i>
 							{{ article.date_published.strftime('%d %B, %Y') }}
@@ -61,7 +61,7 @@
 					</div>
 				</header>
 
-				<section class="blog-content p-8 text-gray-800 dark:text-gray-100">{{ article.content | safe }}</section>
+				<section class="blog-content p-8">{{ article.content | safe }}</section>
 			</article>
 			{% else %}
 			<div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 text-center">
