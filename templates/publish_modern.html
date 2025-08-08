@@ -425,7 +425,9 @@
 
 					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 						<button type="button" class="template-option" data-template="code-walkthrough">
-							<div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+							<div
+								class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+							>
 								<div class="flex items-center mb-2">
 									<i class="fas fa-code text-blue-500 mr-2"></i>
 									<h4 class="font-semibold">Code Walkthrough</h4>
@@ -435,7 +437,9 @@
 						</button>
 
 						<button type="button" class="template-option" data-template="tutorial">
-							<div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+							<div
+								class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+							>
 								<div class="flex items-center mb-2">
 									<i class="fas fa-graduation-cap text-green-500 mr-2"></i>
 									<h4 class="font-semibold">Tutorial Template</h4>
@@ -445,7 +449,9 @@
 						</button>
 
 						<button type="button" class="template-option" data-template="comparison">
-							<div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+							<div
+								class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+							>
 								<div class="flex items-center mb-2">
 									<i class="fas fa-balance-scale text-purple-500 mr-2"></i>
 									<h4 class="font-semibold">Before/After Comparison</h4>
@@ -455,7 +461,9 @@
 						</button>
 
 						<button type="button" class="template-option" data-template="challenge">
-							<div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+							<div
+								class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+							>
 								<div class="flex items-center mb-2">
 									<i class="fas fa-trophy text-yellow-500 mr-2"></i>
 									<h4 class="font-semibold">Reader Challenge</h4>
@@ -465,7 +473,9 @@
 						</button>
 
 						<button type="button" class="template-option" data-template="architecture">
-							<div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+							<div
+								class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+							>
 								<div class="flex items-center mb-2">
 									<i class="fas fa-sitemap text-red-500 mr-2"></i>
 									<h4 class="font-semibold">Architecture Diagram</h4>
@@ -475,7 +485,9 @@
 						</button>
 
 						<button type="button" class="template-option" data-template="series">
-							<div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+							<div
+								class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+							>
 								<div class="flex items-center mb-2">
 									<i class="fas fa-list-ol text-indigo-500 mr-2"></i>
 									<h4 class="font-semibold">Series Article</h4>
@@ -634,39 +646,40 @@
 						});
 					}
 
-				// Delete button
-				if (this.deleteBtn) {
-					this.deleteBtn.addEventListener('click', () => {
-						this.handleDelete();
+					// Delete button
+					if (this.deleteBtn) {
+						this.deleteBtn.addEventListener('click', () => {
+							this.handleDelete();
+						});
+					}
+
+					// Template and enhancement buttons
+					document.getElementById('insertTemplate').addEventListener('click', () => {
+						this.showTemplateModal();
 					});
-				}
 
-				// Template and enhancement buttons
-				document.getElementById('insertTemplate').addEventListener('click', () => {
-					this.showTemplateModal();
-				});
+					document.getElementById('insertCodeBlock').addEventListener('click', () => {
+						this.insertCodeBlock();
+					});
 
-				document.getElementById('insertCodeBlock').addEventListener('click', () => {
-					this.insertCodeBlock();
-				});
+					document.getElementById('insertDiagram').addEventListener('click', () => {
+						this.insertDiagram();
+					});
 
-				document.getElementById('insertDiagram').addEventListener('click', () => {
-					this.insertDiagram();
-				});
-
-				// Template modal events
-				document.getElementById('closeTemplateModal').addEventListener('click', () => {
-					this.hideTemplateModal();
-				});
-
-				document.querySelectorAll('.template-option').forEach(button => {
-					button.addEventListener('click', (e) => {
-						const template = e.currentTarget.dataset.template;
-						this.insertTemplate(template);
+					// Template modal events
+					document.getElementById('closeTemplateModal').addEventListener('click', () => {
 						this.hideTemplateModal();
 					});
-				});
-			}				setupAutoResize() {
+
+					document.querySelectorAll('.template-option').forEach((button) => {
+						button.addEventListener('click', (e) => {
+							const template = e.currentTarget.dataset.template;
+							this.insertTemplate(template);
+							this.hideTemplateModal();
+						});
+					});
+				}
+				setupAutoResize() {
 					this.autoResize(this.titleInput);
 				}
 
@@ -1014,7 +1027,7 @@ const result = someFunction();</code></pre>
 	</div>
 </div>
 						`,
-						'tutorial': `
+						tutorial: `
 <div class="visual-highlight">
 	<h2>🎓 Tutorial: [Title]</h2>
 	<p><strong>What you'll learn:</strong> List the key learning outcomes</p>
@@ -1053,7 +1066,7 @@ npm install example-package</code></pre>
 <h3>🎯 Next Steps</h3>
 <p>What to explore next or links to related tutorials.</p>
 						`,
-						'comparison': `
+						comparison: `
 <h3>📊 Before vs After Comparison</h3>
 
 <div class="code-comparison">
@@ -1083,7 +1096,7 @@ function goodExample() {
 	<li><strong>Readability:</strong> How it's more readable</li>
 </ul>
 						`,
-						'challenge': `
+						challenge: `
 <div class="callout callout-warning">
 	<div class="callout-title">🏆 Reader Challenge</div>
 	<div class="callout-content">
@@ -1110,7 +1123,7 @@ function goodExample() {
 	</div>
 </div>
 						`,
-						'architecture': `
+						architecture: `
 <div class="diagram-container">
 	<div class="diagram-title">🏗️ System Architecture Overview</div>
 	
@@ -1157,7 +1170,7 @@ graph TD
 	<li><strong>Cache:</strong> Improves response times</li>
 </ul>
 						`,
-						'series': `
+						series: `
 <div class="callout callout-info">
 	<div class="callout-title">📚 Series: [Series Name]</div>
 	<div class="callout-content">
@@ -1194,7 +1207,7 @@ graph TD
 		<p>🔔 <strong>Stay updated:</strong> Follow me on <a href="https://twitter.com/olllayor">Twitter</a> or subscribe to my <a href="https://t.me/Qprogrammer">Telegram channel</a> for notifications when new parts are published!</p>
 	</div>
 </div>
-						`
+						`,
 					};
 
 					const template = templates[templateType];
