@@ -10,8 +10,10 @@ Inspired by modern MDX blog features with enhanced typography, code blocks, and 
     --blog-letter-spacing: -0.01em;
 
     /* Colors */
-    --blog-link-color: #2563eb;
-    --blog-link-hover: #1d4ed8;
+    --blog-link-color: #0ea5e9;
+    /* sky-500 */
+    --blog-link-hover: #0284c7;
+    /* sky-600 */
     --blog-text-primary: #111827;
     --blog-text-secondary: #374151;
     --blog-bg-primary: #ffffff;
@@ -19,6 +21,10 @@ Inspired by modern MDX blog features with enhanced typography, code blocks, and 
     --blog-border: #e5e7eb;
 
     /* Dark mode colors - Enhanced for better visibility */
+    --blog-dark-link-color: #7dd3fc;
+    /* sky-300 */
+    --blog-dark-link-hover: #bae6fd;
+    /* sky-200 */
     --blog-dark-text-primary: #f3f4f6;
     --blog-dark-text-secondary: #d1d5db;
     --blog-dark-bg-primary: #111827;
@@ -115,6 +121,15 @@ Inspired by modern MDX blog features with enhanced typography, code blocks, and 
 
 .blog-content a:hover {
     color: var(--blog-link-hover);
+}
+
+/* Dark mode link colors */
+.dark .blog-content a {
+    color: var(--blog-dark-link-color);
+}
+
+.dark .blog-content a:hover {
+    color: var(--blog-dark-link-hover);
 }
 
 /* Lists */
@@ -236,6 +251,41 @@ Inspired by modern MDX blog features with enhanced typography, code blocks, and 
     margin: 1.5rem 0;
     border: 1px solid var(--code-border);
     position: relative;
+}
+
+/* Copy button for code blocks */
+.blog-content pre .copy-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1;
+    border-radius: 0.375rem;
+    border: 1px solid var(--code-border);
+    background: #ffffffcc;
+    color: #111827;
+    cursor: pointer;
+    opacity: 0.0;
+    transition: opacity 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.blog-content pre:hover .copy-btn {
+    opacity: 1;
+}
+
+.dark .blog-content pre .copy-btn {
+    background: #1f2937cc;
+    color: #f3f4f6;
+    border-color: #303236;
+}
+
+.blog-content pre .copy-btn.copied {
+    background: #10b981;
+    /* emerald-500 */
+    border-color: #059669;
+    /* emerald-600 */
+    color: #ffffff;
 }
 
 .dark .blog-content pre {

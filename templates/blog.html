@@ -46,7 +46,7 @@
 							>
 								<div class="p-6">
 									<h3
-										class="text-2xl font-bold mb-2 text-gray-800 dark:text-gray-200 hover:text-blue-600 transition-colors duration-300"
+										class="text-2xl font-bold mb-2 text-gray-800 dark:text-gray-100 hover:text-blue-600 transition-colors duration-300"
 										style="font-family: 'Geist Mono', monospace"
 									>
 										{{ article.title }}
@@ -66,7 +66,7 @@
 									</div>
 									<!-- Article summary if available -->
 									{% if article.get_summary(200) %}
-									<p class="font-mono text-gray-800 dark:text-gray-300 mt-3 text-sm leading-relaxed">
+									<p class="font-mono text-gray-800 dark:text-gray-200 mt-3 text-sm leading-relaxed">
 										{{ article.get_summary(200) | safe }}
 									</p>
 									{% endif %}
@@ -77,7 +77,7 @@
 					</div>
 					{% else %}
 					<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 text-center">
-						<p class="text-gray-600 dark:text-gray-400" style="font-family: 'JetBrains Mono', monospace">
+						<p class="text-gray-600 dark:text-gray-200" style="font-family: 'JetBrains Mono', monospace">
 							There are no articles yet.
 						</p>
 					</div>

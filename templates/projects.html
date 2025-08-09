@@ -72,12 +72,12 @@
 							{{ project.title }}
 						</h2>
 						<div class="description-area mb-4">
-							{% if project.description %}
+							class="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-2" {% if project.description %}
 							<p
 								class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed project-description"
 								style="font-family: 'Geist', monospace"
 							>
-								{{ project.description | e }}
+								class="text-gray-600 dark:text-gray-200 text-sm leading-relaxed project-description"
 							</p>
 							{% else %}
 							<p class="text-gray-600 dark:text-gray-400 text-sm italic">No description available.</p>
