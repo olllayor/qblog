@@ -6,15 +6,15 @@ from functools import wraps
 
 import redis
 import sentry_sdk
-
-# from api_analytics.flask import add_middleware
 from dotenv import load_dotenv
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 from flask_caching import Cache
 
 from articles import Article
-from database import close_db, init_db
+from database import close_db, get_database_url, init_db
 from projects import Project
+
+# from api_analytics.flask import add_middleware
 
 load_dotenv()
 
@@ -399,6 +399,34 @@ def delete_article(slug):
 def admin_projects():
     all_projects = Project.get_all_projects()
     return render_template("admin_projects.html", projects=all_projects)
+
+
+@app.route("/admin/db-info")
+@login_required
+def admin_db_info():
+    # Summarize which DB is currently configured and show counts
+    url, source = get_database_url()
+    # Safe summary for template
+    from urllib.parse import urlparse
+
+    parsed = urlparse(url) if url else None
+    db_summary = {
+        "host": parsed.hostname if parsed else None,
+        "db": (parsed.path.lstrip("/") if parsed and parsed.path else None),
+        "user": parsed.username if parsed else None,
+        "scheme": parsed.scheme if parsed else None,
+        "source": source,
+    }
+
+    articles_count = len(Article.get_all_articles())
+    projects_count = len(Project.get_all_projects())
+
+    return render_template(
+        "analytics.html",
+        db_summary=db_summary,
+        articles_count=articles_count,
+        projects_count=projects_count,
+    )
 
 
 @app.route("/admin/projects/add", methods=["GET", "POST"])
