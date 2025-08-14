@@ -44,6 +44,10 @@ Inspired by modern MDX blog features with enhanced typography, code blocks, and 
     --dark-code-border: #333333;
     --dark-inline-code-bg: #2d2d2d;
     --dark-inline-code-text: #d4d4d4;
+
+    /* Image handling */
+    --image-dark-bg: #e2e8f0;
+    /* lighter (gray-200) background for transparent images in dark mode */
 }
 
 /* Main content container */
@@ -410,6 +414,13 @@ Inspired by modern MDX blog features with enhanced typography, code blocks, and 
 
 .dark .blog-content img {
     border-color: var(--blog-dark-border);
+    /* Ensure transparent images remain visible on dark backgrounds */
+    background-color: var(--image-dark-bg);
+}
+
+/* Opt-out utility for cases where a background should not be applied */
+.dark .blog-content img.no-alpha-bg {
+    background-color: transparent !important;
 }
 
 /* Image size utilities */
@@ -705,4 +716,41 @@ Inspired by modern MDX blog features with enhanced typography, code blocks, and 
 .dark .blog-content h5,
 .dark .blog-content h6 {
     color: #f3f4f6 !important;
+}
+
+/* --- Global Dark Mode Contrast Overrides (Tailwind utility compatibility) --- */
+/* Many templates use Tailwind grays that can be too dim on dark backgrounds.
+    These overrides bump text shades up for better contrast while preserving hover states. */
+.dark .text-gray-700 {
+    color: #f3f4f6 !important;
+}
+
+/* -> gray-100 */
+.dark .text-gray-600 {
+    color: #e5e7eb !important;
+}
+
+/* -> gray-200 */
+.dark .text-gray-500 {
+    color: #d1d5db !important;
+}
+
+/* -> gray-300 */
+.dark .text-gray-400 {
+    color: #d1d5db !important;
+}
+
+/* -> gray-300 */
+
+/* Muted paragraphs often use italic + gray-400/500; ensure sufficient contrast */
+.dark p.text-gray-400,
+.dark p.text-gray-500,
+.dark .article-meta .meta-item {
+    color: #d1d5db !important;
+}
+
+/* Footer and subtle UI text */
+.dark footer .text-gray-400,
+.dark footer .text-gray-500 {
+    color: #d1d5db !important;
 }
