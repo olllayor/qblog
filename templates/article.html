@@ -29,6 +29,9 @@
 		<!-- Enhanced blog styling -->
 		<link rel="stylesheet" href="{{ url_for('static', filename='blog-styles.css') }}" />
 		{% include 'analytics.html' %}
+
+		<!-- Syntax highlighting runtime (no theme CSS; we style via blog-styles.css) -->
+		<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 	</head>
 
 	<body class="font-inter bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
@@ -104,6 +107,44 @@
 						}
 					});
 					pre.appendChild(btn);
+				});
+
+				// Initialize highlight.js if available and add a small language badge like ChatGPT
+				try {
+					if (window.hljs && typeof window.hljs.highlightAll === 'function') {
+						window.hljs.highlightAll();
+					}
+				} catch (_) {}
+
+				// Add language badges to code blocks
+				blocks.forEach((pre) => {
+					const code = pre.querySelector('code');
+					if (!code) return;
+					// Detect language from class names like language-js, lang-python, or hljs language
+					const classes = (code.className || '').split(/\s+/);
+					let lang = classes
+						.map((c) => {
+							if (c.startsWith('language-')) return c.replace('language-', '');
+							if (c.startsWith('lang-')) return c.replace('lang-', '');
+							return null;
+						})
+						.filter(Boolean)[0];
+					// Some markdown renderers add classes like "python" directly
+					if (!lang) {
+						const simpleLang = classes.find((c) =>
+							/^(bash|sh|zsh|shell|json|yaml|yml|toml|ini|js|ts|tsx|jsx|javascript|typescript|python|py|go|rust|rs|java|kotlin|swift|c|cpp|cs|php|ruby|rb|sql|html|css|scss|sass|md|markdown)$/.test(
+								c,
+							),
+						);
+						lang = simpleLang || '';
+					}
+					if (!lang) return;
+					// Avoid duplicate badges
+					if (pre.querySelector('.lang-badge')) return;
+					const badge = document.createElement('span');
+					badge.className = 'lang-badge';
+					badge.textContent = lang.toUpperCase();
+					pre.appendChild(badge);
 				});
 			});
 		</script>
