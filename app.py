@@ -393,6 +393,7 @@ def delete_article(slug):
 
     return redirect(url_for("blog"))
 
+
 @app.route("/admin")
 @login_required
 def admin_dashboard():
