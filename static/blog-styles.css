@@ -742,6 +742,18 @@ Inspired by modern MDX blog features with enhanced typography, code blocks, and 
 
 /* -> gray-300 */
 
+/* Stronger overrides for common problem areas */
+.dark .text-gray-800 {
+    color: #f9fafb !important;
+}
+
+/* -> gray-50 for maximum contrast */
+.dark .text-gray-900 {
+    color: #ffffff !important;
+}
+
+/* -> white for titles */
+
 /* Muted paragraphs often use italic + gray-400/500; ensure sufficient contrast */
 .dark p.text-gray-400,
 .dark p.text-gray-500,
@@ -753,4 +765,13 @@ Inspired by modern MDX blog features with enhanced typography, code blocks, and 
 .dark footer .text-gray-400,
 .dark footer .text-gray-500 {
     color: #d1d5db !important;
+}
+
+/* Catch-all for any remaining low-contrast elements */
+.dark .text-gray-300 {
+    color: #e5e7eb !important;
+}
+
+.dark .text-gray-200 {
+    color: #f3f4f6 !important;
 }
