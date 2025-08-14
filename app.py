@@ -393,6 +393,43 @@ def delete_article(slug):
 
     return redirect(url_for("blog"))
 
+@app.route("/admin")
+@login_required
+def admin_dashboard():
+    # Aggregate basic stats
+    try:
+        all_articles = Article.get_all_articles()
+    except Exception:
+        all_articles = []
+
+    articles_count = len(all_articles)
+    published_count = sum(1 for a in all_articles if getattr(a, "is_published", False))
+    drafts_count = articles_count - published_count
+
+    try:
+        projects_count = len(Project.get_all_projects())
+    except Exception:
+        projects_count = 0
+
+    # Recent 5 articles by last update or publish date
+    def _article_dt(a):
+        return (
+            getattr(a, "date_updated", None)
+            or getattr(a, "date_published", None)
+            or datetime.fromtimestamp(0, UTC)
+        )
+
+    recent_articles = sorted(all_articles, key=_article_dt, reverse=True)[:5]
+
+    return render_template(
+        "admin_dashboard.html",
+        articles_count=articles_count,
+        published_count=published_count,
+        drafts_count=drafts_count,
+        projects_count=projects_count,
+        recent_articles=recent_articles,
+    )
+
 
 @app.route("/admin/projects")
 @login_required
