@@ -46,8 +46,8 @@ def test_seo_features():
             static_dir = os.path.join(os.path.dirname(__file__), "static")
 
             images_to_check = [
-                "myself.jpg",
-                "myself-social.jpg",
+                "me.jpg",
+                "me.jpg",
                 "favicon.ico",
                 "favicon.png",
             ]

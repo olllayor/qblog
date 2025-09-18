@@ -37,9 +37,10 @@
 						class="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full blur-md transform scale-110"
 					></div>
 					<img
-						src="{{ url_for('static', filename='myself.jpg') }}"
+						src="{{ url_for('static', filename='me.jpg') }}"
 						alt="Ollayor Maxammadnabiyev"
-						class="relative w-36 h-36 rounded-full border-4 border-white dark:border-gray-700 object-cover shadow-lg"
+						id="profile-image"
+						class="relative w-36 h-36 rounded-full border-4 border-white dark:border-gray-700 object-cover shadow-lg cursor-zoom-in"
 					/>
 				</div>
 
@@ -145,6 +146,59 @@
 			</section>
 		</main>
 
+		<!-- Image Preview Modal -->
+		<div id="imagePreviewModal" class="fixed inset-0 z-50 hidden">
+			<div id="imagePreviewOverlay" class="absolute inset-0 bg-black/80"></div>
+			<div class="relative z-10 w-full h-full flex items-center justify-center p-4">
+				<button
+					id="imagePreviewClose"
+					class="absolute top-5 right-5 text-white text-2xl hover:text-gray-300"
+					aria-label="Close image preview"
+				>
+					<i class="fas fa-times"></i>
+				</button>
+				<img
+					id="imagePreviewImg"
+					src=""
+					alt="Ollayor Maxammadnabiyev - preview"
+					class="max-h-[90vh] max-w-[90vw] rounded-lg shadow-2xl"
+				/>
+			</div>
+		</div>
+
 		{% include 'footer.html' %}
+
+		<script>
+			(function () {
+				const img = document.getElementById('profile-image');
+				const modal = document.getElementById('imagePreviewModal');
+				const modalImg = document.getElementById('imagePreviewImg');
+				const closeBtn = document.getElementById('imagePreviewClose');
+				const overlay = document.getElementById('imagePreviewOverlay');
+
+				if (!img || !modal || !modalImg || !closeBtn || !overlay) return;
+
+				function openModal() {
+					modalImg.src = img.src;
+					modal.classList.remove('hidden');
+					document.body.classList.add('overflow-hidden');
+				}
+
+				function closeModal() {
+					modal.classList.add('hidden');
+					document.body.classList.remove('overflow-hidden');
+					modalImg.src = '';
+				}
+
+				img.addEventListener('click', openModal);
+				closeBtn.addEventListener('click', closeModal);
+				overlay.addEventListener('click', (e) => {
+					if (e.target === overlay) closeModal();
+				});
+				document.addEventListener('keydown', (e) => {
+					if (e.key === 'Escape') closeModal();
+				});
+			})();
+		</script>
 	</body>
 </html>
