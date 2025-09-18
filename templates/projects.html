@@ -26,6 +26,14 @@
 			crossorigin="anonymous"
 			referrerpolicy="no-referrer"
 		/>
+		<style>
+			.project-description.desc-clamped {
+				display: -webkit-box;
+				-webkit-line-clamp: 4;
+				-webkit-box-orient: vertical;
+				overflow: hidden;
+			}
+		</style>
 		{% include 'analytics.html' %}
 	</head>
 
@@ -46,7 +54,7 @@
 					class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105"
 				>
 					{% if project.image_url %}
-					<div class="cursor-pointer h-48 overflow-hidden" onclick="openModal('{{ project.image_url }}')">
+					<div class="cursor-pointer h-48 overflow-hidden" onclick="openModal({{ project.image_url | tojson }})">
 						<img
 							src="{{ project.image_url }}"
 							alt="{{ project.title }} Thumbnail"
@@ -67,18 +75,27 @@
 					<div class="p-6">
 						<h2
 							class="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-2"
-							style="font-family: 'Geist', monospace"
+							style="font-family: 'Geist Mono', monospace"
 						>
 							{{ project.title }}
 						</h2>
-						<div class="description-area mb-4">
-							class="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-2" {% if project.description %}
+						<div class="description-area mb-3 relative">
+							{% if project.description %}
 							<p
 								class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed project-description"
-								style="font-family: 'Geist', monospace"
+								style="font-family: 'Geist Mono', monospace"
 							>
-								class="text-gray-600 dark:text-gray-200 text-sm leading-relaxed project-description"
+								{{ project.description }}
 							</p>
+							<div
+								class="fade-overlay absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-white to-transparent dark:from-gray-800 pointer-events-none hidden z-10"
+							></div>
+							<button
+								type="button"
+								class="toggle-desc hidden relative z-20 text-blue-600 dark:text-blue-400 text-xs font-medium mt-1 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-400/40 rounded"
+							>
+								Show more
+							</button>
 							{% else %}
 							<p class="text-gray-600 dark:text-gray-400 text-sm italic">No description available.</p>
 							{% endif %}
@@ -124,7 +141,7 @@
 			</div>
 			{% else %}
 			<div class="text-center py-12">
-				<p class="text-gray-700 dark:text-gray-200 text-lg" style="font-family: 'JetBrains Mono', monospace">
+				<p class="text-gray-700 dark:text-gray-200 text-lg" style="font-family: 'Geist Mono', monospace">
 					No projects have been added yet. Check back soon!
 				</p>
 			</div>
@@ -149,6 +166,59 @@
 		</div>
 
 		<script>
+			function initDescriptions() {
+				const cards = document.querySelectorAll('.description-area');
+				cards.forEach((area) => {
+					const p = area.querySelector('.project-description');
+					const btn = area.querySelector('.toggle-desc');
+					const fade = area.querySelector('.fade-overlay');
+					if (!p || !btn || !fade) return;
+
+					function clampIfNeeded() {
+						// Reset state to measure natural height
+						p.classList.remove('desc-clamped');
+						fade.classList.add('hidden');
+						btn.classList.add('hidden');
+						btn.textContent = 'Show more';
+
+						// Compute line-height and height to estimate lines
+						const style = window.getComputedStyle(p);
+						let lineHeight = parseFloat(style.lineHeight);
+						if (isNaN(lineHeight)) {
+							// Fallback when line-height is 'normal'
+							const fontSize = parseFloat(style.fontSize) || 14;
+							lineHeight = fontSize * 1.5;
+						}
+						const maxLines = 4;
+						const maxHeight = lineHeight * maxLines;
+						const needsClamp = p.scrollHeight > maxHeight + 1; // tolerance
+
+						if (needsClamp) {
+							p.classList.add('desc-clamped');
+							fade.classList.remove('hidden');
+							btn.classList.remove('hidden');
+						}
+					}
+
+					clampIfNeeded();
+					// Re-evaluate on resize to handle responsive line wrapping
+					window.addEventListener('resize', clampIfNeeded);
+
+					btn.addEventListener('click', () => {
+						const isClamped = p.classList.contains('desc-clamped');
+						if (isClamped) {
+							p.classList.remove('desc-clamped');
+							fade.classList.add('hidden');
+							btn.textContent = 'Show less';
+						} else {
+							p.classList.add('desc-clamped');
+							fade.classList.remove('hidden');
+							btn.textContent = 'Show more';
+						}
+					});
+				});
+			}
+
 			function openModal(imageUrl) {
 				const modal = document.getElementById('imageModal');
 				const modalImage = document.getElementById('modalImage');
@@ -172,6 +242,7 @@
 			}
 
 			document.addEventListener('DOMContentLoaded', () => {
+				initDescriptions();
 				const modalElement = document.getElementById('imageModal');
 
 				if (modalElement) {
