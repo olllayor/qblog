@@ -63,6 +63,7 @@
 				Admin Login
 			</h2>
 			<form method="POST" action="{{ url_for('login') }}">
+				<input type="hidden" name="next" value="{{ request.values.get('next', '') }}" />
 				<input
 					type="text"
 					name="username"

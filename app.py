@@ -149,17 +149,28 @@ def login_required(f):
             return f(*args, **kwargs)
         else:
             flash("You need to login first.")
-            return redirect(url_for("login"))
+            qs = request.query_string.decode() if request.query_string else ""
+            next_path = request.path + (f"?{qs}" if qs else "")
+            return redirect(url_for("login", next=next_path))
 
     return wrap
 
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    # If already logged in and next specified, go there
+    if request.method == "GET" and session.get("logged_in"):
+        next_url = request.args.get("next")
+        if next_url and next_url.startswith("/") and not next_url.startswith("//"):
+            return redirect(next_url)
     if request.method == "POST":
         if check_admin(request.form["username"], request.form["password"]):
             session["logged_in"] = True
             flash("You were just logged in!")
+            # Redirect back to the original destination if provided and safe
+            next_url = request.form.get("next") or request.args.get("next")
+            if next_url and next_url.startswith("/") and not next_url.startswith("//"):
+                return redirect(next_url)
             return redirect(url_for("blog"))
         else:
             flash("Wrong credentials!")
