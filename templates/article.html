@@ -12,7 +12,7 @@
 		<!-- SEO and Social Media Meta Tags for Articles -->
 		{% set page_title = article.title + " - Ollayor's Blog" %} {% set page_description = article.get_summary(160) %} {%
 		set page_type = "article" %} {% set page_image = first_image if first_image else url_for('static',
-		filename='me.jpg', _external=True) %} {% set article_date = article.date_published.isoformat() if
+		filename='myself-social.png', _external=True) %} {% set article_date = article.date_published.isoformat() if
 		article.date_published else "" %} {% set article_modified = article.date_updated.isoformat() if article.date_updated
 		else "" %} {% include 'seo_meta.html' %}
 
@@ -82,6 +82,18 @@
 			document.addEventListener('DOMContentLoaded', () => {
 				const container = document.querySelector('.blog-content');
 				if (!container) return;
+
+				// Backfill missing alt/title on content images for accessibility/SEO
+				const imgs = container.querySelectorAll('img');
+				imgs.forEach((img) => {
+					const fallback = '{{ article.title|e }}';
+					if (!img.getAttribute('alt') || img.getAttribute('alt').trim() === '') {
+						img.setAttribute('alt', fallback);
+					}
+					if (!img.getAttribute('title') || img.getAttribute('title').trim() === '') {
+						img.setAttribute('title', fallback);
+					}
+				});
 				const blocks = container.querySelectorAll('pre');
 				blocks.forEach((pre) => {
 					// Avoid duplicates
