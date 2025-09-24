@@ -35,11 +35,18 @@
 	</head>
 
 	<body class="font-inter bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
+		<!-- Reading progress indicator -->
+		<div id="reading-progress" class="fixed top-0 left-0 w-full h-1 bg-gray-200 dark:bg-gray-700 z-50">
+			<div
+				class="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-150 ease-out"
+				style="width: 0%"
+			></div>
+		</div>
 		{% include 'header.html' %}
 
 		<main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
 			{% if article %}
-			<article class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+			<article class="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
 				<header class="p-8 border-b border-gray-100 dark:border-gray-700">
 					<h1
 						class="text-4xl font-bold text-gray-800 dark:text-gray-100 mb-4"
@@ -48,18 +55,18 @@
 						{{ article.title }}
 					</h1>
 					<!-- Enhanced article metadata -->
-					<div class="article-meta">
-						<div class="meta-item">
-							<i class="far fa-calendar-alt mr-2"></i>
-							{{ article.date_published.strftime('%d %B, %Y') }}
+					<div class="flex flex-wrap items-center gap-6 text-sm text-gray-600 dark:text-gray-400 mt-4">
+						<div class="flex items-center gap-2">
+							<i class="far fa-calendar-alt text-blue-500"></i>
+							<span>{{ article.date_published.strftime('%d %B, %Y') }}</span>
 						</div>
-						<div class="meta-item">
-							<i class="far fa-clock mr-2"></i>
-							{{ article.get_reading_time() }} min read
+						<div class="flex items-center gap-2">
+							<i class="far fa-clock text-green-500"></i>
+							<span>{{ article.get_reading_time() }} min read</span>
 						</div>
-						<div class="meta-item">
-							<i class="far fa-eye mr-2"></i>
-							{{ view_count }} view{{ 's' if view_count != 1 else '' }}
+						<div class="flex items-center gap-2">
+							<i class="far fa-eye text-purple-500"></i>
+							<span>{{ view_count }} view{{ 's' if view_count != 1 else '' }}</span>
 						</div>
 					</div>
 				</header>
@@ -82,6 +89,33 @@
 			document.addEventListener('DOMContentLoaded', () => {
 				const container = document.querySelector('.blog-content');
 				if (!container) return;
+
+				// Reading progress indicator
+				const progressBar = document.querySelector('#reading-progress div');
+				if (progressBar) {
+					function updateProgress() {
+						const article = document.querySelector('article');
+						if (!article) return;
+
+						const articleTop = article.offsetTop;
+						const articleHeight = article.offsetHeight;
+						const scrollTop = window.pageYOffset;
+						const windowHeight = window.innerHeight;
+
+						const articleStart = articleTop - windowHeight / 3;
+						const articleEnd = articleTop + articleHeight - windowHeight / 3;
+
+						let progress = 0;
+						if (scrollTop > articleStart) {
+							progress = Math.min(100, ((scrollTop - articleStart) / (articleEnd - articleStart)) * 100);
+						}
+
+						progressBar.style.width = progress + '%';
+					}
+
+					window.addEventListener('scroll', updateProgress);
+					updateProgress(); // Initial call
+				}
 
 				// Backfill missing alt/title on content images for accessibility/SEO
 				const imgs = container.querySelectorAll('img');
