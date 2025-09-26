@@ -198,8 +198,8 @@ class Article:
         return article_objects
 
     @staticmethod
-    def get_published_articles():
-        """Get only published articles"""
+    def get_published_articles(page=1, per_page=10):
+        """Get only published articles with pagination"""
         conn = get_db()
         if conn is None:
             logger.error("Failed to connect to the database.")
@@ -207,9 +207,14 @@ class Article:
 
         try:
             cur = conn.cursor()
+            # Calculate offset for pagination
+            offset = (page - 1) * per_page
+            
             # Only fetch published articles, sorted by date_published in descending order
+            # with LIMIT and OFFSET for pagination
             cur.execute(
-                "SELECT * FROM articles WHERE is_published = TRUE ORDER BY date_published DESC"
+                "SELECT * FROM articles WHERE is_published = TRUE ORDER BY date_published DESC LIMIT %s OFFSET %s",
+                (per_page, offset)
             )
             articles_data = cur.fetchall()
         except psycopg2.Error as e:
@@ -222,6 +227,25 @@ class Article:
             Article(row[1], row[2], row[3], row[4], row[5]) for row in articles_data
         ]
         return article_objects
+
+    @staticmethod
+    def get_published_articles_count():
+        """Get total count of published articles for pagination"""
+        conn = get_db()
+        if conn is None:
+            logger.error("Failed to connect to the database.")
+            return 0
+
+        try:
+            cur = conn.cursor()
+            cur.execute("SELECT COUNT(*) FROM articles WHERE is_published = TRUE")
+            result = cur.fetchone()
+            return result[0] if result else 0
+        except psycopg2.Error as e:
+            logger.error(f"Error fetching published articles count: {e}")
+            return 0
+        finally:
+            pass
 
     @staticmethod
     def delete_article_by_slug(slug):

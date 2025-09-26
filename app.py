@@ -118,6 +118,20 @@ def invalidate_multiple_caches(*view_specs):
             logger.warning(f"Invalid view spec: {view_spec}")
 
 
+def invalidate_blog_caches():
+    """Invalidate all blog page caches when articles are modified"""
+    try:
+        # Clear all blog page caches
+        # We'll assume max 100 pages (1200 articles) which should be reasonable
+        per_page = 12
+        for page in range(1, 101):  # Clear first 100 pages
+            cache_key = f"blog_page_{page}_{per_page}"
+            cache.delete(cache_key)
+        logger.info("All blog page caches invalidated")
+    except Exception as e:
+        logger.warning(f"Failed to invalidate blog caches: {e}")
+
+
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
@@ -193,13 +207,62 @@ def projects():
 
 
 @app.route("/blog")
-@safe_cached(timeout=180)
 def blog():
     start = time.time()
-    articles = Article.get_published_articles()  # Only get published articles
+    
+    # Get pagination parameters
+    page = request.args.get('page', 1, type=int)
+    per_page = 12  # Number of articles per page
+    
+    # Create cache key that includes page number
+    cache_key = f"blog_page_{page}_{per_page}"
+    
+    # Try to get from cache
+    try:
+        cached_result = cache.get(cache_key)
+        if cached_result:
+            logger.debug(f"Cache hit for {cache_key}")
+            return cached_result
+    except (redis.ConnectionError, redis.TimeoutError, Exception) as e:
+        logger.warning(f"Cache error for blog page {page}: {e}. Executing without cache.")
+    
+    # Get articles for current page
+    articles = Article.get_published_articles(page=page, per_page=per_page)
+    
+    # Get total count for pagination
+    total_articles = Article.get_published_articles_count()
+    
+    # Calculate pagination info
+    total_pages = (total_articles + per_page - 1) // per_page  # Ceiling division
+    has_prev = page > 1
+    has_next = page < total_pages
+    prev_page = page - 1 if has_prev else None
+    next_page = page + 1 if has_next else None
+    
     duration = time.time() - start
-    logger.info(f"/blog route executed in {duration:.3f} seconds")
-    return render_template("blog.html", articles=articles)
+    logger.info(f"/blog route executed in {duration:.3f} seconds (page {page}, {len(articles)} articles)")
+    
+    # Render template
+    result = render_template(
+        "blog.html", 
+        articles=articles,
+        page=page,
+        total_pages=total_pages,
+        has_prev=has_prev,
+        has_next=has_next,
+        prev_page=prev_page,
+        next_page=next_page,
+        total_articles=total_articles
+    )
+    
+    # Cache the result
+    try:
+        cache.set(cache_key, result, timeout=180)
+        logger.debug(f"Cached result for {cache_key}")
+    except (redis.ConnectionError, redis.TimeoutError, Exception) as e:
+        logger.warning(f"Failed to cache blog page {page}: {e}")
+    
+    return result
 
 
 @app.route("/media/ollayor-cv.pdf")
@@ -270,7 +333,7 @@ def publish():
         Article.save_article(new_article)
         # remove the article from cache
         try:
-            invalidate_multiple_caches("blog", ("article", {"slug": new_article.slug}))
+            invalidate_blog_caches()
             # Also clear the article content cache for new articles
             cache.delete(f"article_content_{new_article.slug}")
             logger.info(
@@ -305,7 +368,7 @@ def publish_classic():
         Article.save_article(new_article)
         # remove the article from cache
         try:
-            invalidate_multiple_caches("blog", ("article", {"slug": new_article.slug}))
+            invalidate_blog_caches()
             # Also clear the article content cache for new articles
             cache.delete(f"article_content_{new_article.slug}")
             logger.info(
@@ -349,7 +412,7 @@ def edit_article(slug):
 
             try:
                 # Invalidate both blog list and specific article caches
-                invalidate_multiple_caches("blog", ("article", {"slug": article.slug}))
+                invalidate_blog_caches()
                 # Also clear the article content cache
                 cache.delete(f"article_content_{article.slug}")
                 logger.info(
@@ -379,7 +442,7 @@ def delete_article(slug):
             flash(f"Error deleting article file: {e.strerror}", "error")
 
         try:
-            invalidate_multiple_caches("blog", ("article", {"slug": slug}))
+            invalidate_blog_caches()
             # Also clear the article content cache
             cache.delete(f"article_content_{slug}")
             logger.info(
