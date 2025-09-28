@@ -11,10 +11,6 @@
 			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
 			rel="stylesheet"
 		/>
-		<link
-			href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap"
-			rel="stylesheet"
-		/>
 		<link rel="stylesheet" href="{{ url_for('static', filename='blog-styles.css') }}" />
 		{% include 'analytics.html' %}
 	</head>
@@ -22,12 +18,10 @@
 		{% include 'header.html' %}
 
 		<main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-12 pt-20">
-			<h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-8" style="font-family: 'Geist Mono', monospace">
-				Admin Dashboard
-			</h1>
+			<h1 class="text-3xl font-bold font-mono text-gray-800 dark:text-gray-100 mb-8">Admin Dashboard</h1>
 
 			<!-- Stats Cards -->
-			<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+			<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-6 mb-10">
 				<div class="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
 					<div class="flex items-center justify-between">
 						<div>
@@ -64,29 +58,44 @@
 						<i class="fas fa-diagram-project text-purple-500 text-2xl"></i>
 					</div>
 				</div>
+				<div class="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
+					<div class="flex items-center justify-between">
+						<div>
+							<p class="text-sm text-gray-700 dark:text-gray-200">Views (Today)</p>
+							<p class="text-3xl font-bold text-gray-900 dark:text-gray-100">{{ daily_views }}</p>
+						</div>
+						<i class="fas fa-calendar-day text-amber-500 text-2xl"></i>
+					</div>
+				</div>
+				<div class="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
+					<div class="flex items-center justify-between">
+						<div>
+							<p class="text-sm text-gray-700 dark:text-gray-200">Views (This Month)</p>
+							<p class="text-3xl font-bold text-gray-900 dark:text-gray-100">{{ monthly_views }}</p>
+						</div>
+						<i class="fas fa-calendar-alt text-indigo-500 text-2xl"></i>
+					</div>
+				</div>
 			</section>
 
 			<!-- Quick Actions -->
 			<section class="bg-white dark:bg-gray-800 rounded-xl shadow p-6 mb-10">
-				<h2
-					class="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4"
-					style="font-family: 'Geist Mono', monospace"
-				>
-					Quick Actions
-				</h2>
+				<h2 class="text-xl font-semibold font-mono text-gray-800 dark:text-gray-100 mb-4">Quick Actions</h2>
 				<div class="flex flex-wrap gap-4">
 					<a href="{{ url_for('publish') }}" class="liquid-glass-btn liquid-glass-btn--primary"
-						><i class="fas fa-plus"></i><span>New Article</span></a
+						><i class="fas fa-plus"></i><span class="text-gray-900 dark:text-gray-100">New Article</span></a
 					>
 					<a href="{{ url_for('admin_projects') }}" class="liquid-glass-btn"
-						><i class="fas fa-layer-group"></i><span>Manage Projects</span></a
+						><i class="fas fa-layer-group"></i><span class="text-gray-900 dark:text-gray-100">Manage Projects</span></a
 					>
-					<a href="{{ url_for('blog') }}" class="liquid-glass-btn"><i class="fas fa-list"></i><span>View Blog</span></a>
+					<a href="{{ url_for('blog') }}" class="liquid-glass-btn"
+						><i class="fas fa-list"></i><span class="text-gray-900 dark:text-gray-100">View Blog</span></a
+					>
 					<a
 						href="{{ url_for('clear_cache') }}"
 						class="liquid-glass-btn liquid-glass-btn--danger"
 						onclick="return confirm('Clear all caches?')"
-						><i class="fas fa-broom"></i><span>Clear Cache</span></a
+						><i class="fas fa-broom"></i><span class="text-gray-900 dark:text-gray-100">Clear Cache</span></a
 					>
 				</div>
 			</section>
@@ -94,12 +103,7 @@
 			<!-- Recent Articles -->
 			<section class="bg-white dark:bg-gray-800 rounded-xl shadow">
 				<div class="p-6 border-b border-gray-200 dark:border-gray-700">
-					<h2
-						class="text-xl font-semibold text-gray-800 dark:text-gray-100"
-						style="font-family: 'Geist Mono', monospace"
-					>
-						Recent Articles
-					</h2>
+					<h2 class="text-xl font-semibold font-mono text-gray-800 dark:text-gray-100">Recent Articles</h2>
 				</div>
 				<div class="overflow-x-auto">
 					<table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">

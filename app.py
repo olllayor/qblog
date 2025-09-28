@@ -423,6 +423,12 @@ def admin_dashboard():
     except Exception:
         projects_count = 0
 
+    view_totals = {"daily": 0, "monthly": 0}
+    try:
+        view_totals = Article.get_view_totals()
+    except Exception as exc:
+        logger.warning("Failed to fetch view totals: %s", exc)
+
     # Recent 5 articles by last update or publish date
     def _article_dt(a):
         return (
@@ -439,6 +445,8 @@ def admin_dashboard():
         published_count=published_count,
         drafts_count=drafts_count,
         projects_count=projects_count,
+        daily_views=view_totals.get("daily", 0),
+        monthly_views=view_totals.get("monthly", 0),
         recent_articles=recent_articles,
     )
 

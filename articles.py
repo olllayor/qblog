@@ -115,6 +115,35 @@ class Article:
             pass
 
     @staticmethod
+    def get_view_totals():
+        """Return aggregate view counts for the current day and month across all articles."""
+        conn = get_db()
+        if conn is None:
+            logger.error("Failed to connect to the database.")
+            return {"daily": 0, "monthly": 0}
+
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                """
+                SELECT
+                    COUNT(*) FILTER (WHERE viewed_at >= DATE_TRUNC('day', CURRENT_TIMESTAMP)) AS daily_views,
+                    COUNT(*) FILTER (WHERE viewed_at >= DATE_TRUNC('month', CURRENT_TIMESTAMP)) AS monthly_views
+                FROM article_views
+                """
+            )
+            result = cur.fetchone()
+            if not result:
+                return {"daily": 0, "monthly": 0}
+            daily, monthly = result
+            return {"daily": daily or 0, "monthly": monthly or 0}
+        except psycopg2.Error as e:
+            logger.error(f"Error getting view totals: {e}")
+            return {"daily": 0, "monthly": 0}
+        finally:
+            pass
+
+    @staticmethod
     def save_article(article):
         conn = get_db()  # Use get_db()
         if conn is None:
