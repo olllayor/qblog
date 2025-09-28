@@ -52,7 +52,6 @@ Inspired by modern MDX blog features with enhanced typography, code blocks, and 
 
 /* Main content container */
 .blog-content {
-    font-family: 'Geist Mono', monospace;
     font-size: var(--blog-font-size);
     line-height: var(--blog-line-height);
     letter-spacing: var(--blog-letter-spacing);
@@ -79,7 +78,6 @@ Inspired by modern MDX blog features with enhanced typography, code blocks, and 
 .blog-content h4,
 .blog-content h5,
 .blog-content h6 {
-    font-family: 'Geist', monospace;
     font-weight: 500;
     margin-top: 2rem;
     margin-bottom: 1rem;
@@ -573,7 +571,6 @@ Inspired by modern MDX blog features with enhanced typography, code blocks, and 
     border-radius: 0.5rem;
     margin: 1.5rem 0;
     border-left: 4px solid;
-    font-family: 'Geist Mono', monospace;
 }
 
 .callout-note {

@@ -22,10 +22,6 @@
 			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
 			rel="stylesheet"
 		/>
-		<link
-			href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap"
-			rel="stylesheet"
-		/>
 		<!-- Enhanced blog styling -->
 		<link rel="stylesheet" href="{{ url_for('static', filename='blog-styles.css') }}" />
 		{% include 'analytics.html' %}
@@ -48,12 +44,7 @@
 			{% if article %}
 			<article class="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
 				<header class="p-8 border-b border-gray-100 dark:border-gray-700">
-					<h1
-						class="text-4xl font-bold text-gray-800 dark:text-gray-100 mb-4"
-						style="font-family: 'Geist Mono', monospace"
-					>
-						{{ article.title }}
-					</h1>
+					<h1 class="text-4xl font-bold font-mono text-gray-800 dark:text-gray-100 mb-4">{{ article.title }}</h1>
 					<!-- Enhanced article metadata -->
 					<div class="flex flex-wrap items-center gap-6 text-sm text-gray-600 dark:text-gray-400 mt-4">
 						<div class="flex items-center gap-2">
@@ -71,7 +62,9 @@
 					</div>
 				</header>
 
-				<section class="blog-content p-8">{{ article.content | safe }}</section>
+				<section class="blog-content p-8 font-mono text-gray-800 dark:text-gray-200 leading-relaxed">
+					{{ article.content | safe }}
+				</section>
 			</article>
 			{% else %}
 			<div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 text-center">
