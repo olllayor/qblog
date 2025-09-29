@@ -2,19 +2,25 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
-    branches: [main]
+    branches:
+      - main
+
+permissions:
+  contents: read
 
 jobs:
-  test:
+  lint:
+    name: Ruff format & lint
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
@@ -23,36 +29,26 @@ jobs:
         with:
           enable-cache: true
 
-      - name: Install dependencies
-        run: uv sync --dev
+      - name: Sync dependencies with dev extras
+        run: uv sync --locked --group dev
 
-      - name: Install Ruff
-        run: uv add --dev ruff
+      - name: Check formatting with Ruff
+        run: uv run ruff format --check .
 
-      - name: Run tests
-        run: |
-          # Add your test commands here
-          # For now, just check if the app starts
-          uv run python -c "import app; print('App imports successfully')"
+      - name: Run Ruff lint checks
+        run: uv run ruff check .
 
-      - name: Lint with Ruff
-        run: |
-          # Run Ruff linter
-          uv run ruff check --output-format=github .
-
-      - name: Format check with Ruff
-        run: |
-          # Check if code is formatted properly
-          uv run ruff format --check .
-
-  security-scan:
+  package:
+    name: Build & install package with uv
     runs-on: ubuntu-latest
-
+    needs:
+      - lint
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
@@ -61,10 +57,17 @@ jobs:
         with:
           enable-cache: true
 
-      - name: Install Ruff
-        run: uv add --dev ruff
+      - name: Sync production dependencies
+        run: uv sync --locked
 
-      - name: Security scan with Ruff
-        run: |
-          # Run Ruff with security-focused rules
-          uv run ruff check --select=S,B,E9,F63,F7,F82 --output-format=github .
+      - name: Build distribution artifacts
+        run: uv build
+
+      - name: Create fresh install environment
+        run: uv venv --python 3.12 .venv-install
+
+      - name: Install built wheel into fresh environment
+        run: uv pip install --python .venv-install dist/*.whl
+
+      - name: Show installed package metadata
+        run: uv pip show --python .venv-install qblog
