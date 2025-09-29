@@ -27,6 +27,11 @@ dependencies = [
     "werkzeug==3.0.1",
 ]
 
+[tool.setuptools]
+packages = []
+py-modules = ["app", "articles", "database", "projects", "sitemap_generator"]
+
+
 [tool.ruff]
 # Same as Black.
 line-length = 88
