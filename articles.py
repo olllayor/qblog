@@ -253,6 +253,49 @@ class Article:
         return article_objects
 
     @staticmethod
+    def get_published_articles_paginated(page=1, per_page=6):
+        """Fetch published articles with pagination support."""
+        if page < 1:
+            page = 1
+        if per_page < 1:
+            per_page = 1
+
+        conn = get_db()
+        if conn is None:
+            logger.error("Failed to connect to the database.")
+            return [], 0
+
+        offset = (page - 1) * per_page
+
+        try:
+            cur = conn.cursor()
+            cur.execute("SELECT COUNT(*) FROM articles WHERE is_published = TRUE")
+            total_result = cur.fetchone()
+            total = total_result[0] if total_result else 0
+
+            cur.execute(
+                """
+                SELECT *
+                FROM articles
+                WHERE is_published = TRUE
+                ORDER BY date_published DESC
+                LIMIT %s OFFSET %s
+                """,
+                (per_page, offset),
+            )
+            articles_data = cur.fetchall()
+        except psycopg2.Error as e:
+            logger.error(f"Error fetching paginated published articles: {e}")
+            return [], 0
+        finally:
+            pass
+
+        article_objects = [
+            Article(row[1], row[2], row[3], row[4], row[5]) for row in articles_data
+        ]
+        return article_objects, total
+
+    @staticmethod
     def delete_article_by_slug(slug):
         conn = get_db()  # Use get_db()
         if conn is None:

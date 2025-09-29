@@ -7,7 +7,16 @@ from functools import wraps
 import redis
 import sentry_sdk
 from dotenv import load_dotenv
-from flask import Flask, flash, redirect, render_template, request, session, url_for
+from flask import (
+    Flask,
+    flash,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
 from flask_caching import Cache
 
 from articles import Article
@@ -28,6 +37,9 @@ sentry_sdk.init(
 app = Flask(__name__)
 
 logger = logging.getLogger(__name__)
+
+
+BLOG_ARTICLES_PER_PAGE = 6
 
 
 # Configure caching with fallback
@@ -207,10 +219,66 @@ def projects():
 @safe_cached(timeout=180)
 def blog():
     start = time.time()
-    articles = Article.get_published_articles()  # Only get published articles
+    per_page = BLOG_ARTICLES_PER_PAGE
+    articles, total_articles = Article.get_published_articles_paginated(
+        page=1, per_page=per_page
+    )
     duration = time.time() - start
     logger.info(f"/blog route executed in {duration:.3f} seconds")
-    return render_template("blog.html", articles=articles)
+    has_more = len(articles) < total_articles
+    return render_template(
+        "blog.html",
+        articles=articles,
+        per_page=per_page,
+        total_articles=total_articles,
+        has_more=has_more,
+    )
+
+
+@app.route("/api/articles")
+def api_articles():
+    try:
+        page = int(request.args.get("page", 1))
+    except (TypeError, ValueError):
+        page = 1
+
+    try:
+        per_page = int(request.args.get("per_page", BLOG_ARTICLES_PER_PAGE))
+    except (TypeError, ValueError):
+        per_page = BLOG_ARTICLES_PER_PAGE
+
+    per_page = max(1, min(per_page, 24))
+
+    articles, total_articles = Article.get_published_articles_paginated(
+        page=page, per_page=per_page
+    )
+
+    has_more = page * per_page < total_articles
+
+    article_payload = []
+    for article in articles:
+        formatted_date = (
+            article.date_published.strftime("%d %B, %Y")
+            if article.date_published
+            else ""
+        )
+        article_payload.append(
+            {
+                "slug": article.slug,
+                "title": article.title,
+                "summary": article.get_summary(200),
+                "published_on": formatted_date,
+                "reading_time": article.get_reading_time(),
+            }
+        )
+
+    return jsonify(
+        {
+            "articles": article_payload,
+            "has_more": has_more,
+            "total": total_articles,
+        }
+    )
 
 
 @app.route("/media/ollayor-cv.pdf")

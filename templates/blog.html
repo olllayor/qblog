@@ -34,7 +34,13 @@
 			<div class="flex flex-col lg:flex-row gap-8">
 				<main class="lg:w-2/3">
 					{% if articles %}
-					<div class="space-y-6">
+					<div
+						id="article-list"
+						class="space-y-6"
+						data-per-page="{{ per_page | default(6) }}"
+						data-total="{{ total_articles | default(0) }}"
+						data-has-more="{{ 'true' if has_more else 'false' }}"
+					>
 						{% for article in articles %}
 						<a href="{{ url_for('article', slug=article.slug) }}" class="block hover:no-underline">
 							<article
@@ -70,7 +76,16 @@
 						</a>
 						{% endfor %}
 					</div>
-					{% else %}
+					<div
+						id="infinite-scroll-loading"
+						class="items-center justify-center mt-6 text-gray-500 dark:text-gray-400 hidden"
+					>
+						<i class="fas fa-spinner fa-spin mr-2"></i>
+						<span>Yuklanmoqda...</span>
+					</div>
+					{% if has_more %}
+					<div id="infinite-scroll-trigger" class="h-1"></div>
+					{% endif %} {% else %}
 					<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 text-center">
 						<p class="text-gray-600 dark:text-gray-200" style="font-family: 'JetBrains Mono', monospace">
 							There are no articles yet.
@@ -102,5 +117,147 @@
 		</div>
 
 		{% include 'footer.html' %}
+
+		<script>
+			document.addEventListener('DOMContentLoaded', () => {
+				const list = document.getElementById('article-list');
+				const trigger = document.getElementById('infinite-scroll-trigger');
+				const loader = document.getElementById('infinite-scroll-loading');
+				if (!list || !trigger) {
+					return;
+				}
+
+				let currentPage = 1;
+				const perPage = parseInt(list.dataset.perPage || '6', 10);
+				let totalArticles = parseInt(list.dataset.total || '0', 10);
+				let hasMore = list.dataset.hasMore === 'true';
+				let loadedCount = list.querySelectorAll('a').length;
+				let loading = false;
+
+				const observer = new IntersectionObserver(
+					(entries) => {
+						entries.forEach((entry) => {
+							if (entry.isIntersecting) {
+								fetchNextPage();
+							}
+						});
+					},
+					{
+						rootMargin: '200px 0px',
+						threshold: 0,
+					},
+				);
+
+				observer.observe(trigger);
+
+				async function fetchNextPage() {
+					if (loading || !hasMore) {
+						return;
+					}
+					loading = true;
+					loader?.classList.remove('hidden');
+					loader?.classList.add('flex');
+
+					const nextPage = currentPage + 1;
+					try {
+						const response = await fetch(`/api/articles?page=${nextPage}&per_page=${perPage}`);
+						if (!response.ok) {
+							throw new Error(`Server responded with ${response.status}`);
+						}
+
+						const payload = await response.json();
+						const articles = Array.isArray(payload.articles) ? payload.articles : [];
+						if (!articles.length) {
+							hasMore = false;
+							observer.disconnect();
+							trigger.remove();
+							return;
+						}
+
+						articles.forEach((article) => {
+							const link = document.createElement('a');
+							link.className = 'block hover:no-underline';
+							link.href = `/blog/${article.slug}`;
+
+							const card = document.createElement('article');
+							card.className =
+								'bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden';
+
+							const body = document.createElement('div');
+							body.className = 'p-6';
+
+							const title = document.createElement('h3');
+							title.className =
+								'text-2xl font-bold font-mono mb-2 text-gray-800 dark:text-gray-100 hover:text-blue-600 transition-colors duration-300';
+							title.textContent = article.title;
+
+							const metaWrap = document.createElement('div');
+							metaWrap.className = 'article-meta';
+
+							const metaFlex = document.createElement('div');
+							metaFlex.className = 'flex items-center gap-4';
+
+							const dateItem = document.createElement('div');
+							dateItem.className = 'meta-item';
+							const dateIcon = document.createElement('i');
+							dateIcon.className = 'far fa-calendar-alt mr-2';
+							const dateText = document.createElement('span');
+							dateText.textContent = article.published_on;
+							dateItem.appendChild(dateIcon);
+							dateItem.appendChild(dateText);
+
+							const readItem = document.createElement('div');
+							readItem.className = 'meta-item';
+							const readIcon = document.createElement('i');
+							readIcon.className = 'far fa-clock mr-2';
+							const readText = document.createElement('span');
+							readText.textContent = `${article.reading_time} min read`;
+							readItem.appendChild(readIcon);
+							readItem.appendChild(readText);
+
+							metaFlex.appendChild(dateItem);
+							metaFlex.appendChild(readItem);
+							metaWrap.appendChild(metaFlex);
+
+							body.appendChild(title);
+							body.appendChild(metaWrap);
+
+							if (article.summary) {
+								const summary = document.createElement('p');
+								summary.className = 'font-mono text-gray-800 dark:text-gray-200 mt-3 text-sm leading-relaxed';
+								summary.textContent = article.summary;
+								body.appendChild(summary);
+							}
+
+							card.appendChild(body);
+							link.appendChild(card);
+							list.appendChild(link);
+						});
+
+						loadedCount = list.querySelectorAll('a').length;
+						totalArticles = payload.total ?? totalArticles;
+						hasMore = Boolean(payload.has_more);
+
+						currentPage = nextPage;
+
+						if (!hasMore || loadedCount >= totalArticles) {
+							hasMore = false;
+							observer.disconnect();
+							trigger.remove();
+						}
+					} catch (error) {
+						console.error('Failed to fetch more articles', error);
+						observer.disconnect();
+						trigger.remove();
+					} finally {
+						loading = false;
+						if (loader) {
+							loader.classList.remove('flex');
+							loader.classList.add('hidden');
+						}
+					}
+				}
+			});
+		</script>
 	</body>
 </html>
