@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+    {% for image in images %}
+    <url>
+        <loc>{{ image.page_url if image.page_url else request.url_root }}</loc>
+        <image:image>
+            <image:loc>{{ image.loc }}</image:loc>
+            <image:title>{{ image.title }}</image:title>
+            {% if image.caption %}
+            <image:caption>{{ image.caption }}</image:caption>
+            {% endif %}
+        </image:image>
+    </url>
+    {% endfor %}
+</urlset>

@@ -2,8 +2,8 @@
 {% set page_title = page_title or "Ollayor Maxammadnabiyev - Software Engineer" %} {% set page_description =
 page_description or "Software Engineer passionate about code, math, physics, and computer science. Building innovative
 solutions with Python, JavaScript, and modern web technologies." %} {% set page_url = page_url or request.url %} {% set
-page_image = page_image or url_for('static', filename='myself-social.png', _external=True) %} {% set site_name =
-"Ollayor Maxammadnabiyev" %}
+page_image = page_image or url_for('static', filename='myself-social-optimized.jpg', _external=True) %} {% set site_name
+= "Ollayor Maxammadnabiyev" %}
 
 <!-- Basic Meta Tags -->
 <title>{{ page_title }}</title>
@@ -114,20 +114,63 @@ page_image = page_image or url_for('static', filename='myself-social.png', _exte
 		"@type": "BlogPosting",
 		"headline": "{{ page_title }}",
 		"description": "{{ page_description }}",
-		"image": "{{ page_image }}",
+		"image": {
+			"@type": "ImageObject",
+			"url": "{{ page_image }}",
+			"width": 1200,
+			"height": 630
+		},
 		"url": "{{ page_url }}",
 		"datePublished": "{{ article_date or '' }}",
 		"dateModified": "{{ article_modified or article_date or '' }}",
 		"author": {
 			"@type": "Person",
 			"name": "Ollayor Maxammadnabiyev",
-			"image": "{{ url_for('static', filename='myself.png', _external=True) }}"
+			"url": "{{ request.url_root }}",
+			"image": "{{ url_for('static', filename='myself.webp', _external=True) }}"
 		},
 		"publisher": {
 			"@type": "Person",
 			"name": "Ollayor Maxammadnabiyev",
-			"image": "{{ url_for('static', filename='myself.png', _external=True) }}"
+			"image": {
+				"@type": "ImageObject",
+				"url": "{{ url_for('static', filename='myself.webp', _external=True) }}",
+				"width": 800,
+				"height": 800
+			}
+		},
+		"mainEntityOfPage": {
+			"@type": "WebPage",
+			"@id": "{{ page_url }}"
 		}
+	}
+</script>
+
+<!-- Breadcrumb JSON-LD for article pages -->
+<script type="application/ld+json">
+	{
+		"@context": "https://schema.org",
+		"@type": "BreadcrumbList",
+		"itemListElement": [
+			{
+				"@type": "ListItem",
+				"position": 1,
+				"name": "Home",
+				"item": "{{ request.url_root }}"
+			},
+			{
+				"@type": "ListItem",
+				"position": 2,
+				"name": "Blog",
+				"item": "{{ url_for('blog', _external=True) }}"
+			},
+			{
+				"@type": "ListItem",
+				"position": 3,
+				"name": "{{ page_title }}",
+				"item": "{{ page_url }}"
+			}
+		]
 	}
 </script>
 {% endif %}

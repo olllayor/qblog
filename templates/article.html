@@ -7,16 +7,22 @@
 		<script>
 			tailwind.config = { darkMode: 'class' };
 		</script>
+
+		<!-- Preconnect to external domains -->
+		<link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin />
+		<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+		<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
 		<script src="https://cdn.tailwindcss.com"></script>
 
-		<!-- SEO and Social Media Meta Tags for Articles -->
-		{% set page_title = article.title + " - Ollayor's Blog" %} {% set page_description = article.get_summary(160) %} {%
-		set page_type = "article" %} {% set page_image = first_image if first_image else url_for('static',
-		filename='myself-social.png', _external=True) %} {% set article_date = article.date_published.isoformat() if
-		article.date_published else "" %} {% set article_modified = article.date_updated.isoformat() if article.date_updated
-		else "" %} {% include 'seo_meta.html' %}
-
-		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+	<!-- SEO and Social Media Meta Tags for Articles -->
+	{% set page_title = article.title + " - Ollayor's Blog" %} {% set page_description = article.get_summary(160) %} {%
+	set page_type = "article" %} {% set page_image = first_image if first_image else url_for('static',
+	filename='myself-social-optimized.jpg', _external=True) %} {% set article_date = article.date_published.isoformat() if
+	article.date_published else "" %} {% set article_modified = article.date_updated.isoformat() if article.date_updated
+	else "" %} {% include 'seo_meta.html' %}		<link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}" />
+		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon-optimized.ico') }}" />
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
 		<link
 			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"

@@ -705,7 +705,6 @@ def health_check():
 def sitemap():
     """Generate sitemap for SEO"""
     try:
-        # Get all articles for sitemap
         articles = Article.get_all_articles()
 
         from sitemap_generator import generate_sitemap
@@ -720,6 +719,24 @@ def sitemap():
         return "Error generating sitemap", 500
 
 
+@app.route("/image-sitemap.xml")
+def image_sitemap():
+    """Generate image sitemap for better image SEO"""
+    try:
+        articles = Article.get_all_articles()
+
+        from sitemap_generator import generate_image_sitemap
+
+        images = generate_image_sitemap(app, articles=articles)
+
+        sitemap_xml = render_template("image_sitemap.xml", images=images)
+        response = app.response_class(sitemap_xml, mimetype="application/xml")
+        return response
+    except Exception as e:
+        logger.error(f"Error generating image sitemap: {e}")
+        return "Error generating image sitemap", 500
+
+
 @app.route("/robots.txt")
 def robots():
     """Generate robots.txt for SEO"""
@@ -728,6 +745,7 @@ Allow: /
 
 # Sitemap
 Sitemap: {url_for("sitemap", _external=True)}
+Sitemap: {url_for("image_sitemap", _external=True)}
 
 # Disallow admin and private areas
 Disallow: /admin/
