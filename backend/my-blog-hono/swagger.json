@@ -1,0 +1,1271 @@
+{
+	"openapi": "3.0.0",
+	"info": {
+		"title": "QBlog Hono API",
+		"description": "RESTful API for QBlog - Blog and Portfolio Management System",
+		"version": "1.0.0",
+		"contact": {
+			"name": "QBlog Support",
+			"url": "https://qblog.dev"
+		},
+		"license": {
+			"name": "MIT"
+		}
+	},
+	"servers": [
+		{
+			"url": "http://localhost:8787",
+			"description": "Local Development Server"
+		},
+		{
+			"url": "https://api.qblog.dev",
+			"description": "Production Server"
+		}
+	],
+	"tags": [
+		{
+			"name": "Health",
+			"description": "API Health Check"
+		},
+		{
+			"name": "Authentication",
+			"description": "User Authentication & Sessions"
+		},
+		{
+			"name": "Articles",
+			"description": "Blog Article Management"
+		},
+		{
+			"name": "Projects",
+			"description": "Portfolio Project Management"
+		}
+	],
+	"paths": {
+		"/": {
+			"get": {
+				"tags": ["Health"],
+				"summary": "Health Check",
+				"description": "Verify API is running",
+				"operationId": "healthCheck",
+				"responses": {
+					"200": {
+						"description": "API is operational",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HealthResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/login": {
+			"post": {
+				"tags": ["Authentication"],
+				"summary": "Admin Login",
+				"description": "Authenticate admin user and create session",
+				"operationId": "login",
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/LoginRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Login successful",
+						"headers": {
+							"Set-Cookie": {
+								"schema": {
+									"type": "string",
+									"example": "session_id=abc123; Path=/; HttpOnly; Secure; SameSite=Strict"
+								}
+							}
+						},
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Invalid credentials",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/logout": {
+			"post": {
+				"tags": ["Authentication"],
+				"summary": "Admin Logout",
+				"description": "Destroy admin session",
+				"operationId": "logout",
+				"security": [
+					{
+						"cookieAuth": []
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Logout successful",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/auth/check": {
+			"get": {
+				"tags": ["Authentication"],
+				"summary": "Check Auth Status",
+				"description": "Verify if user is authenticated",
+				"operationId": "checkAuth",
+				"security": [
+					{
+						"cookieAuth": []
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Auth status retrieved",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SuccessResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/articles": {
+			"get": {
+				"tags": ["Articles"],
+				"summary": "List Published Articles",
+				"description": "Get paginated list of published articles",
+				"operationId": "listArticles",
+				"parameters": [
+					{
+						"name": "page",
+						"in": "query",
+						"description": "Page number (1-indexed)",
+						"schema": {
+							"type": "integer",
+							"default": 1,
+							"minimum": 1
+						}
+					},
+					{
+						"name": "per_page",
+						"in": "query",
+						"description": "Items per page (1-24)",
+						"schema": {
+							"type": "integer",
+							"default": 6,
+							"minimum": 1,
+							"maximum": 24
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Articles retrieved successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ArticlesListResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"tags": ["Articles"],
+				"summary": "Create Article",
+				"description": "Create a new article (Admin only)",
+				"operationId": "createArticle",
+				"security": [
+					{
+						"cookieAuth": []
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateArticleRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "Article created successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ArticleResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Missing required fields",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/auto-save": {
+			"post": {
+				"tags": ["Articles"],
+				"summary": "Auto-save Article Draft",
+				"description": "Auto-save or create article draft (Admin only)",
+				"operationId": "autoSaveArticle",
+				"security": [
+					{
+						"cookieAuth": []
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/AutoSaveArticleRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Article auto-saved successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AutoSaveResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Missing title",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/blog/{slug}": {
+			"get": {
+				"tags": ["Articles"],
+				"summary": "Get Article by Slug",
+				"description": "Retrieve a single published article by slug. Increments view count.",
+				"operationId": "getArticleBySlug",
+				"parameters": [
+					{
+						"name": "slug",
+						"in": "path",
+						"required": true,
+						"description": "Article slug (URL-friendly identifier)",
+						"schema": {
+							"type": "string",
+							"example": "my-first-article"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Article retrieved successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ArticleDetailResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Article not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				}
+			},
+			"put": {
+				"tags": ["Articles"],
+				"summary": "Update Article",
+				"description": "Update an article by slug (Admin only)",
+				"operationId": "updateArticle",
+				"security": [
+					{
+						"cookieAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "slug",
+						"in": "path",
+						"required": true,
+						"description": "Article slug",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateArticleRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Article updated successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ArticleResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Article not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"tags": ["Articles"],
+				"summary": "Delete Article",
+				"description": "Delete an article by slug (Admin only)",
+				"operationId": "deleteArticle",
+				"security": [
+					{
+						"cookieAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "slug",
+						"in": "path",
+						"required": true,
+						"description": "Article slug",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Article deleted successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/DeleteResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Article not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/projects": {
+			"get": {
+				"tags": ["Projects"],
+				"summary": "List All Projects",
+				"description": "Get all portfolio projects",
+				"operationId": "listProjects",
+				"responses": {
+					"200": {
+						"description": "Projects retrieved successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ProjectsListResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/projects/{id}": {
+			"get": {
+				"tags": ["Projects"],
+				"summary": "Get Project by ID",
+				"description": "Retrieve a single project by numeric ID",
+				"operationId": "getProjectById",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"description": "Project ID",
+						"schema": {
+							"type": "integer",
+							"example": 1
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Project retrieved successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ProjectResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Project not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/admin/projects": {
+			"get": {
+				"tags": ["Projects"],
+				"summary": "List Projects (Admin)",
+				"description": "Get all projects with admin details (Admin only)",
+				"operationId": "listProjectsAdmin",
+				"security": [
+					{
+						"cookieAuth": []
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Projects retrieved successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ProjectsListResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"tags": ["Projects"],
+				"summary": "Create Project",
+				"description": "Create a new project (Admin only)",
+				"operationId": "createProject",
+				"security": [
+					{
+						"cookieAuth": []
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateProjectRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "Project created successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ProjectResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Missing required fields",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/admin/projects/{id}": {
+			"put": {
+				"tags": ["Projects"],
+				"summary": "Update Project",
+				"description": "Update a project by ID (Admin only)",
+				"operationId": "updateProject",
+				"security": [
+					{
+						"cookieAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"description": "Project ID",
+						"schema": {
+							"type": "integer"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateProjectRequest"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Project updated successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ProjectResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Project not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"tags": ["Projects"],
+				"summary": "Delete Project",
+				"description": "Delete a project by ID (Admin only)",
+				"operationId": "deleteProject",
+				"security": [
+					{
+						"cookieAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"description": "Project ID",
+						"schema": {
+							"type": "integer"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Project deleted successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/DeleteResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Project not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"securitySchemes": {
+			"cookieAuth": {
+				"type": "apiKey",
+				"in": "cookie",
+				"name": "session_id"
+			}
+		},
+		"schemas": {
+			"HealthResponse": {
+				"type": "object",
+				"properties": {
+					"status": {
+						"type": "string",
+						"example": "ok"
+					},
+					"message": {
+						"type": "string",
+						"example": "QBlog Hono API running"
+					},
+					"version": {
+						"type": "string",
+						"example": "1.0.0"
+					}
+				}
+			},
+			"SuccessResponse": {
+				"type": "object",
+				"properties": {
+					"status": {
+						"type": "string",
+						"example": "success"
+					},
+					"data": {
+						"type": "object"
+					}
+				}
+			},
+			"ErrorResponse": {
+				"type": "object",
+				"properties": {
+					"status": {
+						"type": "string",
+						"example": "error"
+					},
+					"error": {
+						"type": "string",
+						"example": "Error message"
+					}
+				}
+			},
+			"LoginRequest": {
+				"type": "object",
+				"required": ["username", "password"],
+				"properties": {
+					"username": {
+						"type": "string",
+						"example": "olloyor"
+					},
+					"password": {
+						"type": "string",
+						"example": "your_password"
+					}
+				}
+			},
+			"CreateArticleRequest": {
+				"type": "object",
+				"required": ["title", "content"],
+				"properties": {
+					"title": {
+						"type": "string",
+						"example": "My First Article"
+					},
+					"content": {
+						"type": "string",
+						"example": "<p>Article content in HTML</p>"
+					},
+					"is_published": {
+						"type": "boolean",
+						"default": false,
+						"example": false
+					}
+				}
+			},
+			"UpdateArticleRequest": {
+				"type": "object",
+				"properties": {
+					"title": {
+						"type": "string",
+						"example": "Updated Title"
+					},
+					"content": {
+						"type": "string",
+						"example": "<p>Updated content</p>"
+					},
+					"is_published": {
+						"type": "boolean",
+						"example": true
+					}
+				}
+			},
+			"AutoSaveArticleRequest": {
+				"type": "object",
+				"required": ["title"],
+				"properties": {
+					"title": {
+						"type": "string",
+						"example": "Draft Title"
+					},
+					"content": {
+						"type": "string",
+						"example": "Draft content"
+					},
+					"slug": {
+						"type": "string",
+						"description": "Optional - if provided, updates existing article; if omitted, creates new draft",
+						"example": "my-article"
+					}
+				}
+			},
+			"Article": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"example": 1
+					},
+					"slug": {
+						"type": "string",
+						"example": "my-first-article"
+					},
+					"title": {
+						"type": "string",
+						"example": "My First Article"
+					},
+					"summary": {
+						"type": "string",
+						"example": "This is a summary of the article..."
+					},
+					"published_on": {
+						"type": "string",
+						"example": "28 October 2025"
+					},
+					"reading_time": {
+						"type": "string",
+						"example": "5 min read"
+					}
+				}
+			},
+			"ArticleDetail": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer"
+					},
+					"slug": {
+						"type": "string"
+					},
+					"title": {
+						"type": "string"
+					},
+					"content": {
+						"type": "string"
+					},
+					"is_published": {
+						"type": "boolean"
+					},
+					"published_on": {
+						"type": "string"
+					},
+					"reading_time": {
+						"type": "string"
+					},
+					"viewCount": {
+						"type": "integer",
+						"example": 42
+					}
+				}
+			},
+			"ArticlesListResponse": {
+				"type": "object",
+				"properties": {
+					"status": {
+						"type": "string",
+						"example": "success"
+					},
+					"data": {
+						"type": "object",
+						"properties": {
+							"articles": {
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/Article"
+								}
+							},
+							"has_more": {
+								"type": "boolean",
+								"example": true
+							},
+							"total": {
+								"type": "integer",
+								"example": 49
+							}
+						}
+					}
+				}
+			},
+			"ArticleResponse": {
+				"type": "object",
+				"properties": {
+					"status": {
+						"type": "string",
+						"example": "success"
+					},
+					"data": {
+						"$ref": "#/components/schemas/ArticleDetail"
+					}
+				}
+			},
+			"ArticleDetailResponse": {
+				"type": "object",
+				"properties": {
+					"status": {
+						"type": "string",
+						"example": "success"
+					},
+					"data": {
+						"$ref": "#/components/schemas/ArticleDetail"
+					}
+				}
+			},
+			"AutoSaveResponse": {
+				"type": "object",
+				"properties": {
+					"status": {
+						"type": "string",
+						"example": "success"
+					},
+					"data": {
+						"type": "object",
+						"properties": {
+							"slug": {
+								"type": "string",
+								"example": "my-article"
+							}
+						}
+					}
+				}
+			},
+			"CreateProjectRequest": {
+				"type": "object",
+				"required": ["title", "description"],
+				"properties": {
+					"title": {
+						"type": "string",
+						"example": "My Awesome Project"
+					},
+					"description": {
+						"type": "string",
+						"example": "Description of the project"
+					},
+					"imageUrl": {
+						"type": "string",
+						"example": "https://example.com/image.jpg"
+					},
+					"technologies": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"example": ["React", "TypeScript", "Tailwind CSS"]
+					},
+					"githubLink": {
+						"type": "string",
+						"example": "https://github.com/user/project"
+					},
+					"liveDemoLink": {
+						"type": "string",
+						"example": "https://project.example.com"
+					}
+				}
+			},
+			"UpdateProjectRequest": {
+				"type": "object",
+				"properties": {
+					"title": {
+						"type": "string",
+						"example": "Updated Project Title"
+					},
+					"description": {
+						"type": "string",
+						"example": "Updated description"
+					},
+					"imageUrl": {
+						"type": "string",
+						"example": "https://example.com/new-image.jpg"
+					},
+					"technologies": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"example": ["Vue", "TypeScript"]
+					},
+					"githubLink": {
+						"type": "string",
+						"example": "https://github.com/user/updated-project"
+					},
+					"liveDemoLink": {
+						"type": "string",
+						"example": "https://updated-project.example.com"
+					}
+				}
+			},
+			"Project": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "integer",
+						"example": 1
+					},
+					"title": {
+						"type": "string",
+						"example": "My Awesome Project"
+					},
+					"description": {
+						"type": "string",
+						"example": "Description of the project"
+					},
+					"imageUrl": {
+						"type": "string",
+						"example": "https://example.com/image.jpg"
+					},
+					"technologies": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"example": ["React", "TypeScript"]
+					},
+					"githubLink": {
+						"type": "string",
+						"example": "https://github.com/user/project"
+					},
+					"liveDemoLink": {
+						"type": "string",
+						"example": "https://project.example.com"
+					},
+					"dateAdded": {
+						"type": "string",
+						"format": "date-time",
+						"example": "2025-10-28T00:00:00Z"
+					}
+				}
+			},
+			"ProjectsListResponse": {
+				"type": "object",
+				"properties": {
+					"status": {
+						"type": "string",
+						"example": "success"
+					},
+					"data": {
+						"type": "object",
+						"properties": {
+							"projects": {
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/Project"
+								}
+							}
+						}
+					}
+				}
+			},
+			"ProjectResponse": {
+				"type": "object",
+				"properties": {
+					"status": {
+						"type": "string",
+						"example": "success"
+					},
+					"data": {
+						"$ref": "#/components/schemas/Project"
+					}
+				}
+			},
+			"DeleteResponse": {
+				"type": "object",
+				"properties": {
+					"status": {
+						"type": "string",
+						"example": "success"
+					},
+					"data": {
+						"type": "object",
+						"properties": {
+							"id": {
+								"type": "string",
+								"example": "slug_or_id"
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

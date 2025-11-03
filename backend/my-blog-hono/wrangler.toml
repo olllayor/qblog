@@ -1,0 +1,21 @@
+name = "my-blog-hono"
+main = "src/index.ts"
+compatibility_date = "2025-10-19"
+compatibility_flags = ["nodejs_compat"]
+
+[env.production.vars]
+ENVIRONMENT = "production"
+
+[env.development.vars]
+ENVIRONMENT = "development"
+
+[vars]
+ENVIRONMENT = "development"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "blog"
+database_id = "16126ad7-675a-409a-b220-ebbc6741c179"
+
+[observability]
+enabled = true
