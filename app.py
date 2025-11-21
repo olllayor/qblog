@@ -27,6 +27,10 @@ from projects import Project
 
 load_dotenv()
 
+# Configure logging early so we can see startup messages
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 sentry_sdk.init(
     dsn="https://abb5b78f25e14da8713e4d4c8be6c5da@o4508810359144448.ingest.de.sentry.io/4509507866001488",
     # Add data like request headers and IP for users,
@@ -44,6 +48,12 @@ BLOG_ARTICLES_PER_PAGE = 6
 
 # Configure caching with fallback
 def setup_cache():
+    # Disable cache in development environment
+    if os.getenv("FLASK_ENV") == "development" or os.getenv("FLASK_DEBUG") == "1":
+        logger.info("Development mode detected. Caching disabled (NullCache).")
+        app.config["CACHE_TYPE"] = "NullCache"
+        return Cache(app)
+
     redis_url = os.getenv("REDIS_URL")
 
     # Try to use Redis if available
@@ -200,7 +210,15 @@ def logout():
 @app.route("/")
 @safe_cached(timeout=300)
 def index():
-    return render_template("index.html")
+    projects = Project.get_all_projects()
+    try:
+        view_totals = Article.get_view_totals()
+        monthly_readers = view_totals.get("monthly", 0)
+    except Exception:
+        monthly_readers = 0
+    return render_template(
+        "index.html", projects=projects, monthly_readers=monthly_readers
+    )
 
 
 @app.route("/favicon.ico")
@@ -843,4 +861,7 @@ def auto_save():
 
 
 if __name__ == "__main__":
-    app.run(port=4200, debug=False)
+    debug_mode = (
+        os.getenv("FLASK_ENV") == "development" or os.getenv("FLASK_DEBUG") == "1"
+    )
+    app.run(port=4200, debug=debug_mode)
