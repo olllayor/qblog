@@ -98,4 +98,3 @@ def generate_image_sitemap(app, articles=None):
                     )
 
     return images
-
