@@ -16,12 +16,13 @@
 
 		<script src="https://cdn.tailwindcss.com"></script>
 
-	<!-- SEO and Social Media Meta Tags for Articles -->
-	{% set page_title = article.title + " - Ollayor's Blog" %} {% set page_description = article.get_summary(160) %} {%
-	set page_type = "article" %} {% set page_image = first_image if first_image else url_for('static',
-	filename='myself-social-optimized.jpg', _external=True) %} {% set article_date = article.date_published.isoformat() if
-	article.date_published else "" %} {% set article_modified = article.date_updated.isoformat() if article.date_updated
-	else "" %} {% include 'seo_meta.html' %}		<link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}" />
+		<!-- SEO and Social Media Meta Tags for Articles -->
+		{% set page_title = article.title + " - Ollayor's Blog" %} {% set page_description = article.get_summary(160) %} {%
+		set page_type = "article" %} {% set page_image = first_image if first_image else url_for('static',
+		filename='myself-social-optimized.jpg', _external=True) %} {% set article_date = article.date_published.isoformat()
+		if article.date_published else "" %} {% set article_modified = article.date_updated.isoformat() if
+		article.date_updated else "" %} {% include 'seo_meta.html' %}
+		<link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}" />
 		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon-optimized.ico') }}" />
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
 		<link
@@ -36,52 +37,108 @@
 		<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 	</head>
 
-	<body class="font-inter bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
-		<!-- Reading progress indicator -->
-		<div id="reading-progress" class="fixed top-0 left-0 w-full h-1 bg-gray-200 dark:bg-gray-700 z-50">
+	<body class="font-mono bg-white dark:bg-black text-gray-900 dark:text-gray-100 min-h-screen flex flex-col relative">
+		<!-- Background Gradients for Blur Effect -->
+		<div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
 			<div
-				class="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-150 ease-out"
+				class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-purple-500/5 dark:bg-purple-500/10 blur-[120px]"
+			></div>
+			<div
+				class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-500/5 dark:bg-blue-500/10 blur-[120px]"
+			></div>
+		</div>
+
+		<!-- Reading progress indicator -->
+		<div id="reading-progress" class="fixed top-0 left-0 w-full h-0.5 bg-transparent z-50">
+			<div
+				class="h-full bg-blue-500/50 dark:bg-blue-400/50 transition-all duration-150 ease-out"
 				style="width: 0%"
 			></div>
 		</div>
-		{% include 'header.html' %}
 
-		<main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+		<!-- Minimalist Header -->
+		<header
+			class="w-full max-w-4xl mx-auto px-6 py-8 flex justify-between items-center border-b border-gray-200/20 dark:border-white/10"
+		>
+			<a
+				href="/"
+				class="text-xl font-bold tracking-tight hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+				>ollayor</a
+			>
+			<nav class="flex gap-6 text-sm">
+				<a href="/blog" class="text-gray-900 dark:text-gray-100 font-medium">Essays</a>
+				<a
+					href="/projects"
+					class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
+					>Projects</a
+				>
+				<a
+					href="{{ url_for('static', filename='media/Olloyor_s_resume.pdf') }}"
+					target="_blank"
+					class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
+					>CV</a
+				>
+			</nav>
+		</header>
+
+		<main class="flex-grow w-full max-w-3xl mx-auto px-6 py-12">
 			{% if article %}
-			<article class="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
-				<header class="p-8 border-b border-gray-100 dark:border-gray-700">
-					<h1 class="text-4xl font-bold font-mono text-gray-800 dark:text-gray-100 mb-4">{{ article.title }}</h1>
-					<!-- Enhanced article metadata -->
-					<div class="flex flex-wrap items-center gap-6 text-sm text-gray-600 dark:text-gray-400 mt-4">
-						<div class="flex items-center gap-2">
-							<i class="far fa-calendar-alt text-blue-500"></i>
-							<span>{{ article.date_published.strftime('%d %B, %Y') }}</span>
-						</div>
-						<div class="flex items-center gap-2">
-							<i class="far fa-clock text-green-500"></i>
-							<span>{{ article.get_reading_time() }} min read</span>
-						</div>
-						<div class="flex items-center gap-2">
-							<i class="far fa-eye text-purple-500"></i>
-							<span>{{ view_count }} view{{ 's' if view_count != 1 else '' }}</span>
-						</div>
+			<article>
+				<header class="mb-12 text-center">
+					<div
+						class="flex items-center justify-center gap-3 text-xs text-gray-500 dark:text-gray-500 uppercase tracking-wider font-medium mb-6"
+					>
+						<span>{{ article.date_published.strftime('%B %d, %Y') }}</span>
+						<span>·</span>
+						<span>{{ article.get_reading_time() }} min read</span>
+					</div>
+					<h1 class="text-3xl md:text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-6 leading-tight">
+						{{ article.title }}
+					</h1>
+					<div class="flex items-center justify-center gap-2 text-sm text-gray-500">
+						<i class="far fa-eye"></i>
+						<span>{{ view_count }} views</span>
 					</div>
 				</header>
 
-				<section class="blog-content p-8 font-mono text-gray-800 dark:text-gray-200 leading-relaxed">
+				<div
+					class="blog-content prose prose-gray dark:prose-invert max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:text-blue-600 dark:prose-a:text-blue-400 hover:prose-a:text-blue-500 prose-img:rounded-xl prose-img:shadow-lg prose-pre:bg-gray-50 dark:prose-pre:bg-gray-900/50 prose-pre:border prose-pre:border-gray-200/50 dark:prose-pre:border-white/10 prose-pre:backdrop-blur-sm"
+				>
 					{{ article.content | safe }}
-				</section>
+				</div>
 			</article>
 			{% else %}
-			<div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 text-center">
-				<p class="text-gray-600 dark:text-gray-200" style="font-family: 'JetBrains Mono', monospace">
-					Article not found or not published yet.
-				</p>
+			<div class="text-center py-20">
+				<p class="text-gray-600 dark:text-gray-400">Article not found.</p>
+				<a href="/blog" class="text-blue-500 hover:underline mt-4 inline-block">Back to essays</a>
 			</div>
 			{% endif %}
 		</main>
 
-		{% include 'footer.html' %}
+		<!-- Minimalist Footer -->
+		<footer
+			class="w-full max-w-4xl mx-auto px-6 py-8 mt-auto border-t border-gray-200/20 dark:border-white/10 flex flex-col md:flex-row justify-between items-center gap-4"
+		>
+			<div class="flex items-center gap-4">
+				<span class="font-bold text-sm">ollayor</span>
+				<span class="text-xs text-gray-500">© 2025</span>
+			</div>
+			<div class="flex gap-6 text-sm">
+				<a
+					href="https://twitter.com/olllayor"
+					target="_blank"
+					class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+					>Twitter</a
+				>
+				<a
+					href="https://github.com/olllayor"
+					target="_blank"
+					class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+					>GitHub</a
+				>
+				<a href="/rss" class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">RSS</a>
+			</div>
+		</footer>
 
 		<script>
 			// Add copy buttons to code blocks inside article content
@@ -101,18 +158,20 @@
 						const scrollTop = window.pageYOffset;
 						const windowHeight = window.innerHeight;
 
-						const articleStart = articleTop - windowHeight / 3;
-						const articleEnd = articleTop + articleHeight - windowHeight / 3;
-
+						// Adjusted calculation for better accuracy
+						const totalScroll = articleHeight - windowHeight + articleTop;
 						let progress = 0;
-						if (scrollTop > articleStart) {
-							progress = Math.min(100, ((scrollTop - articleStart) / (articleEnd - articleStart)) * 100);
+
+						if (scrollTop > 0) {
+							progress = (scrollTop / totalScroll) * 100;
 						}
 
+						progress = Math.min(100, Math.max(0, progress));
 						progressBar.style.width = progress + '%';
 					}
 
 					window.addEventListener('scroll', updateProgress);
+					window.addEventListener('resize', updateProgress);
 					updateProgress(); // Initial call
 				}
 

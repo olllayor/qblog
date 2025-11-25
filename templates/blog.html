@@ -34,234 +34,227 @@
 		{% include 'analytics.html' %}
 	</head>
 
-	<body class="font-inter bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
-		{% include 'header.html' %}
-
-		<div class="container mx-auto px-4 sm:px-6 lg:px-8 flex-grow py-8">
-			<div class="flex flex-col lg:flex-row gap-8">
-				<main class="lg:w-2/3">
-					{% if articles %}
-					<div
-						id="article-list"
-						class="space-y-6"
-						data-per-page="{{ per_page | default(6) }}"
-						data-total="{{ total_articles | default(0) }}"
-						data-has-more="{{ 'true' if has_more else 'false' }}"
-					>
-						{% for article in articles %}
-						<a href="{{ url_for('article', slug=article.slug) }}" class="block hover:no-underline">
-							<article
-								class="bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden"
-							>
-								<div class="p-6">
-									<h3
-										class="text-2xl font-bold font-mono mb-2 text-gray-800 dark:text-gray-100 hover:text-blue-600 transition-colors duration-300"
-									>
-										{{ article.title }}
-									</h3>
-									<!-- Enhanced metadata for blog listings -->
-									<div class="article-meta">
-										<div class="flex items-center gap-4">
-											<div class="meta-item">
-												<i class="far fa-calendar-alt mr-2"></i>
-												{{ article.date_published.strftime('%d %B, %Y') }}
-											</div>
-											<div class="meta-item">
-												<i class="far fa-clock mr-2"></i>
-												{{ article.get_reading_time() }} min read
-											</div>
-										</div>
-									</div>
-									<!-- Article summary if available -->
-									{% if article.get_summary(200) %}
-									<p class="font-mono text-gray-800 dark:text-gray-200 mt-3 text-sm leading-relaxed">
-										{{ article.get_summary(200) | safe }}
-									</p>
-									{% endif %}
-								</div>
-							</article>
-						</a>
-						{% endfor %}
-					</div>
-					<div
-						id="infinite-scroll-loading"
-						class="items-center justify-center mt-6 text-gray-500 dark:text-gray-400 hidden"
-					>
-						<i class="fas fa-spinner fa-spin mr-2"></i>
-						<span>Yuklanmoqda...</span>
-					</div>
-					{% if has_more %}
-					<div id="infinite-scroll-trigger" class="h-1"></div>
-					{% endif %} {% else %}
-					<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 text-center">
-						<p class="text-gray-600 dark:text-gray-200" style="font-family: 'JetBrains Mono', monospace">
-							There are no articles yet.
-						</p>
-					</div>
-					{% endif %}
-				</main>
-
-				<aside class="lg:w-1/3">
-					<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 sticky top-24">
-						<h2 class="text-2xl font-bold font-mono text-gray-800 dark:text-gray-200 mb-4">Obuna Bo'ling</h2>
-						<p
-							class="text-gray-700 dark:text-gray-200 leading-relaxed"
-							style="font-family: 'JetBrains Mono', monospace"
-						>
-							Yangi maqola va maruza
-							<a
-								href="https://t.me/Qprogrammer"
-								class="text-blue-500 hover:text-blue-700 transition-colors duration-300 inline-flex items-center"
-							>
-								<i class="fab fa-telegram-plane mr-1"></i>
-								@Qprogrammer
-							</a>
-							telegram kanalimda topishingiz mumkin.
-						</p>
-					</div>
-				</aside>
-			</div>
+	<body class="font-mono bg-white dark:bg-black text-gray-900 dark:text-gray-100 min-h-screen flex flex-col relative">
+		<!-- Background Gradients for Blur Effect -->
+		<div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+			<div
+				class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-purple-500/5 dark:bg-purple-500/10 blur-[120px]"
+			></div>
+			<div
+				class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-500/5 dark:bg-blue-500/10 blur-[120px]"
+			></div>
 		</div>
 
-		{% include 'footer.html' %}
+		<!-- Minimalist Header -->
+		<header
+			class="w-full max-w-4xl mx-auto px-6 py-8 flex justify-between items-center border-b border-gray-200/20 dark:border-white/10"
+		>
+			<a
+				href="/"
+				class="text-xl font-bold tracking-tight hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+				>ollayor</a
+			>
+			<nav class="flex gap-6 text-sm">
+				<a href="/blog" class="text-gray-900 dark:text-gray-100 font-medium">Essays</a>
+				<a
+					href="/projects"
+					class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
+					>Projects</a
+				>
+				<a
+					href="{{ url_for('static', filename='media/Olloyor_s_resume.pdf') }}"
+					target="_blank"
+					class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
+					>CV</a
+				>
+			</nav>
+		</header>
+
+		<div class="w-full max-w-4xl mx-auto px-6 flex-grow py-12">
+			<!-- Hero Section -->
+			<section class="mb-16">
+				<h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-6 leading-tight">
+					Thoughts on design,<br />technology & life.
+				</h1>
+				<p class="text-lg text-gray-600 dark:text-gray-400 max-w-xl leading-relaxed">
+					A collection of essays and observations on the things that matter.
+				</p>
+			</section>
+
+			<main>
+				{% if articles %}
+				<div
+					id="article-list"
+					class="space-y-0"
+					data-per-page="{{ per_page | default(6) }}"
+					data-total="{{ total_articles | default(0) }}"
+					data-has-more="{{ 'true' if has_more else 'false' }}"
+				>
+					{% for article in articles %}
+					<a
+						href="{{ url_for('article', slug=article.slug) }}"
+						class="group block py-8 border-b border-gray-200/20 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 transition-colors"
+					>
+						<article class="grid grid-cols-[32px_1fr] md:grid-cols-[48px_1fr] gap-4 md:gap-6">
+							<span
+								class="text-sm text-gray-400 dark:text-gray-600 font-mono pt-1 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors"
+							>
+								{{ "%02d" | format(loop.index) }}
+							</span>
+							<div class="space-y-3">
+								<h3
+									class="text-2xl font-bold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors"
+								>
+									{{ article.title }}
+								</h3>
+								{% if article.get_summary(200) %}
+								<p class="text-gray-600 dark:text-gray-400 leading-relaxed text-sm">
+									{{ article.get_summary(200) | safe }}
+								</p>
+								{% endif %}
+								<div
+									class="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-500 uppercase tracking-wider font-medium mt-2"
+								>
+									<span>{{ article.date_published.strftime('%b %d, %Y') }}</span>
+									<span>·</span>
+									<span>{{ article.get_reading_time() }} min read</span>
+								</div>
+							</div>
+						</article>
+					</a>
+					{% endfor %}
+				</div>
+
+				<div
+					id="infinite-scroll-loading"
+					class="items-center justify-center mt-12 text-gray-500 dark:text-gray-400 hidden"
+				>
+					<i class="fas fa-spinner fa-spin mr-2"></i>
+					<span>Loading more...</span>
+				</div>
+				{% if has_more %}
+				<div id="infinite-scroll-trigger" class="h-1"></div>
+				{% endif %} {% else %}
+				<div class="py-12 text-center">
+					<p class="text-gray-600 dark:text-gray-400">No articles found.</p>
+				</div>
+				{% endif %}
+			</main>
+		</div>
+
+		<!-- Minimalist Footer -->
+		<footer
+			class="w-full max-w-4xl mx-auto px-6 py-8 mt-auto border-t border-gray-200/20 dark:border-white/10 flex flex-col md:flex-row justify-between items-center gap-4"
+		>
+			<div class="flex items-center gap-4">
+				<span class="font-bold text-sm">ollayor</span>
+				<span class="text-xs text-gray-500">© 2025</span>
+			</div>
+			<div class="flex gap-6 text-sm">
+				<a
+					href="https://twitter.com/olllayor"
+					target="_blank"
+					class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+					>Twitter</a
+				>
+				<a
+					href="https://github.com/olllayor"
+					target="_blank"
+					class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+					>GitHub</a
+				>
+				<a
+					href="https://t.me/olllayor"
+					class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+					>Telegram</a
+				>
+			</div>
+		</footer>
 
 		<script>
+			// Simplified Infinite Scroll Script
 			document.addEventListener('DOMContentLoaded', () => {
 				const list = document.getElementById('article-list');
 				const trigger = document.getElementById('infinite-scroll-trigger');
 				const loader = document.getElementById('infinite-scroll-loading');
-				if (!list || !trigger) {
-					return;
-				}
+				if (!list || !trigger) return;
 
 				let currentPage = 1;
 				const perPage = parseInt(list.dataset.perPage || '6', 10);
 				let totalArticles = parseInt(list.dataset.total || '0', 10);
 				let hasMore = list.dataset.hasMore === 'true';
-				let loadedCount = list.querySelectorAll('a').length;
 				let loading = false;
 
 				const observer = new IntersectionObserver(
 					(entries) => {
-						entries.forEach((entry) => {
-							if (entry.isIntersecting) {
-								fetchNextPage();
-							}
-						});
+						if (entries[0].isIntersecting) fetchNextPage();
 					},
-					{
-						rootMargin: '200px 0px',
-						threshold: 0,
-					},
+					{ rootMargin: '200px' },
 				);
 
 				observer.observe(trigger);
 
 				async function fetchNextPage() {
-					if (loading || !hasMore) {
-						return;
-					}
+					if (loading || !hasMore) return;
 					loading = true;
 					loader?.classList.remove('hidden');
 					loader?.classList.add('flex');
 
-					const nextPage = currentPage + 1;
 					try {
-						const response = await fetch(`/api/articles?page=${nextPage}&per_page=${perPage}`);
-						if (!response.ok) {
-							throw new Error(`Server responded with ${response.status}`);
-						}
-
+						const response = await fetch(`/api/articles?page=${currentPage + 1}&per_page=${perPage}`);
 						const payload = await response.json();
-						const articles = Array.isArray(payload.articles) ? payload.articles : [];
-						if (!articles.length) {
+
+						if (!payload.articles?.length) {
 							hasMore = false;
 							observer.disconnect();
 							trigger.remove();
 							return;
 						}
 
-						articles.forEach((article) => {
+						payload.articles.forEach((article, index) => {
+							const globalIndex = currentPage * perPage + index + 1;
+							const formattedIndex = String(globalIndex).padStart(2, '0');
+
 							const link = document.createElement('a');
-							link.className = 'block hover:no-underline';
 							link.href = `/blog/${article.slug}`;
+							link.className =
+								'group block py-8 border-b border-gray-200/20 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 transition-colors';
 
-							const card = document.createElement('article');
-							card.className =
-								'bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden';
-
-							const body = document.createElement('div');
-							body.className = 'p-6';
-
-							const title = document.createElement('h3');
-							title.className =
-								'text-2xl font-bold font-mono mb-2 text-gray-800 dark:text-gray-100 hover:text-blue-600 transition-colors duration-300';
-							title.textContent = article.title;
-
-							const metaWrap = document.createElement('div');
-							metaWrap.className = 'article-meta';
-
-							const metaFlex = document.createElement('div');
-							metaFlex.className = 'flex items-center gap-4';
-
-							const dateItem = document.createElement('div');
-							dateItem.className = 'meta-item';
-							const dateIcon = document.createElement('i');
-							dateIcon.className = 'far fa-calendar-alt mr-2';
-							const dateText = document.createElement('span');
-							dateText.textContent = article.published_on;
-							dateItem.appendChild(dateIcon);
-							dateItem.appendChild(dateText);
-
-							const readItem = document.createElement('div');
-							readItem.className = 'meta-item';
-							const readIcon = document.createElement('i');
-							readIcon.className = 'far fa-clock mr-2';
-							const readText = document.createElement('span');
-							readText.textContent = `${article.reading_time} min read`;
-							readItem.appendChild(readIcon);
-							readItem.appendChild(readText);
-
-							metaFlex.appendChild(dateItem);
-							metaFlex.appendChild(readItem);
-							metaWrap.appendChild(metaFlex);
-
-							body.appendChild(title);
-							body.appendChild(metaWrap);
-
-							if (article.summary) {
-								const summary = document.createElement('p');
-								summary.className = 'font-mono text-gray-800 dark:text-gray-200 mt-3 text-sm leading-relaxed';
-								summary.textContent = article.summary;
-								body.appendChild(summary);
-							}
-
-							card.appendChild(body);
-							link.appendChild(card);
+							link.innerHTML = `
+								<article class="grid grid-cols-[32px_1fr] md:grid-cols-[48px_1fr] gap-4 md:gap-6">
+									<span class="text-sm text-gray-400 dark:text-gray-600 font-mono pt-1 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">
+										${formattedIndex}
+									</span>
+									<div class="space-y-3">
+										<h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+											${article.title}
+										</h3>
+										<p class="text-gray-600 dark:text-gray-400 leading-relaxed text-sm">
+											${article.summary || ''}
+										</p>
+										<div class="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-500 uppercase tracking-wider font-medium mt-2">
+											<span>${article.published_on}</span>
+											<span>·</span>
+											<span>${article.reading_time} min read</span>
+										</div>
+									</div>
+								</article>
+							`;
 							list.appendChild(link);
 						});
 
-						loadedCount = list.querySelectorAll('a').length;
-						totalArticles = payload.total ?? totalArticles;
-						hasMore = Boolean(payload.has_more);
-
-						currentPage = nextPage;
-
-						if (!hasMore || loadedCount >= totalArticles) {
-							hasMore = false;
+						currentPage++;
+						hasMore = payload.has_more;
+						if (!hasMore) {
 							observer.disconnect();
 							trigger.remove();
 						}
-					} catch (error) {
-						console.error('Failed to fetch more articles', error);
-						observer.disconnect();
-						trigger.remove();
+					} catch (e) {
+						console.error(e);
 					} finally {
 						loading = false;
-						if (loader) {
-							loader.classList.remove('flex');
-							loader.classList.add('hidden');
-						}
+						loader?.classList.add('hidden');
+						loader?.classList.remove('flex');
 					}
 				}
 			});

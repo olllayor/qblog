@@ -37,7 +37,7 @@
 	</head>
 
 	<body
-		class="font-mono bg-white dark:bg-black text-gray-900 dark:text-gray-100 min-h-screen flex items-center justify-center p-6 overflow-hidden relative"
+		class="font-mono bg-white dark:bg-black text-gray-900 dark:text-gray-100 min-h-screen flex items-start lg:items-center justify-center p-6 overflow-y-auto lg:overflow-hidden relative"
 	>
 		<!-- Background Gradients for Blur Effect -->
 		<div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
@@ -97,6 +97,14 @@
 					</a>
 					<a href="/matrix" class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
 						<i class="fas fa-terminal text-2xl"></i>
+					</a>
+					<a
+						href="{{ url_for('static', filename='media/Olloyor_s_resume.pdf') }}"
+						target="_blank"
+						class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+						title="CV / Resume"
+					>
+						<i class="fa-solid fa-newspaper text-2xl"></i>
 					</a>
 				</div>
 
