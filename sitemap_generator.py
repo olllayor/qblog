@@ -1,44 +1,37 @@
 from datetime import datetime
 
-from flask import request
-
-BASE_URL = "https://ollayor.uz"
+from flask import url_for
 
 
 def generate_sitemap(app, articles=None, projects=None):
     """Generate sitemap XML content"""
-    try:
-        base = request.host_url.rstrip("/")
-    except RuntimeError:
-        base = BASE_URL
-
     pages = [
         {
-            "url": f"{base}/",
+            "url": url_for("index", _external=True),
             "lastmod": datetime.now().strftime("%Y-%m-%d"),
             "changefreq": "weekly",
             "priority": "1.0",
         },
         {
-            "url": f"{base}/about",
+            "url": url_for("about", _external=True),
             "lastmod": datetime.now().strftime("%Y-%m-%d"),
             "changefreq": "monthly",
             "priority": "0.9",
         },
         {
-            "url": f"{base}/blog",
+            "url": url_for("blog", _external=True),
             "lastmod": datetime.now().strftime("%Y-%m-%d"),
             "changefreq": "daily",
             "priority": "0.9",
         },
         {
-            "url": f"{base}/projects",
+            "url": url_for("projects", _external=True),
             "lastmod": datetime.now().strftime("%Y-%m-%d"),
             "changefreq": "weekly",
             "priority": "0.8",
         },
         {
-            "url": f"{base}/talks",
+            "url": url_for("talks", _external=True),
             "lastmod": datetime.now().strftime("%Y-%m-%d"),
             "changefreq": "monthly",
             "priority": "0.6",
@@ -48,12 +41,13 @@ def generate_sitemap(app, articles=None, projects=None):
     if articles:
         for article in articles:
             if article.is_published:
+                lastmod = (
+                    getattr(article, "date_updated", None) or article.date_published
+                )
                 pages.append(
                     {
-                        "url": f"{base}/blog/{article.slug}",
-                        "lastmod": article.date_updated.strftime("%Y-%m-%d")
-                        if article.date_updated
-                        else article.date_published.strftime("%Y-%m-%d"),
+                        "url": url_for("article", slug=article.slug, _external=True),
+                        "lastmod": lastmod.strftime("%Y-%m-%d"),
                         "changefreq": "monthly",
                         "priority": "0.7",
                     }
@@ -64,23 +58,24 @@ def generate_sitemap(app, articles=None, projects=None):
 
 def generate_image_sitemap(app, articles=None):
     """Generate image sitemap for better image SEO"""
-    try:
-        base = request.host_url.rstrip("/")
-    except RuntimeError:
-        base = BASE_URL
+    images = []
 
-    images = [
+    static_images = [
         {
-            "loc": f"{base}/static/me.webp",
+            "loc": url_for("static", filename="me.webp", _external=True),
             "title": "Ollayor Maxammadnabiyev - Software Engineer",
             "caption": "Portrait of Ollayor Maxammadnabiyev, Software Engineer",
         },
         {
-            "loc": f"{base}/static/myself-social-optimized.jpg",
+            "loc": url_for(
+                "static", filename="myself-social-optimized.jpg", _external=True
+            ),
             "title": "Ollayor Maxammadnabiyev - Social Media Image",
             "caption": "Professional portrait for social media sharing",
         },
     ]
+
+    images.extend(static_images)
 
     if articles:
         for article in articles:
@@ -88,14 +83,23 @@ def generate_image_sitemap(app, articles=None):
                 first_image = article.get_first_image("")
                 if first_image:
                     if not first_image.startswith("http"):
-                        first_image = f"{base}/static/{first_image.lstrip('/')}"
+                        # Clean up the path to be relative to static folder
+                        clean_path = first_image.lstrip("/")
+                        if clean_path.startswith("static/"):
+                            clean_path = clean_path[7:]
+
+                        first_image = url_for(
+                            "static", filename=clean_path, _external=True
+                        )
 
                     images.append(
                         {
                             "loc": first_image,
                             "title": article.title,
                             "caption": article.get_summary(160),
-                            "page_url": f"{base}/blog/{article.slug}",
+                            "page_url": url_for(
+                                "article", slug=article.slug, _external=True
+                            ),
                         }
                     )
 
