@@ -1,9 +1,10 @@
-<!-- SEO Meta Tags Template -->
-{% set page_title = page_title or "Ollayor Maxammadnabiyev - Software Engineer" %} {% set page_description =
-page_description or "Software Engineer passionate about code, math, physics, and computer science. Building innovative
-solutions with Python, JavaScript, and modern web technologies." %} {% set page_url = page_url or request.url %} {% set
-page_image = page_image or url_for('static', filename='myself-social-optimized.jpg', _external=True) %} {% set site_name
-= "Ollayor Maxammadnabiyev" %}
+<!-- SEO Meta Tags Template - Optimized for Google, AI Overviews, and LLMs -->
+{% set page_title = page_title or "Ollayor Maxammadnabiyev - Software Engineer & Python Developer" %} {% set
+page_description = page_description or "Ollayor Maxammadnabiyev is a Software Engineer from Uzbekistan specializing in
+Python, JS/TS, NestJs,(Node.js) Flask, FastAPI, web development, ai integrations, telegram bots and building innovative
+solutions. Available for freelance projects." %} {% set page_url = page_url or request.url %} {% set page_image =
+page_image or url_for('static', filename='myself-social-optimized.jpg', _external=True) %} {% set site_name = "Ollayor
+Maxammadnabiyev" %}
 
 <!-- Basic Meta Tags -->
 <title>{{ page_title }}</title>
@@ -11,8 +12,9 @@ page_image = page_image or url_for('static', filename='myself-social-optimized.j
 <meta name="author" content="Ollayor Maxammadnabiyev" />
 <meta
 	name="keywords"
-	content="software engineer, python developer, web development, computer science, programming, tech blog"
+	content="Ollayor Maxammadnabiyev, ollayor, software engineer, python developer, web development, Flask developer, FastAPI, Uzbekistan developer, freelance developer, computer science, programming, tech blog, telegram bot developer"
 />
+<meta name="subject" content="Software Engineering and Web Development by Ollayor Maxammadnabiyev" />
 
 <!-- Open Graph Meta Tags for Facebook, LinkedIn, etc. -->
 <meta property="og:type" content="{% if page_type %}{{ page_type }}{% else %}website{% endif %}" />
@@ -52,36 +54,79 @@ page_image = page_image or url_for('static', filename='myself-social-optimized.j
 	{
 		"@context": "https://schema.org",
 		"@type": "Person",
+		"@id": "https://ollayor.uz/#person",
 		"name": "Ollayor Maxammadnabiyev",
+		"givenName": ["Ollayor", "Olloyor"],
+		"familyName": "Maxammadnabiyev",
+		"alternateName": [
+			"Ollayor",
+			"olllayor",
+			"Ollayor Maxammadnabiyev",
+			"Ollayor M.",
+			"Olloyor Maxammadnabiyev",
+			"Olloyor M.",
+			"Olloyor"
+		],
 		"jobTitle": "Software Engineer",
 		"description": "{{ page_description }}",
-		"url": "{{ request.url_root }}",
+		"url": "https://ollayor.uz",
 		"image": {
 			"@type": "ImageObject",
 			"url": "{{ page_image }}",
 			"width": 1200,
 			"height": 630
 		},
-		"sameAs": ["https://github.com/ollayor", "https://linkedin.com/in/ollayor", "https://twitter.com/ollayor"],
+		"sameAs": [
+			"https://github.com/olllayor",
+			"https://linkedin.com/in/olllayor",
+			"https://twitter.com/olllayor",
+			"https://t.me/olllayor",
+			"https://t.me/Qprogrammer"
+		],
 		"knowsAbout": [
 			"Software Development",
 			"Python Programming",
 			"JavaScript",
+			"TypeScript",
 			"Web Development",
+			"Flask",
+			"FastAPI",
+			"Django",
+			"React",
+			"Next.js",
+			"Node.js",
+			"NestJS",
+			"System Design",
+			"API Design",
+			"Database Design",
+			"Linux",
+			"Git",
+			"AI Integration",
+			"Machine Learning",
+			"Data Science",
+			"Artificial Intelligence",
 			"Computer Science",
 			"Mathematics",
-			"Physics",
 			"Full Stack Development",
 			"Backend Development",
-			"API Development"
+			"API Development",
+			"PostgreSQL",
+			"Redis",
+			"Docker",
+			"Telegram Bots"
 		],
-		"mainEntityOfPage": {
-			"@type": "WebPage",
-			"@id": "{{ request.url_root }}"
+		"knowsLanguage": ["English", "Uzbek", "Russian"],
+		"nationality": {
+			"@type": "Country",
+			"name": "Uzbekistan"
 		},
 		"address": {
 			"@type": "PostalAddress",
 			"addressCountry": "UZ"
+		},
+		"mainEntityOfPage": {
+			"@type": "WebPage",
+			"@id": "{{ request.url_root }}"
 		}
 	}
 </script>

@@ -15,6 +15,12 @@ def generate_sitemap(app, articles=None, projects=None):
                 "priority": "1.0",
             },
             {
+                "url": url_for("about", _external=True),
+                "lastmod": datetime.now().strftime("%Y-%m-%d"),
+                "changefreq": "monthly",
+                "priority": "0.9",
+            },
+            {
                 "url": url_for("blog", _external=True),
                 "lastmod": datetime.now().strftime("%Y-%m-%d"),
                 "changefreq": "daily",

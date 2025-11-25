@@ -346,6 +346,12 @@ def talks():
     return render_template("talks.html")
 
 
+@app.route("/about")
+@safe_cached(timeout=600)
+def about():
+    return render_template("about.html")
+
+
 @app.route("/matrix")
 def matrix():
     return render_template("matrix.html")

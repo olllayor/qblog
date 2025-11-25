@@ -5,7 +5,13 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 		<!-- SEO and Social Media Meta Tags -->
-		{% include 'seo_meta.html' %}
+		{% set page_title = "Ollayor Maxammadnabiyev - Software Engineer & Python Developer | ollayor.uz" %} {% set
+		page_description = "Ollayor Maxammadnabiyev is a Software Engineer from Uzbekistan specializing in
+		Javascript/Typescript, Node.js, ExpressJS, NestJS, Python, Flask, FastAPI, web development, and building innovative
+		solutions. View projects and blog at ollayor.uz" %} {% include 'seo_meta.html' %}
+
+		<!-- Enhanced Person Schema for AI and Search Engines -->
+		{% include 'person_schema.html' %}
 
 		<!-- Preconnect to external domains for better performance -->
 		<link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin />
@@ -66,45 +72,67 @@
 				</div>
 
 				<!-- Social Links -->
-				<div class="space-x-4">
+				<div class="space-x-4" itemscope itemtype="https://schema.org/Person">
 					<a
 						href="https://github.com/olllayor"
 						target="_blank"
+						rel="me noopener"
 						class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+						title="Ollayor's GitHub Profile"
+						itemprop="sameAs"
 					>
 						<i class="fab fa-github text-2xl"></i>
+						<span class="sr-only">GitHub - olllayor</span>
 					</a>
 					<a
 						href="https://twitter.com/olllayor"
 						target="_blank"
+						rel="me noopener"
 						class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+						title="Ollayor's Twitter Profile"
+						itemprop="sameAs"
 					>
 						<i class="fab fa-twitter text-2xl"></i>
+						<span class="sr-only">Twitter - @olllayor</span>
 					</a>
 					<a
 						href="https://t.me/Qprogrammer"
 						target="_blank"
+						rel="me noopener"
 						class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+						title="Ollayor's Telegram Channel"
+						itemprop="sameAs"
 					>
 						<i class="fab fa-telegram text-2xl"></i>
+						<span class="sr-only">Telegram - @Qprogrammer</span>
 					</a>
 					<a
 						href="https://www.linkedin.com/in/olllayor/"
 						target="_blank"
+						rel="me noopener"
 						class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+						title="Ollayor's LinkedIn Profile"
+						itemprop="sameAs"
 					>
 						<i class="fab fa-linkedin text-2xl"></i>
+						<span class="sr-only">LinkedIn - Ollayor Maxammadnabiyev</span>
 					</a>
-					<a href="/matrix" class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
+					<a
+						href="/matrix"
+						class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+						title="Terminal Matrix"
+					>
 						<i class="fas fa-terminal text-2xl"></i>
+						<span class="sr-only">Terminal</span>
 					</a>
 					<a
 						href="{{ url_for('static', filename='media/Olloyor_s_resume.pdf') }}"
 						target="_blank"
 						class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
-						title="CV / Resume"
+						title="Download Ollayor's CV / Resume"
 					>
 						<i class="fa-solid fa-newspaper text-2xl"></i>
+						<span class="sr-only">CV / Resume</span>
 					</a>
 				</div>
 
