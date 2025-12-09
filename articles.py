@@ -137,7 +137,11 @@ class Article:
             if not result:
                 return {"daily": 0, "monthly": 0, "all_time": 0}
             daily, monthly, total = result
-            return {"daily": daily or 0, "monthly": monthly or 0, "all_time": total or 0}
+            return {
+                "daily": daily or 0,
+                "monthly": monthly or 0,
+                "all_time": total or 0,
+            }
         except psycopg2.Error as e:
             logger.error(f"Error getting view totals: {e}")
             return {"daily": 0, "monthly": 0, "all_time": 0}
