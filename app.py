@@ -213,11 +213,12 @@ def index():
     projects = Project.get_all_projects()
     try:
         view_totals = Article.get_view_totals()
-        monthly_readers = view_totals.get("monthly", 0)
+        # Prefer an all-time reader count for the homepage, fall back to monthly for compatibility
+        all_time_readers = view_totals.get("all_time", view_totals.get("monthly", 0))
     except Exception:
-        monthly_readers = 0
+        all_time_readers = 0
     return render_template(
-        "index.html", projects=projects, monthly_readers=monthly_readers
+        "index.html", projects=projects, all_time_readers=all_time_readers
     )
 
 

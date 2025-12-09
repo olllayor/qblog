@@ -116,11 +116,11 @@ class Article:
 
     @staticmethod
     def get_view_totals():
-        """Return aggregate view counts for the current day and month across all articles."""
+        """Return aggregate view counts for the current day, month, and all-time across all articles."""
         conn = get_db()
         if conn is None:
             logger.error("Failed to connect to the database.")
-            return {"daily": 0, "monthly": 0}
+            return {"daily": 0, "monthly": 0, "all_time": 0}
 
         try:
             cur = conn.cursor()
@@ -128,18 +128,19 @@ class Article:
                 """
                 SELECT
                     COUNT(*) FILTER (WHERE viewed_at >= DATE_TRUNC('day', CURRENT_TIMESTAMP)) AS daily_views,
-                    COUNT(*) FILTER (WHERE viewed_at >= DATE_TRUNC('month', CURRENT_TIMESTAMP)) AS monthly_views
+                    COUNT(*) FILTER (WHERE viewed_at >= DATE_TRUNC('month', CURRENT_TIMESTAMP)) AS monthly_views,
+                    COUNT(*) AS total_views
                 FROM article_views
                 """
             )
             result = cur.fetchone()
             if not result:
-                return {"daily": 0, "monthly": 0}
-            daily, monthly = result
-            return {"daily": daily or 0, "monthly": monthly or 0}
+                return {"daily": 0, "monthly": 0, "all_time": 0}
+            daily, monthly, total = result
+            return {"daily": daily or 0, "monthly": monthly or 0, "all_time": total or 0}
         except psycopg2.Error as e:
             logger.error(f"Error getting view totals: {e}")
-            return {"daily": 0, "monthly": 0}
+            return {"daily": 0, "monthly": 0, "all_time": 0}
         finally:
             pass
 
