@@ -210,13 +210,19 @@ def logout():
 @app.route("/")
 @safe_cached(timeout=300)
 def index():
-    projects = Project.get_all_projects()
+    try:
+        projects = Project.get_all_projects()
+    except Exception as e:
+        logger.warning(f"Failed to load projects: {e}")
+        projects = []
+
     try:
         view_totals = Article.get_view_totals()
-        # Prefer an all-time reader count for the homepage, fall back to monthly for compatibility
         all_time_readers = view_totals.get("all_time", view_totals.get("monthly", 0))
-    except Exception:
+    except Exception as e:
+        logger.warning(f"Failed to load view totals: {e}")
         all_time_readers = 0
+
     return render_template(
         "index.html", projects=projects, all_time_readers=all_time_readers
     )

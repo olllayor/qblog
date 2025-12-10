@@ -3,10 +3,13 @@ import os
 from urllib.parse import urlparse
 
 import psycopg2
-from flask import g  # Added import
+from flask import g
 from psycopg2.pool import SimpleConnectionPool
 
 logger = logging.getLogger(__name__)
+
+_POOL = None
+_MAX_RETRIES = 3
 
 
 def _normalize_url(url: str | None) -> str | None:
@@ -61,27 +64,79 @@ def _safe_dsn_summary(url: str | None, source: str | None) -> str:
     )
 
 
+def _is_connection_alive(conn) -> bool:
+    """Check if a database connection is still usable."""
+    if conn is None:
+        return False
+    try:
+        if conn.closed:
+            return False
+        # Rollback any pending transaction before testing
+        conn.rollback()
+        cur = conn.cursor()
+        cur.execute("SELECT 1")
+        cur.fetchone()
+        cur.close()
+        return True
+    except Exception:
+        return False
+
+
+def _reset_pool():
+    """Reset the connection pool when connections become stale."""
+    global _POOL
+    if _POOL is not None:
+        try:
+            _POOL.closeall()
+        except Exception as e:
+            logger.debug("Error closing pool: %s", e)
+        _POOL = None
+
+
 def connect_db():
-    """Create or reuse a global connection pool and fetch a connection."""
+    """Create or reuse a global connection pool and fetch a connection with retry logic."""
+    global _POOL
     url, source = get_database_url()
     if not url:
         logger.error("Database URL not found in environment.")
         return None
-    try:
-        # Initialize pool lazily and store on module-level
-        global _POOL
-        if "_POOL" not in globals() or _POOL is None:
-            _POOL = SimpleConnectionPool(minconn=1, maxconn=10, dsn=url)
-            logger.info("Initialized DB pool (%s)", _safe_dsn_summary(url, source))
-        conn = _POOL.getconn()
-        # Optionally set autocommit for simple queries
-        conn.autocommit = True
-        return conn
-    except psycopg2.Error as e:
-        logger.error(
-            "Error obtaining DB connection (%s): %s", _safe_dsn_summary(url, source), e
-        )
-        return None
+
+    for attempt in range(_MAX_RETRIES):
+        try:
+            if _POOL is None:
+                _POOL = SimpleConnectionPool(minconn=1, maxconn=10, dsn=url)
+                logger.info("Initialized DB pool (%s)", _safe_dsn_summary(url, source))
+
+            conn = _POOL.getconn()
+
+            if not _is_connection_alive(conn):
+                logger.warning("Got stale connection from pool, resetting pool (attempt %d)", attempt + 1)
+                try:
+                    _POOL.putconn(conn, close=True)
+                except Exception:
+                    pass
+                _reset_pool()
+                continue
+
+            # Rollback any pending transaction before setting autocommit
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+            conn.autocommit = True
+            return conn
+
+        except psycopg2.OperationalError as e:
+            logger.warning("DB connection error (attempt %d/%d): %s", attempt + 1, _MAX_RETRIES, e)
+            _reset_pool()
+            if attempt == _MAX_RETRIES - 1:
+                logger.error("Failed to connect after %d attempts", _MAX_RETRIES)
+                return None
+        except psycopg2.Error as e:
+            logger.error("Error obtaining DB connection (%s): %s", _safe_dsn_summary(url, source), e)
+            return None
+
+    return None
 
 
 def get_db():
@@ -96,27 +151,31 @@ def get_db():
 
 def close_db(e=None):
     """Closes the database connection."""
+    global _POOL
     db = g.pop("db", None)
     from_pool = g.pop("_db_from_pool", False)
 
     if db is not None:
-        global _POOL
-        if from_pool and "_POOL" in globals() and _POOL is not None:
+        if from_pool and _POOL is not None:
             try:
-                _POOL.putconn(db)
+                if db.closed:
+                    logger.debug("Connection already closed, not returning to pool")
+                else:
+                    _POOL.putconn(db)
             except Exception as exc:
-                # Fallback to close if cannot return to pool
                 logger.debug("Failed to return connection to pool: %s", exc)
                 try:
-                    db.close()
+                    if not db.closed:
+                        db.close()
                 except Exception as exc2:
                     logger.debug("Failed to close connection: %s", exc2)
         else:
             try:
-                db.close()
+                if not db.closed:
+                    db.close()
             except Exception as exc:
                 logger.debug("Failed to close connection: %s", exc)
-        logger.info("Database connection released.")
+        logger.debug("Database connection released.")
 
 
 def init_db():
