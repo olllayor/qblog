@@ -510,7 +510,8 @@ def admin_dashboard():
     # Aggregate basic stats
     try:
         all_articles = Article.get_all_articles()
-    except Exception:
+    except Exception as e:
+        logger.warning("Failed to fetch all articles: %s", e)
         all_articles = []
 
     articles_count = len(all_articles)
@@ -519,7 +520,8 @@ def admin_dashboard():
 
     try:
         projects_count = len(Project.get_all_projects())
-    except Exception:
+    except Exception as e:
+        logger.warning("Failed to fetch projects count: %s", e)
         projects_count = 0
 
     view_totals = {"daily": 0, "monthly": 0}

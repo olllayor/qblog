@@ -116,16 +116,16 @@ def connect_db():
                 )
                 try:
                     _POOL.putconn(conn, close=True)
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug("Failed to close stale connection: %s", e)
                 _reset_pool()
                 continue
 
             # Rollback any pending transaction before setting autocommit
             try:
                 conn.rollback()
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("Failed to rollback transaction: %s", e)
             conn.autocommit = True
             return conn
 
