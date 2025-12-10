@@ -110,7 +110,10 @@ def connect_db():
             conn = _POOL.getconn()
 
             if not _is_connection_alive(conn):
-                logger.warning("Got stale connection from pool, resetting pool (attempt %d)", attempt + 1)
+                logger.warning(
+                    "Got stale connection from pool, resetting pool (attempt %d)",
+                    attempt + 1,
+                )
                 try:
                     _POOL.putconn(conn, close=True)
                 except Exception:
@@ -127,13 +130,19 @@ def connect_db():
             return conn
 
         except psycopg2.OperationalError as e:
-            logger.warning("DB connection error (attempt %d/%d): %s", attempt + 1, _MAX_RETRIES, e)
+            logger.warning(
+                "DB connection error (attempt %d/%d): %s", attempt + 1, _MAX_RETRIES, e
+            )
             _reset_pool()
             if attempt == _MAX_RETRIES - 1:
                 logger.error("Failed to connect after %d attempts", _MAX_RETRIES)
                 return None
         except psycopg2.Error as e:
-            logger.error("Error obtaining DB connection (%s): %s", _safe_dsn_summary(url, source), e)
+            logger.error(
+                "Error obtaining DB connection (%s): %s",
+                _safe_dsn_summary(url, source),
+                e,
+            )
             return None
 
     return None
