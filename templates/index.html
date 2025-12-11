@@ -179,17 +179,17 @@
 					>
 						<div class="flex items-start justify-between mb-2">
 							<div class="flex items-center space-x-2">
+								{% if project.image_url %}
+								<img
+									src="{{ project.image_url }}"
+									alt="{{ project.title }}"
+									class="w-6 h-6 object-cover rounded"
+								/>
+								{% else %}
 								<div class="p-1.5 bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
-									{% if project.image_url %}
-									<img
-										src="{{ project.image_url }}"
-										alt="{{ project.title }}"
-										class="w-4 h-4 object-cover rounded-sm"
-									/>
-									{% else %}
 									<i class="fas fa-code text-gray-500 text-xs"></i>
-									{% endif %}
 								</div>
+								{% endif %}
 								<h3 class="font-bold text-sm">{{ project.title }}</h3>
 							</div>
 							<div class="flex items-center gap-2">
