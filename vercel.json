@@ -11,6 +11,10 @@
 	],
 	"routes": [
 		{
+			"src": "/_vercel/(.*)",
+			"dest": "/_vercel/$1"
+		},
+		{
 			"src": "/(.*)",
 			"dest": "app.py"
 		}
