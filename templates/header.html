@@ -11,16 +11,24 @@
 		<meta name="description" content="Ollayor's Blog - Thoughts on programming and technology" />
 		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" />
 		<script src="https://cdn.tailwindcss.com"></script>
-		
+
 		<!-- Non-blocking Font Awesome -->
-		<link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
-		<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" /></noscript>
-		
+		<link
+			rel="preload"
+			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+			as="style"
+			onload="this.onload=null;this.rel='stylesheet'"
+		/>
+		<noscript
+			><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+		/></noscript>
+
 		<!-- Non-blocking fonts -->
 		<link
 			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
 			rel="stylesheet"
-			media="print" onload="this.media='all'"
+			media="print"
+			onload="this.media='all'"
 		/>
 
 		<style>
@@ -161,27 +169,48 @@
 
 			toggle.addEventListener('click', toggleMenu);
 
-			// Close mobile menu when clicking outside
-			document.addEventListener('click', (e) => {
-				if (isOpen && !toggle.contains(e.target) && !mobileMenu.contains(e.target)) {
-					toggleMenu();
-				}
-			});
+			// Close mobile menu when clicking outside - passive listener
+			document.addEventListener(
+				'click',
+				(e) => {
+					if (isOpen && !toggle.contains(e.target) && !mobileMenu.contains(e.target)) {
+						toggleMenu();
+					}
+				},
+				{ passive: true },
+			);
 
-			// Close mobile menu when clicking links
+			// Close mobile menu when clicking links - passive listeners
 			const mobileLinks = mobileMenu.getElementsByTagName('a');
 			for (const link of mobileLinks) {
-				link.addEventListener('click', () => {
-					if (isOpen) toggleMenu();
-				});
+				link.addEventListener(
+					'click',
+					() => {
+						if (isOpen) toggleMenu();
+					},
+					{ passive: true },
+				);
 			}
 
-			// Handle window resize
-			window.addEventListener('resize', () => {
-				if (window.innerWidth >= 1024 && isOpen) {
-					toggleMenu();
-				}
-			});
+			// Debounce helper
+			function debounce(fn, delay) {
+				let timer;
+				return function (...args) {
+					clearTimeout(timer);
+					timer = setTimeout(() => fn.apply(this, args), delay);
+				};
+			}
+
+			// Handle window resize with debounce for better INP
+			window.addEventListener(
+				'resize',
+				debounce(() => {
+					if (window.innerWidth >= 1024 && isOpen) {
+						toggleMenu();
+					}
+				}, 150),
+				{ passive: true },
+			);
 
 			// Dark Mode Toggle Script
 			function setTheme() {

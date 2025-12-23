@@ -29,25 +29,34 @@
 		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon-optimized.ico') }}" />
 		<link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='favicon-optimized.ico') }}" />
 		<link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='favicon-256x256.png') }}" />
-		
+
 		<!-- Preload critical CSS -->
 		<link rel="preload" href="https://cdn.tailwindcss.com" as="script" />
 		<script src="https://cdn.tailwindcss.com"></script>
-		
+
 		<!-- Non-blocking Font Awesome -->
-		<link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
-		<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" /></noscript>
-		
+		<link
+			rel="preload"
+			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+			as="style"
+			onload="this.onload=null;this.rel='stylesheet'"
+		/>
+		<noscript
+			><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+		/></noscript>
+
 		<!-- Non-blocking fonts with display=swap -->
 		<link
 			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
 			rel="stylesheet"
-			media="print" onload="this.media='all'"
+			media="print"
+			onload="this.media='all'"
 		/>
 		<link
 			href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap"
 			rel="stylesheet"
-			media="print" onload="this.media='all'"
+			media="print"
+			onload="this.media='all'"
 		/>
 		{% include 'analytics.html' %}
 	</head>
@@ -190,11 +199,7 @@
 						<div class="flex items-start justify-between mb-2">
 							<div class="flex items-center space-x-2">
 								{% if project.image_url %}
-								<img
-									src="{{ project.image_url }}"
-									alt="{{ project.title }}"
-									class="w-6 h-6 object-cover rounded"
-								/>
+								<img src="{{ project.image_url }}" alt="{{ project.title }}" class="w-6 h-6 object-cover rounded" />
 								{% else %}
 								<div class="p-1.5 bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
 									<i class="fas fa-code text-gray-500 text-xs"></i>
@@ -364,114 +369,82 @@
 		</div>
 
 		<script>
-			// Project Modal Functions
-			function openProjectModal(card) {
-				const modal = document.getElementById('projectModal');
-				const title = card.dataset.title;
-				const description = card.dataset.description;
-				const image = card.dataset.image;
-				const github = card.dataset.github;
-				const demo = card.dataset.demo;
-				const technologies = card.dataset.technologies ? card.dataset.technologies.split(',') : [];
-
-				// Populate modal
-				document.getElementById('modalTitle').textContent = title;
-				document.getElementById('modalDescription').textContent = description;
-
-				// Image
-				const imageContainer = document.getElementById('modalImageContainer');
-				const modalImage = document.getElementById('modalImage');
-				if (image) {
-					modalImage.src = image;
-					modalImage.alt = title;
-					imageContainer.classList.remove('hidden');
-				} else {
-					imageContainer.classList.add('hidden');
-				}
-
-				// Technologies
-				const techContainer = document.getElementById('modalTechnologies');
-				techContainer.innerHTML = technologies
-					.map(
-						(tech) =>
-							`<span class="text-xs font-medium px-3 py-1 rounded-full bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-white/10">${tech.trim()}</span>`,
-					)
-					.join('');
-
-				// Links
-				const githubBtn = document.getElementById('modalGithub');
-				const demoBtn = document.getElementById('modalDemo');
-
-				if (github) {
-					githubBtn.href = github;
-					githubBtn.style.display = 'inline-flex';
-				} else {
-					githubBtn.style.display = 'none';
-				}
-
-				if (demo) {
-					demoBtn.href = demo;
-					demoBtn.style.display = 'inline-flex';
-				} else {
-					demoBtn.style.display = 'none';
-				}
-
-				// Show modal
-				modal.classList.remove('opacity-0', 'pointer-events-none');
-				modal.classList.add('opacity-100');
-				document.body.style.overflow = 'hidden';
+			// Debounce helper for better INP
+			function debounce(fn, delay) {
+				let timer;
+				return function(...args) {
+					clearTimeout(timer);
+					timer = setTimeout(() => fn.apply(this, args), delay);
+				};
 			}
+				// Project Modal Functions
+				function openProjectModal(card) {
+					const modal = document.getElementById('projectModal');
+					const title = card.dataset.title;
+					const description = card.dataset.description;
+					const image = card.dataset.image;
+					const github = card.dataset.github;
+					const demo = card.dataset.demo;
+					const technologies = card.dataset.technologies ? card.dataset.technologies.split(',') : [];
 
-			function closeProjectModal(event) {
-				if (event) event.stopPropagation();
-				const modal = document.getElementById('projectModal');
-				modal.classList.remove('opacity-100');
-				modal.classList.add('opacity-0', 'pointer-events-none');
-				document.body.style.overflow = 'auto';
-			}
+					// Populate modal
+					document.getElementById('modalTitle').textContent = title;
+					document.getElementById('modalDescription').textContent = description;
 
-			// Technology Filter Functions
-			document.querySelectorAll('.filter-btn').forEach((btn) => {
-				btn.addEventListener('click', function () {
-					const tech = this.dataset.tech;
+					// Image
+					const imageContainer = document.getElementById('modalImageContainer');
+					const modalImage = document.getElementById('modalImage');
+					if (image) {
+						modalImage.src = image;
+						modalImage.alt = title;
+						imageContainer.classList.remove('hidden');
+					} else {
+						imageContainer.classList.add('hidden');
+					}
 
-					// Update active state
-					document.querySelectorAll('.filter-btn').forEach((b) => {
-						b.classList.remove('active');
-						b.classList.remove(
-							'bg-gray-900',
-							'dark:bg-white',
-							'text-white',
-							'dark:text-gray-900',
-							'border-gray-900',
-							'dark:border-white',
-						);
-						b.classList.add(
-							'bg-transparent',
-							'text-gray-600',
-							'dark:text-gray-400',
-							'border-gray-200',
-							'dark:border-gray-700',
-						);
-					});
-					this.classList.add('active');
-					this.classList.remove(
-						'bg-transparent',
-						'text-gray-600',
-						'dark:text-gray-400',
-						'border-gray-200',
-						'dark:border-gray-700',
-					);
-					this.classList.add(
-						'bg-gray-900',
-						'dark:bg-white',
-						'text-white',
-						'dark:text-gray-900',
-						'border-gray-900',
-						'dark:border-white',
-					);
+					// Technologies
+					const techContainer = document.getElementById('modalTechnologies');
+					techContainer.innerHTML = technologies
+						.map(
+							(tech) =>
+								`<span class="text-xs font-medium px-3 py-1 rounded-full bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-white/10">${tech.trim()}</span>`,
+						)
+						.join('');
 
-					// Filter projects
+					// Links
+					const githubBtn = document.getElementById('modalGithub');
+					const demoBtn = document.getElementById('modalDemo');
+
+					if (github) {
+						githubBtn.href = github;
+						githubBtn.style.display = 'inline-flex';
+					} else {
+						githubBtn.style.display = 'none';
+					}
+
+					if (demo) {
+						demoBtn.href = demo;
+						demoBtn.style.display = 'inline-flex';
+					} else {
+						demoBtn.style.display = 'none';
+					}
+
+					// Show modal
+					modal.classList.remove('opacity-0', 'pointer-events-none');
+					modal.classList.add('opacity-100');
+					document.body.style.overflow = 'hidden';
+				}
+
+				function closeProjectModal(event) {
+					if (event) event.stopPropagation();
+					const modal = document.getElementById('projectModal');
+					modal.classList.remove('opacity-100');
+					modal.classList.add('opacity-0', 'pointer-events-none');
+					document.body.style.overflow = 'auto';
+				}
+
+				// Technology Filter Functions - Debounced for better INP
+				const filterProjects = debounce(function(tech) {
 					document.querySelectorAll('.project-card').forEach((card) => {
 						const cardTechs = card.dataset.technologies.toLowerCase();
 						if (tech === 'all' || cardTechs.includes(tech.toLowerCase())) {
@@ -480,15 +453,61 @@
 							card.classList.add('hidden');
 						}
 					});
-				});
-			});
+				}, 50);
 
-			// Keyboard support
-			document.addEventListener('keydown', function (event) {
-				if (event.key === 'Escape') {
-					closeProjectModal(event);
-				}
-			});
+				document.querySelectorAll('.filter-btn').forEach((btn) => {
+					btn.addEventListener('click', function () {
+						const tech = this.dataset.tech;
+
+						// Update active state
+						document.querySelectorAll('.filter-btn').forEach((b) => {
+							b.classList.remove('active');
+							b.classList.remove(
+								'bg-gray-900',
+								'dark:bg-white',
+								'text-white',
+								'dark:text-gray-900',
+								'border-gray-900',
+								'dark:border-white',
+							);
+							b.classList.add(
+								'bg-transparent',
+								'text-gray-600',
+								'dark:text-gray-400',
+								'border-gray-200',
+								'dark:border-gray-700',
+							);
+						});
+						this.classList.add('active');
+						this.classList.remove(
+							'bg-transparent',
+							'text-gray-600',
+							'dark:text-gray-400',
+							'border-gray-200',
+							'dark:border-gray-700',
+						);
+						this.classList.add(
+							'bg-gray-900',
+							'dark:bg-white',
+							'text-white',
+							'dark:text-gray-900',
+							'border-gray-900',
+							'dark:border-white',
+						);
+
+						// Filter projects with debounce
+						filterProjects(tech);
+							}
+						});
+					});
+				});
+
+				// Keyboard support - Use passive listener
+				document.addEventListener('keydown', function (event) {
+					if (event.key === 'Escape') {
+						closeProjectModal(event);
+					}
+				}, { passive: true });
 		</script>
 	</body>
 </html>
