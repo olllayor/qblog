@@ -29,15 +29,25 @@
 		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon-optimized.ico') }}" />
 		<link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='favicon-optimized.ico') }}" />
 		<link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='favicon-256x256.png') }}" />
+		
+		<!-- Preload critical CSS -->
+		<link rel="preload" href="https://cdn.tailwindcss.com" as="script" />
 		<script src="https://cdn.tailwindcss.com"></script>
-		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+		
+		<!-- Non-blocking Font Awesome -->
+		<link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+		<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" /></noscript>
+		
+		<!-- Non-blocking fonts with display=swap -->
 		<link
 			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
 			rel="stylesheet"
+			media="print" onload="this.media='all'"
 		/>
 		<link
 			href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap"
 			rel="stylesheet"
+			media="print" onload="this.media='all'"
 		/>
 		{% include 'analytics.html' %}
 	</head>
