@@ -29,8 +29,8 @@ from projects import Project
 load_dotenv()
 
 posthog = Posthog(
-    project_api_key='phc_CfLxspEhOAhLn6L3vQH2wP5Os31vXojDeaIqK8f4Y0W',
-    host='https://us.i.posthog.com'
+    project_api_key="phc_CfLxspEhOAhLn6L3vQH2wP5Os31vXojDeaIqK8f4Y0W",
+    host="https://us.i.posthog.com",
 )
 
 # Configure logging early so we can see startup messages
@@ -230,8 +230,8 @@ def index():
         all_time_readers = 0
 
     # PostHog feature flag implementation
-    distinct_id = request.remote_addr or 'anonymous'
-    is_my_flag_enabled = posthog.feature_enabled('my-flag', distinct_id)
+    distinct_id = request.remote_addr or "anonymous"
+    is_my_flag_enabled = posthog.feature_enabled("my-flag", distinct_id)
 
     if is_my_flag_enabled:
         # Do something differently for this user
