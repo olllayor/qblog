@@ -18,6 +18,7 @@ from flask import (
     url_for,
 )
 from flask_caching import Cache
+from posthog import Posthog
 
 from articles import Article
 from database import close_db, get_database_url, init_db
@@ -26,6 +27,11 @@ from projects import Project
 # from api_analytics.flask import add_middleware
 
 load_dotenv()
+
+posthog = Posthog(
+    project_api_key='phc_CfLxspEhOAhLn6L3vQH2wP5Os31vXojDeaIqK8f4Y0W',
+    host='https://us.i.posthog.com'
+)
 
 # Configure logging early so we can see startup messages
 logging.basicConfig(level=logging.INFO)
@@ -222,6 +228,14 @@ def index():
     except Exception as e:
         logger.warning(f"Failed to load view totals: {e}")
         all_time_readers = 0
+
+    # PostHog feature flag implementation
+    distinct_id = request.remote_addr or 'anonymous'
+    is_my_flag_enabled = posthog.feature_enabled('my-flag', distinct_id)
+
+    if is_my_flag_enabled:
+        # Do something differently for this user
+        logger.info(f"Feature flag 'my-flag' enabled for user {distinct_id}")
 
     return render_template(
         "index.html", projects=projects, all_time_readers=all_time_readers
