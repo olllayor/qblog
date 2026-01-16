@@ -240,7 +240,7 @@
 					<!-- Left side -->
 					<div class="flex items-center space-x-4">
 						<a
-							href="{{ url_for('blog') }}"
+							href="{{ url_for('admin_dashboard') }}"
 							class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
 						>
 							<i class="fas fa-arrow-left"></i>
@@ -279,6 +279,12 @@
 								id="dropdownMenu"
 								class="absolute right-0 top-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-2 min-w-48 z-50 hidden"
 							>
+								<a
+									href="{{ url_for('admin_dashboard') }}"
+									class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+								>
+									<i class="fas fa-chart-line mr-2"></i>Dashboard
+								</a>
 								<a
 									href="{{ url_for('blog') }}"
 									class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -322,6 +328,7 @@
 		<!-- Main Content -->
 		<div class="content-area">
 			<form id="storyForm" method="POST">
+				<input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 				<!-- Title Input -->
 				<textarea
 					id="titleInput"
@@ -743,6 +750,7 @@
 						method: 'POST',
 						headers: {
 							'Content-Type': 'application/json',
+							'X-CSRFToken': '{{ csrf_token() }}',
 						},
 						body: JSON.stringify(data),
 					})
@@ -859,7 +867,16 @@
 					if (confirm('Are you sure you want to delete this story? This action cannot be undone.')) {
 						const slug = '{% if article %}{{ article.slug }}{% endif %}';
 						if (slug) {
-							window.location.href = `/blog/${slug}/delete`;
+							const form = document.createElement('form');
+							form.method = 'POST';
+							form.action = `/blog/${slug}/delete`;
+							const csrfInput = document.createElement('input');
+							csrfInput.type = 'hidden';
+							csrfInput.name = 'csrf_token';
+							csrfInput.value = '{{ csrf_token() }}';
+							form.appendChild(csrfInput);
+							document.body.appendChild(form);
+							form.submit();
 						}
 					}
 					this.hideMenu();

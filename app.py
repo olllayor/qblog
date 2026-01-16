@@ -7,17 +7,17 @@ from functools import wraps
 import redis
 import sentry_sdk
 from dotenv import load_dotenv
-from flask import (
-    Flask,
-    flash,
-    jsonify,
-    redirect,
-    render_template,
-    request,
-    session,
-    url_for,
-)
+from flask import Flask, flash, jsonify, redirect, render_template, request, url_for
 from flask_caching import Cache
+from flask_login import (
+    LoginManager,
+    UserMixin,
+    current_user,
+    login_required,
+    login_user,
+    logout_user,
+)
+from flask_wtf.csrf import CSRFProtect
 from posthog import Posthog
 
 from articles import Article
@@ -45,8 +45,24 @@ sentry_sdk.init(
 )
 
 app = Flask(__name__)
+csrf = CSRFProtect(app)
+login_manager = LoginManager(app)
+login_manager.login_view = "login"
 
 logger = logging.getLogger(__name__)
+
+
+# Simple User class for Flask-Login
+class User(UserMixin):
+    def __init__(self, id):
+        self.id = id
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    if user_id == ADMIN_USERNAME:
+        return User(user_id)
+    return None
 
 
 BLOG_ARTICLES_PER_PAGE = 6
@@ -150,6 +166,11 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY")
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 
+if not app.secret_key:
+    logger.error("FLASK_SECRET_KEY not set in environment!")
+if not ADMIN_USERNAME or not ADMIN_PASSWORD:
+    logger.error("ADMIN_USERNAME or ADMIN_PASSWORD not set in environment!")
+
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
@@ -170,46 +191,43 @@ def check_admin(username, password):
     return username == ADMIN_USERNAME and password == ADMIN_PASSWORD
 
 
-def login_required(f):
-    @wraps(f)
-    def wrap(*args, **kwargs):
-        if "logged_in" in session:
-            return f(*args, **kwargs)
-        else:
-            flash("You need to login first.")
-            qs = request.query_string.decode() if request.query_string else ""
-            next_path = request.path + (f"?{qs}" if qs else "")
-            return redirect(url_for("login", next=next_path))
-
-    return wrap
+# The login_required decorator is now imported from flask_login
 
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     # If already logged in and next specified, go there
-    if request.method == "GET" and session.get("logged_in"):
+    if current_user.is_authenticated:
         next_url = request.args.get("next")
         if next_url and next_url.startswith("/") and not next_url.startswith("//"):
             return redirect(next_url)
+        return redirect(url_for("admin_dashboard"))
+
     if request.method == "POST":
-        if check_admin(request.form["username"], request.form["password"]):
-            session["logged_in"] = True
-            flash("You were just logged in!")
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        if check_admin(username, password):
+            user = User(username)
+            login_user(user)
+            flash("You were just logged in!", "success")
+
             # Redirect back to the original destination if provided and safe
             next_url = request.form.get("next") or request.args.get("next")
             if next_url and next_url.startswith("/") and not next_url.startswith("//"):
                 return redirect(next_url)
-            return redirect(url_for("blog"))
+            return redirect(url_for("admin_dashboard"))
         else:
-            flash("Wrong credentials!")
+            flash("Wrong credentials!", "error")
+
     return render_template("login.html")
 
 
 @app.route("/logout")
 @login_required
 def logout():
-    session.pop("logged_in", None)
-    flash("You were just logged out!")
+    logout_user()
+    flash("You were just logged out!", "info")
     return redirect(url_for("login"))
 
 
@@ -348,7 +366,7 @@ def article(slug: str):
         return render_template("404.html"), 404
 
     # Check if article is published (unless user is logged in as admin)
-    if not article.is_published and "logged_in" not in session:
+    if not article.is_published and not current_user.is_authenticated:
         return render_template("404.html"), 404
 
     # Get current view count (real-time, not cached) - this should always be fresh
@@ -488,7 +506,7 @@ def edit_article(slug):
     return render_template("publish_modern.html", article=article)
 
 
-@app.route("/blog/<slug>/delete", methods=["DELETE", "POST", "GET"])
+@app.route("/blog/<slug>/delete", methods=["DELETE", "POST"])
 @login_required
 def delete_article(slug):
     print(f"Attempting to delete article with slug: {slug}")
@@ -811,13 +829,13 @@ def clear_cache():
     """Clear all caches for testing"""
     try:
         cache.clear()
-        flash("Cache cleared successfully!", "success")
+        flash("Cache has been cleared!", "success")
         logger.info("All caches cleared manually")
     except Exception as e:
         flash(f"Error clearing cache: {e}", "error")
         logger.error(f"Error clearing cache: {e}")
 
-    return redirect(url_for("blog"))
+    return redirect(url_for("admin_dashboard"))
 
 
 @app.route("/api/auto-save", methods=["POST"])

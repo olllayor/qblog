@@ -160,12 +160,17 @@
 										class="text-gray-800 hover:text-gray-900 dark:text-gray-100 dark:hover:text-gray-50"
 										>Edit</a
 									>
-									<a
-										href="{{ url_for('delete_article', slug=a.slug) }}"
-										onclick="return confirm('Delete this article?')"
-										class="text-red-600 hover:text-red-800 dark:text-red-300 dark:hover:text-red-200"
-										>Delete</a
+									<form
+										action="{{ url_for('delete_article', slug=a.slug) }}"
+										method="POST"
+										class="inline-block"
+										onsubmit="return confirm('Delete this article?')"
 									>
+										<input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+										<button type="submit" class="text-red-600 hover:text-red-800 dark:text-red-300 dark:hover:text-red-200">
+											Delete
+										</button>
+									</form>
 								</td>
 							</tr>
 							{% else %}
