@@ -287,13 +287,13 @@ def robots_txt():
 def rss_feed():
     """Generate RSS feed for blog articles"""
     articles = Article.get_published_articles()[:20]  # Latest 20 articles
-    
+
     # Build RSS XML
     rss_items = []
     for article in articles:
-        pub_date = article.date_published.strftime('%a, %d %b %Y %H:%M:%S GMT')
+        pub_date = article.date_published.strftime("%a, %d %b %Y %H:%M:%S GMT")
         description = article.get_summary(300)
-        
+
         rss_items.append(f"""
         <item>
             <title>{article.title}</title>
@@ -303,7 +303,7 @@ def rss_feed():
             <description><![CDATA[{description}]]></description>
             <author>contact@ollayor.uz (Ollayor Maxammadnabiyev)</author>
         </item>""")
-    
+
     rss_xml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
     <channel>
@@ -311,7 +311,7 @@ def rss_feed():
         <link>https://ollayor.uz/blog</link>
         <description>Software engineering, web development, and technology articles by Ollayor Maxammadnabiyev</description>
         <language>en-us</language>
-        <lastBuildDate>{datetime.now(UTC).strftime('%a, %d %b %Y %H:%M:%S GMT')}</lastBuildDate>
+        <lastBuildDate>{datetime.now(UTC).strftime("%a, %d %b %Y %H:%M:%S GMT")}</lastBuildDate>
         <atom:link href="https://ollayor.uz/rss.xml" rel="self" type="application/rss+xml" />
         <webMaster>contact@ollayor.uz (Ollayor Maxammadnabiyev)</webMaster>
         <managingEditor>contact@ollayor.uz (Ollayor Maxammadnabiyev)</managingEditor>
@@ -320,11 +320,11 @@ def rss_feed():
             <title>Ollayor Maxammadnabiyev</title>
             <link>https://ollayor.uz</link>
         </image>
-        {''.join(rss_items)}
+        {"".join(rss_items)}
     </channel>
 </rss>"""
-    
-    return Response(rss_xml, mimetype='application/rss+xml')
+
+    return Response(rss_xml, mimetype="application/rss+xml")
 
 
 @app.route("/projects")
