@@ -1,0 +1,82 @@
+# robots.txt for ollayor.uz
+# Optimized for AI/LLM discoverability while protecting admin areas
+
+User-agent: *
+Allow: /
+Allow: /blog
+Allow: /blog/*
+Allow: /projects
+Allow: /about
+Allow: /for-llms
+Allow: /static/llms.txt
+Allow: /sitemap.xml
+Allow: /rss.xml
+Allow: /feed
+
+# Protect admin areas
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /login
+Disallow: /logout
+Disallow: /publish
+
+# Allow common AI crawlers explicitly
+User-agent: GPTBot
+Allow: /
+Allow: /blog
+Allow: /blog/*
+Allow: /for-llms
+Allow: /static/llms.txt
+
+User-agent: ChatGPT-User
+Allow: /
+Allow: /blog
+Allow: /blog/*
+Allow: /for-llms
+Allow: /static/llms.txt
+
+User-agent: Google-Extended
+Allow: /
+Allow: /blog
+Allow: /blog/*
+Allow: /for-llms
+Allow: /static/llms.txt
+
+User-agent: anthropic-ai
+Allow: /
+Allow: /blog
+Allow: /blog/*
+Allow: /for-llms
+Allow: /static/llms.txt
+
+User-agent: Claude-Web
+Allow: /
+Allow: /blog
+Allow: /blog/*
+Allow: /for-llms
+Allow: /static/llms.txt
+
+User-agent: cohere-ai
+Allow: /
+Allow: /blog
+Allow: /blog/*
+Allow: /for-llms
+Allow: /static/llms.txt
+
+User-agent: PerplexityBot
+Allow: /
+Allow: /blog
+Allow: /blog/*
+Allow: /for-llms
+Allow: /static/llms.txt
+
+User-agent: Applebot-Extended
+Allow: /
+Allow: /blog
+Allow: /blog/*
+Allow: /for-llms
+Allow: /static/llms.txt
+
+# Sitemap location
+Sitemap: https://ollayor.uz/sitemap.xml
+Sitemap: https://ollayor.uz/image_sitemap.xml

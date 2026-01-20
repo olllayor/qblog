@@ -7,7 +7,16 @@ from functools import wraps
 import redis
 import sentry_sdk
 from dotenv import load_dotenv
-from flask import Flask, flash, jsonify, redirect, render_template, request, url_for
+from flask import (
+    Flask,
+    Response,
+    flash,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
 from flask_caching import Cache
 from flask_login import (
     LoginManager,
@@ -265,6 +274,59 @@ def favicon():
     return redirect(url_for("static", filename="favicon.ico"))
 
 
+@app.route("/robots.txt")
+def robots_txt():
+    return redirect(url_for("static", filename="robots.txt"))
+
+
+@app.route("/rss")
+@app.route("/feed")
+@app.route("/rss.xml")
+@app.route("/feed.xml")
+@safe_cached(timeout=600)
+def rss_feed():
+    """Generate RSS feed for blog articles"""
+    articles = Article.get_published_articles()[:20]  # Latest 20 articles
+    
+    # Build RSS XML
+    rss_items = []
+    for article in articles:
+        pub_date = article.date_published.strftime('%a, %d %b %Y %H:%M:%S GMT')
+        description = article.get_summary(300)
+        
+        rss_items.append(f"""
+        <item>
+            <title>{article.title}</title>
+            <link>https://ollayor.uz/blog/{article.slug}</link>
+            <guid isPermaLink="true">https://ollayor.uz/blog/{article.slug}</guid>
+            <pubDate>{pub_date}</pubDate>
+            <description><![CDATA[{description}]]></description>
+            <author>contact@ollayor.uz (Ollayor Maxammadnabiyev)</author>
+        </item>""")
+    
+    rss_xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+    <channel>
+        <title>Ollayor Maxammadnabiyev - Blog</title>
+        <link>https://ollayor.uz/blog</link>
+        <description>Software engineering, web development, and technology articles by Ollayor Maxammadnabiyev</description>
+        <language>en-us</language>
+        <lastBuildDate>{datetime.now(UTC).strftime('%a, %d %b %Y %H:%M:%S GMT')}</lastBuildDate>
+        <atom:link href="https://ollayor.uz/rss.xml" rel="self" type="application/rss+xml" />
+        <webMaster>contact@ollayor.uz (Ollayor Maxammadnabiyev)</webMaster>
+        <managingEditor>contact@ollayor.uz (Ollayor Maxammadnabiyev)</managingEditor>
+        <image>
+            <url>https://ollayor.uz/static/myself-social-optimized.jpg</url>
+            <title>Ollayor Maxammadnabiyev</title>
+            <link>https://ollayor.uz</link>
+        </image>
+        {''.join(rss_items)}
+    </channel>
+</rss>"""
+    
+    return Response(rss_xml, mimetype='application/rss+xml')
+
+
 @app.route("/projects")
 @safe_cached(timeout=180)
 def projects():
@@ -389,6 +451,12 @@ def talks():
 @safe_cached(timeout=600)
 def about():
     return render_template("about.html")
+
+
+@app.route("/for-llms")
+@safe_cached(timeout=600)
+def for_llms():
+    return render_template("for_llms.html")
 
 
 @app.route("/matrix")
