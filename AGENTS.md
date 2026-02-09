@@ -2,11 +2,12 @@
 
 ## Project Structure & Module Organization
 - `app.py` is the Flask entry point; it wires routes, templates, and app config.
-- Core modules live at the repo root: `articles.py`, `projects.py`, `database.py`,
-  `seo_helpers.py`, `sitemap_generator.py`, and `optimize_images.py`.
+- Core runtime modules live at the repo root: `articles.py`, `projects.py`,
+  `database.py`, and `sitemap_generator.py`.
+- `scripts/` holds maintenance utilities (for example `scripts/optimize_images.py`).
 - `templates/` contains Jinja templates; `static/` holds CSS, images, and other
   web assets (see `static/blog-styles.css` for MDX-style formatting).
-- Tests are currently ad-hoc scripts such as `test_seo.py`.
+- SEO smoke checks live in `test_seo.py`.
 
 ## Build, Test, and Development Commands
 - `uv run python app.py` runs the Flask app locally (defaults to port 4200).
@@ -14,6 +15,7 @@
 - `uv run ruff format .` formats code to the repo standard.
 - `uv build` builds the package as the CI does.
 - `uv run python test_seo.py` executes the SEO validation script.
+- `uv run python scripts/optimize_images.py` runs image optimization tooling.
 
 ## Coding Style & Naming Conventions
 - Python 3.12; 4-space indentation; 88-char line length (Ruff/Black style).
@@ -21,7 +23,7 @@
 - Modules are lowercase with underscores; functions and variables use snake_case.
 
 ## Testing Guidelines
-- Current tests are single-file scripts (e.g., `test_seo.py`); no coverage target
+- Current tests are focused scripts (e.g., `test_seo.py`); no coverage target
   is enforced yet.
 - Name tests with `test_*.py` or `*_test.py` to align with Ruff test ignores.
 - Prefer adding focused regression scripts when fixing a bug.

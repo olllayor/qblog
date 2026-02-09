@@ -33,8 +33,6 @@ from articles import Article
 from database import close_db, get_database_url, init_db
 from projects import Project
 
-# from api_analytics.flask import add_middleware
-
 load_dotenv()
 
 posthog = Posthog(
@@ -57,8 +55,6 @@ app = Flask(__name__)
 csrf = CSRFProtect(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
-
-logger = logging.getLogger(__name__)
 
 
 # Simple User class for Flask-Login
@@ -180,9 +176,6 @@ if not app.secret_key:
 if not ADMIN_USERNAME or not ADMIN_PASSWORD:
     logger.error("ADMIN_USERNAME or ADMIN_PASSWORD not set in environment!")
 
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-
 with app.app_context():
     try:
         if not init_db():
@@ -198,9 +191,6 @@ def teardown_db(exception):
 
 def check_admin(username, password):
     return username == ADMIN_USERNAME and password == ADMIN_PASSWORD
-
-
-# The login_required decorator is now imported from flask_login
 
 
 @app.route("/login", methods=["GET", "POST"])
