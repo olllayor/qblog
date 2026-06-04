@@ -12,7 +12,7 @@ htmlcov/
 .mypy_cache/
 
 node_modules/
-
+elastic-start-local/
 build/
 dist/
 *.egg-info/

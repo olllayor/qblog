@@ -1,5 +1,5 @@
 <!-- blog.html -->
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
@@ -35,40 +35,8 @@
 	</head>
 
 	<body class="font-mono bg-white dark:bg-black text-gray-900 dark:text-gray-100 min-h-screen flex flex-col relative">
-		<!-- Background Gradients for Blur Effect -->
-		<div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-			<div
-				class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-purple-500/5 dark:bg-purple-500/10 blur-[120px]"
-			></div>
-			<div
-				class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-500/5 dark:bg-blue-500/10 blur-[120px]"
-			></div>
-		</div>
-
-		<!-- Minimalist Header -->
-		<header
-			class="w-full max-w-4xl mx-auto px-6 py-8 flex justify-between items-center border-b border-gray-200/20 dark:border-white/10"
-		>
-			<a
-				href="/"
-				class="text-xl font-bold tracking-tight hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-				>ollayor</a
-			>
-			<nav class="flex gap-6 text-sm">
-				<a href="/blog" class="text-gray-900 dark:text-gray-100 font-medium">Essays</a>
-				<a
-					href="/projects"
-					class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
-					>Projects</a
-				>
-				<a
-					href="{{ url_for('static', filename='media/Olloyor_s_resume.pdf') }}"
-					target="_blank"
-					class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
-					>CV</a
-				>
-			</nav>
-		</header>
+		{% include "_bg.html" %}
+		{% include "_nav.html" %}
 
 		<div class="w-full max-w-4xl mx-auto px-6 flex-grow py-12">
 			<!-- Hero Section -->
@@ -81,14 +49,40 @@
 				</p>
 			</section>
 
+			<section class="mb-10">
+				<form action="/blog" method="GET" class="flex gap-3">
+					<input
+						type="text"
+						name="q"
+						value="{{ query | default('') }}"
+						placeholder="Search articles..."
+						class="w-full rounded-lg border border-gray-300/40 dark:border-white/20 bg-white/70 dark:bg-black/40 px-4 py-3 text-sm outline-none focus:border-blue-500 dark:focus:border-blue-400"
+					/>
+					<button
+						type="submit"
+						class="rounded-lg px-4 py-3 text-sm font-medium bg-gray-900 text-white hover:bg-gray-700 dark:bg-white dark:text-black dark:hover:bg-gray-200 transition-colors"
+					>
+						Search
+					</button>
+				</form>
+			</section>
+
 			<main>
-				{% if articles %}
+				{% if query %}
+				<div class="mb-6 text-sm text-gray-600 dark:text-gray-400">
+					{% if search_degraded %} Search is temporarily unavailable, showing latest posts for "<span
+						class="font-semibold"
+						>{{ query }}</span
+					>". {% else %} Showing results for "<span class="font-semibold">{{ query }}</span>". {% endif %}
+				</div>
+				{% endif %} {% if articles %}
 				<div
 					id="article-list"
 					class="space-y-0"
 					data-per-page="{{ per_page | default(6) }}"
 					data-total="{{ total_articles | default(0) }}"
 					data-has-more="{{ 'true' if has_more else 'false' }}"
+					data-query="{{ query | default('') }}"
 				>
 					{% for article in articles %}
 					<a
@@ -136,40 +130,17 @@
 				<div id="infinite-scroll-trigger" class="h-1"></div>
 				{% endif %} {% else %}
 				<div class="py-12 text-center">
+					{% if query %}
+					<p class="text-gray-600 dark:text-gray-400">No results found for "{{ query }}".</p>
+					{% else %}
 					<p class="text-gray-600 dark:text-gray-400">No articles found.</p>
+					{% endif %}
 				</div>
 				{% endif %}
 			</main>
 		</div>
 
-		<!-- Minimalist Footer -->
-		<footer
-			class="w-full max-w-4xl mx-auto px-6 py-8 mt-auto border-t border-gray-200/20 dark:border-white/10 flex flex-col md:flex-row justify-between items-center gap-4"
-		>
-			<div class="flex items-center gap-4">
-				<span class="font-bold text-sm">ollayor</span>
-				<span class="text-xs text-gray-500">© 2025</span>
-			</div>
-			<div class="flex gap-6 text-sm">
-				<a
-					href="https://twitter.com/olllayor"
-					target="_blank"
-					class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
-					>Twitter</a
-				>
-				<a
-					href="https://github.com/olllayor"
-					target="_blank"
-					class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
-					>GitHub</a
-				>
-				<a
-					href="https://t.me/olllayor"
-					class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
-					>Telegram</a
-				>
-			</div>
-		</footer>
+		{% include "_footer.html" %}
 
 		<script>
 			// Simplified Infinite Scroll Script
@@ -183,6 +154,7 @@
 				const perPage = parseInt(list.dataset.perPage || '6', 10);
 				let totalArticles = parseInt(list.dataset.total || '0', 10);
 				let hasMore = list.dataset.hasMore === 'true';
+				const query = (list.dataset.query || '').trim();
 				let loading = false;
 
 				const observer = new IntersectionObserver(
@@ -201,7 +173,14 @@
 					loader?.classList.add('flex');
 
 					try {
-						const response = await fetch(`/api/articles?page=${currentPage + 1}&per_page=${perPage}`);
+						const params = new URLSearchParams({
+							page: String(currentPage + 1),
+							per_page: String(perPage),
+						});
+						if (query) {
+							params.set('q', query);
+						}
+						const response = await fetch(`/api/articles?${params.toString()}`);
 						const payload = await response.json();
 
 						if (!payload.articles?.length) {
