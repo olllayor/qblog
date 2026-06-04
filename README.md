@@ -35,7 +35,34 @@ uv run python test_seo.py
 
 # Optimize static images
 uv run python scripts/optimize_images.py
+
+# Verify the Postgres full-text search index is in sync
+uv run python scripts/reindex_articles_es.py
 ```
+
+## Search (Postgres full-text)
+
+Search uses Postgres `tsvector` + GIN directly — no external service required.
+The `articles.search_vector` column is a `GENERATED ALWAYS AS ... STORED` column
+maintained automatically on every insert/update.
+
+Endpoints:
+
+- `/blog?q=flask`
+- `/api/articles?q=flask`
+
+Mental model and debugging guide:
+
+- `docs/search-mental-model.md`
+
+### Verifying the index
+
+```bash
+uv run python scripts/reindex_articles_es.py
+```
+
+This checks that the `search_vector` column and GIN index exist, and that every
+published article is indexed.
 
 ## CI
 

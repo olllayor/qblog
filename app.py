@@ -32,6 +32,7 @@ from posthog import Posthog
 from articles import Article
 from database import close_db, get_database_url, init_db
 from projects import Project
+from search import get_search_service
 
 load_dotenv()
 
@@ -55,6 +56,11 @@ app = Flask(__name__)
 csrf = CSRFProtect(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
+
+
+@app.context_processor
+def inject_globals():
+    return {"now_year": datetime.now(UTC).year}
 
 
 # Simple User class for Flask-Login
@@ -193,6 +199,29 @@ def check_admin(username, password):
     return username == ADMIN_USERNAME and password == ADMIN_PASSWORD
 
 
+def get_blog_articles(page: int, per_page: int, query: str):
+    clean_query = (query or "").strip()
+    if not clean_query:
+        articles, total_articles = Article.get_published_articles_paginated(
+            page=page, per_page=per_page
+        )
+        return articles, total_articles, False
+
+    search_service = get_search_service()
+    search_result = search_service.search_published_slugs(
+        query=clean_query, page=page, per_page=per_page
+    )
+
+    if search_result.degraded:
+        articles, total_articles = Article.get_published_articles_paginated(
+            page=page, per_page=per_page
+        )
+        return articles, total_articles, True
+
+    articles = Article.get_published_articles_by_slugs(search_result.slugs)
+    return articles, search_result.total, False
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     # If already logged in and next specified, go there
@@ -325,22 +354,25 @@ def projects():
 
 
 @app.route("/blog")
-@safe_cached(timeout=180)
+@safe_cached(timeout=180, query_string=True)
 def blog():
     start = time.time()
     per_page = BLOG_ARTICLES_PER_PAGE
-    articles, total_articles = Article.get_published_articles_paginated(
-        page=1, per_page=per_page
+    query = (request.args.get("q") or "").strip()
+    articles, total_articles, search_degraded = get_blog_articles(
+        page=1, per_page=per_page, query=query
     )
     duration = time.time() - start
     logger.info(f"/blog route executed in {duration:.3f} seconds")
-    has_more = len(articles) < total_articles
+    has_more = per_page < total_articles
     return render_template(
         "blog.html",
         articles=articles,
         per_page=per_page,
         total_articles=total_articles,
         has_more=has_more,
+        query=query,
+        search_degraded=search_degraded,
     )
 
 
@@ -357,9 +389,10 @@ def api_articles():
         per_page = BLOG_ARTICLES_PER_PAGE
 
     per_page = max(1, min(per_page, 24))
+    query = (request.args.get("q") or "").strip()
 
-    articles, total_articles = Article.get_published_articles_paginated(
-        page=page, per_page=per_page
+    articles, total_articles, search_degraded = get_blog_articles(
+        page=page, per_page=per_page, query=query
     )
 
     has_more = page * per_page < total_articles
@@ -386,6 +419,8 @@ def api_articles():
             "articles": article_payload,
             "has_more": has_more,
             "total": total_articles,
+            "query": query,
+            "search_degraded": search_degraded,
         }
     )
 

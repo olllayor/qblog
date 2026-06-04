@@ -202,9 +202,27 @@ def init_db():
                 content TEXT NOT NULL,
                 date_published TIMESTAMP NOT NULL,
                 is_published BOOLEAN NOT NULL DEFAULT FALSE,
-                slug TEXT UNIQUE NOT NULL
+                slug TEXT UNIQUE NOT NULL,
+                search_vector tsvector
+                    GENERATED ALWAYS AS (
+                        setweight(to_tsvector('english', coalesce(title, '')), 'A') ||
+                        setweight(
+                            to_tsvector(
+                                'english',
+                                coalesce(regexp_replace(content, '<[^>]+>', ' ', 'g'), '')
+                            ),
+                            'B'
+                        )
+                    ) STORED
             )
         """)
+        cur.execute(
+            "ALTER TABLE articles ADD COLUMN IF NOT EXISTS search_vector tsvector"
+            " GENERATED ALWAYS AS ("
+            "   setweight(to_tsvector('english', coalesce(title, '')), 'A') ||"
+            "   setweight(to_tsvector('english', coalesce(regexp_replace(content, '<[^>]+>', ' ', 'g'), '')), 'B')"
+            " ) STORED"
+        )
         cur.execute("""
             CREATE TABLE IF NOT EXISTS projects (
                 id SERIAL PRIMARY KEY,
@@ -230,6 +248,10 @@ def init_db():
         # Helpful index for blog listing performance
         cur.execute(
             "CREATE INDEX IF NOT EXISTS idx_articles_published_date ON articles (is_published, date_published DESC)"
+        )
+        # GIN index for Postgres full-text search
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_articles_search ON articles USING GIN (search_vector)"
         )
         # Using autocommit, but safe to call commit in case autocommit was disabled
         try:

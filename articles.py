@@ -6,6 +6,7 @@ import psycopg2
 from slugify import slugify
 
 from database import get_db
+from search import get_search_service
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +66,32 @@ class Article:
                 return f"{base_url}/{img_src}"
 
         return None
+
+    @staticmethod
+    def _sync_article_index(article):
+        """Sync a single article into Elasticsearch without breaking DB flows."""
+        try:
+            search_service = get_search_service()
+            if not search_service.is_enabled():
+                return
+
+            if article.is_published:
+                search_service.index_article(article)
+            else:
+                search_service.delete_article(article.slug)
+        except Exception as exc:
+            logger.warning("Article index sync failed for '%s': %s", article.slug, exc)
+
+    @staticmethod
+    def _sync_article_delete(slug):
+        """Remove an article from Elasticsearch without breaking DB flows."""
+        try:
+            search_service = get_search_service()
+            if not search_service.is_enabled():
+                return
+            search_service.delete_article(slug)
+        except Exception as exc:
+            logger.warning("Article delete sync failed for '%s': %s", slug, exc)
 
     @staticmethod
     def track_view(slug, ip_address, user_agent=None):
@@ -170,6 +197,7 @@ class Article:
             )
             conn.commit()
             logger.info("Article saved successfully.")
+            Article._sync_article_index(article)
             return True  # Indicate success
         except psycopg2.Error as e:
             logger.error(f"Error saving article: {e}")
@@ -198,6 +226,7 @@ class Article:
                 ),
             )
             conn.commit()
+            Article._sync_article_index(article)
             return True
         except psycopg2.Error as e:
             logger.error(f"Error updating article: {e}")
@@ -301,6 +330,40 @@ class Article:
         return article_objects, total
 
     @staticmethod
+    def get_published_articles_by_slugs(slugs):
+        """Fetch published articles for a list of slugs preserving the input order."""
+        if not slugs:
+            return []
+
+        conn = get_db()
+        if conn is None:
+            logger.error("Failed to connect to the database.")
+            return []
+
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                """
+                SELECT title, content, date_published, is_published, slug
+                FROM articles
+                WHERE is_published = TRUE AND slug = ANY(%s)
+                """,
+                (slugs,),
+            )
+            rows = cur.fetchall()
+        except psycopg2.Error as e:
+            logger.error(f"Error fetching published articles by slugs: {e}")
+            return []
+        finally:
+            pass
+
+        by_slug = {
+            row[4]: Article(row[0], row[1], row[2], row[3], row[4]) for row in rows
+        }
+        ordered = [by_slug[slug] for slug in slugs if slug in by_slug]
+        return ordered
+
+    @staticmethod
     def delete_article_by_slug(slug):
         conn = get_db()  # Use get_db()
         if conn is None:
@@ -311,6 +374,7 @@ class Article:
             cur = conn.cursor()
             cur.execute("DELETE FROM articles WHERE slug = %s", (slug,))
             conn.commit()
+            Article._sync_article_delete(slug)
             return True
         except psycopg2.Error as e:
             logger.error(f"Error deleting article: {e}")

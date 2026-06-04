@@ -1,0 +1,36 @@
+<footer
+	class="w-full max-w-4xl mx-auto px-6 py-8 mt-auto border-t border-gray-200/20 dark:border-white/10 flex flex-col md:flex-row justify-between items-center gap-4"
+>
+	<div class="flex items-center gap-4">
+		<span class="font-bold text-sm">ollayor</span>
+		<span class="text-xs text-gray-500">&copy; {{ now_year }}</span>
+	</div>
+	<nav class="flex gap-6 text-sm" aria-label="Footer">
+		<a
+			href="https://twitter.com/olllayor"
+			target="_blank"
+			rel="me noopener"
+			class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+			>Twitter</a
+		>
+		<a
+			href="https://github.com/olllayor"
+			target="_blank"
+			rel="me noopener"
+			class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+			>GitHub</a
+		>
+		<a
+			href="https://t.me/Qprogrammer"
+			target="_blank"
+			rel="me noopener"
+			class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+			>Telegram</a
+		>
+		<a
+			href="{{ url_for('rss_feed') }}"
+			class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+			>RSS</a
+		>
+	</nav>
+</footer>

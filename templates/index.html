@@ -62,19 +62,15 @@
 	</head>
 
 	<body
-		class="font-mono bg-white dark:bg-black text-gray-900 dark:text-gray-100 min-h-screen flex items-start lg:items-center justify-center p-6 overflow-y-auto lg:overflow-hidden relative"
+		class="font-mono bg-white dark:bg-black text-gray-900 dark:text-gray-100 min-h-screen flex flex-col relative overflow-x-hidden"
 	>
-		<!-- Background Gradients for Blur Effect -->
-		<div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-			<div
-				class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-purple-500/5 dark:bg-purple-500/10 blur-[120px]"
-			></div>
-			<div
-				class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-500/5 dark:bg-blue-500/10 blur-[120px]"
-			></div>
-		</div>
+		{% include "_bg.html" %}
+		{% include "_nav.html" %}
 
-		<main class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-center relative z-10">
+		<div class="flex-1 flex items-start lg:items-center justify-center p-6 overflow-y-auto">
+			<main
+				class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-center relative z-10"
+			>
 			<!-- Left Column: Intro -->
 			<div class="space-y-8 flex flex-col items-center">
 				<div class="space-y-4">
@@ -271,6 +267,9 @@
 				</div>
 			</div>
 		</main>
+		</div>
+
+		{% include "_footer.html" %}
 
 		<style>
 			/* Custom Scrollbar for Projects */

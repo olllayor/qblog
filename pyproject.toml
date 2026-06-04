@@ -33,7 +33,7 @@ dependencies = [
 
 [tool.setuptools]
 packages = []
-py-modules = ["app", "articles", "database", "projects", "sitemap_generator"]
+py-modules = ["app", "articles", "database", "projects", "search", "sitemap_generator"]
 
 
 [tool.ruff]
@@ -98,4 +98,4 @@ dev = ["ruff>=0.12.7"]
 "*_test.py" = ["S101", "S105", "S106"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["app", "articles", "database", "projects"]
+known-first-party = ["app", "articles", "database", "projects", "search"]

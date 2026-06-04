@@ -99,15 +99,7 @@
 	</head>
 
 	<body class="font-mono bg-white dark:bg-black text-gray-900 dark:text-gray-100 min-h-screen flex flex-col relative">
-		<!-- Background Gradients for Blur Effect -->
-		<div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-			<div
-				class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-purple-500/5 dark:bg-purple-500/10 blur-[120px]"
-			></div>
-			<div
-				class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-500/5 dark:bg-blue-500/10 blur-[120px]"
-			></div>
-		</div>
+		{% include "_bg.html" %}
 
 		<!-- Reading progress indicator -->
 		<div id="reading-progress" class="fixed top-0 left-0 w-full h-0.5 bg-transparent z-50">
@@ -117,30 +109,7 @@
 			></div>
 		</div>
 
-		<!-- Minimalist Header -->
-		<header
-			class="w-full max-w-4xl mx-auto px-6 py-8 flex justify-between items-center border-b border-gray-200/20 dark:border-white/10"
-		>
-			<a
-				href="/"
-				class="text-xl font-bold tracking-tight hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-				>ollayor</a
-			>
-			<nav class="flex gap-6 text-sm">
-				<a href="/blog" class="text-gray-900 dark:text-gray-100 font-medium">Essays</a>
-				<a
-					href="/projects"
-					class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
-					>Projects</a
-				>
-				<a
-					href="{{ url_for('static', filename='media/Olloyor_s_resume.pdf') }}"
-					target="_blank"
-					class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
-					>CV</a
-				>
-			</nav>
-		</header>
+		{% include "_nav.html" %}
 
 		<main class="flex-grow w-full max-w-3xl mx-auto px-6 py-12">
 			{% if article %}
@@ -176,30 +145,7 @@
 			{% endif %}
 		</main>
 
-		<!-- Minimalist Footer -->
-		<footer
-			class="w-full max-w-4xl mx-auto px-6 py-8 mt-auto border-t border-gray-200/20 dark:border-white/10 flex flex-col md:flex-row justify-between items-center gap-4"
-		>
-			<div class="flex items-center gap-4">
-				<span class="font-bold text-sm">ollayor</span>
-				<span class="text-xs text-gray-500">© 2025</span>
-			</div>
-			<div class="flex gap-6 text-sm">
-				<a
-					href="https://twitter.com/olllayor"
-					target="_blank"
-					class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
-					>Twitter</a
-				>
-				<a
-					href="https://github.com/olllayor"
-					target="_blank"
-					class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
-					>GitHub</a
-				>
-				<a href="/rss" class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">RSS</a>
-			</div>
-		</footer>
+		{% include "_footer.html" %}
 
 		<script>
 			// Add copy buttons to code blocks inside article content
