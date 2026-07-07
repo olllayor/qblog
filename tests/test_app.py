@@ -202,27 +202,54 @@ class TestPublishFlow:
         # always-available image insert exists (not only in the selection toolbar)
         assert 'id="imageBtn"' in body
 
-    def test_autosave_reuses_slug_no_duplicate(self, auth_client, app):
-        """Second auto-save with the returned slug must UPDATE, not create a 2nd row."""
+    def test_autosave_reuses_slug_no_duplicate(self, auth_client, monkeypatch):
+        """Second auto-save with the returned slug must UPDATE, not create a 2nd row.
+
+        Regression test for a bug where the editor always sent slug=null, so
+        every auto-save created a brand-new article instead of updating the
+        first draft. Monkeypatched (no live DB required) to match this
+        suite's DB-free approach — CI has no DATABASE_URL configured.
+        """
         from articles import Article
 
-        with app.app_context():
-            before = Article.get_article_counts()[0]
+        created = []
+        updated = []
+
+        class FakeArticle:
+            def __init__(self, title, content, date_published, is_published, slug):
+                self.slug = slug
+
+        monkeypatch.setattr(Article, "get_by_slug", lambda slug: None)
+        monkeypatch.setattr(
+            Article, "save_article", lambda a: created.append(a.slug) or True
+        )
+
         r1 = auth_client.post(
             "/api/auto-save",
             json={"title": "Regression Dup Check", "content": "<p>a</p>", "slug": None},
         ).get_json()
         assert r1["status"] == "success"
         slug = r1["slug"]
+        assert len(created) == 1
+
+        # Second call simulates the fixed JS: it sends back the slug it got
+        # from the first response, so the route must take the update path.
+        monkeypatch.setattr(
+            Article, "get_by_slug", lambda s: FakeArticle("", "", None, False, s)
+        )
+        monkeypatch.setattr(
+            Article, "update_article", lambda a: updated.append(a.slug) or True
+        )
         r2 = auth_client.post(
             "/api/auto-save",
             json={"title": "Regression Dup Check", "content": "<p>b</p>", "slug": slug},
         ).get_json()
+        assert r2["status"] == "success"
         assert r2["slug"] == slug
-        with app.app_context():
-            after = Article.get_article_counts()[0]
-            Article.delete_article_by_slug(slug)
-        assert after - before == 1
+
+        # Exactly one create, one update — never a second create for the same story.
+        assert len(created) == 1
+        assert len(updated) == 1
 
 
 class TestArticleAdminAndStats:
