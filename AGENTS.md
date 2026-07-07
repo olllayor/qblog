@@ -16,6 +16,9 @@
 - `uv build` builds the package as the CI does.
 - `uv run python test_seo.py` executes the SEO validation script.
 - `uv run python scripts/optimize_images.py` runs image optimization tooling.
+- `npx tailwindcss -i ./static/tailwind-src.css -o ./static/tailwind.css --minify` rebuilds
+  `static/tailwind.css` — required after adding/removing utility classes in `templates/`
+  (public pages load this compiled file, not the Tailwind CDN runtime).
 
 ## Coding Style & Naming Conventions
 - Python 3.12; 4-space indentation; 88-char line length (Ruff/Black style).

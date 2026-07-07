@@ -5,7 +5,7 @@ import threading
 import time
 from datetime import UTC, datetime
 from functools import wraps
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 from xml.sax.saxutils import escape as xml_escape
 
 import redis
@@ -75,6 +75,25 @@ login_manager.login_view = "login"
 @app.context_processor
 def inject_globals():
     return {"now_year": datetime.now(UTC).year}
+
+
+TWITTER_IMAGE_HOSTS = {"pbs.twimg.com"}
+
+
+@app.template_filter("image_thumb")
+def image_thumb(url, size="thumb"):
+    """Request a smaller rendition for known CDN hosts (currently just Twitter's
+    `name=` sizing param); other hosts are returned unchanged since we don't
+    control their resizing API."""
+    if not url:
+        return url
+    parsed = urlparse(url)
+    if parsed.netloc not in TWITTER_IMAGE_HOSTS:
+        return url
+    query = parse_qs(parsed.query)
+    query["name"] = [size]
+    new_query = urlencode(query, doseq=True)
+    return urlunparse(parsed._replace(query=new_query))
 
 
 # Simple User class for Flask-Login

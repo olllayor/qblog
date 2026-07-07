@@ -14,14 +14,9 @@
 		{% include 'person_schema.html' %}
 
 		<!-- Preconnect to external domains for better performance -->
-		<link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin />
 		<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
 		<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-
-		<!-- DNS Prefetch for additional resources -->
-		<link rel="dns-prefetch" href="https://cdn.tailwindcss.com" />
-		<link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
 
 		<!-- Favicon with multiple formats and cache busting -->
 		<link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}" />
@@ -30,9 +25,7 @@
 		<link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='favicon-optimized.ico') }}" />
 		<link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='favicon-256x256.png') }}" />
 
-		<!-- Preload critical CSS -->
-		<link rel="preload" href="https://cdn.tailwindcss.com" as="script" />
-		<script src="https://cdn.tailwindcss.com"></script>
+		<link rel="stylesheet" href="{{ url_for('static', filename='tailwind.css') }}" />
 		{% include '_theme.html' %}
 
 		<!-- Non-blocking Font Awesome -->
@@ -49,12 +42,6 @@
 		<!-- Non-blocking fonts with display=swap -->
 		<link
 			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
-			rel="stylesheet"
-			media="print"
-			onload="this.media='all'"
-		/>
-		<link
-			href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap"
 			rel="stylesheet"
 			media="print"
 			onload="this.media='all'"
@@ -198,7 +185,15 @@
 						<div class="flex items-start justify-between mb-2">
 							<div class="flex items-center space-x-2">
 								{% if project.image_url %}
-								<img src="{{ project.image_url }}" alt="{{ project.title }}" class="w-6 h-6 object-cover rounded" />
+								<img
+									src="{{ project.image_url | image_thumb }}"
+									alt="{{ project.title }}"
+									class="w-6 h-6 object-cover rounded"
+									width="24"
+									height="24"
+									loading="lazy"
+									decoding="async"
+								/>
 								{% else %}
 								<div class="p-1.5 bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
 									<i class="fas fa-code text-gray-500 text-xs"></i>
