@@ -6,9 +6,22 @@ import psycopg2
 from slugify import slugify
 
 from database import get_db
-from search import get_search_service
 
 logger = logging.getLogger(__name__)
+
+
+def _classify_device(user_agent):
+    """Rough device class from a User-Agent string (no external dependency)."""
+    ua = (user_agent or "").lower()
+    if not ua:
+        return "Desktop"
+    if any(b in ua for b in ("bot", "crawler", "spider", "slurp", "bingpreview")):
+        return "Bot"
+    if "ipad" in ua or ("android" in ua and "mobile" not in ua) or "tablet" in ua:
+        return "Tablet"
+    if any(m in ua for m in ("mobi", "iphone", "ipod", "android", "phone")):
+        return "Mobile"
+    return "Desktop"
 
 
 class Article:
@@ -68,33 +81,7 @@ class Article:
         return None
 
     @staticmethod
-    def _sync_article_index(article):
-        """Sync a single article into Elasticsearch without breaking DB flows."""
-        try:
-            search_service = get_search_service()
-            if not search_service.is_enabled():
-                return
-
-            if article.is_published:
-                search_service.index_article(article)
-            else:
-                search_service.delete_article(article.slug)
-        except Exception as exc:
-            logger.warning("Article index sync failed for '%s': %s", article.slug, exc)
-
-    @staticmethod
-    def _sync_article_delete(slug):
-        """Remove an article from Elasticsearch without breaking DB flows."""
-        try:
-            search_service = get_search_service()
-            if not search_service.is_enabled():
-                return
-            search_service.delete_article(slug)
-        except Exception as exc:
-            logger.warning("Article delete sync failed for '%s': %s", slug, exc)
-
-    @staticmethod
-    def track_view(slug, ip_address, user_agent=None):
+    def track_view(slug, ip_address, user_agent=None, referrer_host=None):
         """Track a view for an article with duplicate prevention"""
         conn = get_db()
         if conn is None:
@@ -103,22 +90,23 @@ class Article:
 
         try:
             cur = conn.cursor()
-            # Use INSERT ... ON CONFLICT DO NOTHING for PostgreSQL
+            # Dedupe per visitor per day so daily/monthly aggregates stay meaningful
+            # while page refreshes on the same day are not double-counted. Keep the
+            # referrer from the first visit of the day (DO NOTHING on conflict).
             cur.execute(
                 """
-                INSERT INTO article_views (article_slug, ip_address, user_agent)
-                VALUES (%s, %s, %s)
-                ON CONFLICT (article_slug, ip_address) DO NOTHING
+                INSERT INTO article_views
+                    (article_slug, ip_address, user_agent, referrer_host, view_date)
+                VALUES (%s, %s, %s, %s, CURRENT_DATE)
+                ON CONFLICT (article_slug, ip_address, view_date) DO NOTHING
             """,
-                (slug, ip_address, user_agent),
+                (slug, ip_address, user_agent, referrer_host),
             )
             conn.commit()
             return True
         except psycopg2.Error as e:
             logger.error(f"Error tracking article view: {e}")
             return False
-        finally:
-            pass
 
     @staticmethod
     def get_view_count(slug):
@@ -197,7 +185,6 @@ class Article:
             )
             conn.commit()
             logger.info("Article saved successfully.")
-            Article._sync_article_index(article)
             return True  # Indicate success
         except psycopg2.Error as e:
             logger.error(f"Error saving article: {e}")
@@ -226,7 +213,6 @@ class Article:
                 ),
             )
             conn.commit()
-            Article._sync_article_index(article)
             return True
         except psycopg2.Error as e:
             logger.error(f"Error updating article: {e}")
@@ -259,6 +245,226 @@ class Article:
         ]
         # The sorting is now done by the database, so the Python sort is removed.
         return article_objects
+
+    @staticmethod
+    def get_views_by_day(days=30):
+        """Daily unique-view counts for the last `days` days, zero-filled."""
+        conn = get_db()
+        if conn is None:
+            logger.error("Failed to connect to the database.")
+            return []
+
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                """
+                SELECT d.day::date, COALESCE(v.views, 0)
+                FROM generate_series(
+                    CURRENT_DATE - (%s - 1) * INTERVAL '1 day',
+                    CURRENT_DATE,
+                    INTERVAL '1 day'
+                ) AS d(day)
+                LEFT JOIN (
+                    SELECT view_date, COUNT(*) AS views
+                    FROM article_views
+                    WHERE view_date >= CURRENT_DATE - (%s - 1) * INTERVAL '1 day'
+                    GROUP BY view_date
+                ) v ON v.view_date = d.day::date
+                ORDER BY d.day
+                """,
+                (days, days),
+            )
+            return [{"date": row[0], "views": row[1]} for row in cur.fetchall()]
+        except psycopg2.Error as e:
+            logger.error(f"Error fetching views by day: {e}")
+            return []
+
+    @staticmethod
+    def get_top_articles_by_views(limit=5):
+        """Most-viewed articles: title, slug, total views, views this month."""
+        conn = get_db()
+        if conn is None:
+            logger.error("Failed to connect to the database.")
+            return []
+
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                """
+                SELECT a.title, a.slug, COUNT(v.id) AS total_views,
+                       COUNT(v.id) FILTER (
+                           WHERE v.viewed_at >= DATE_TRUNC('month', CURRENT_TIMESTAMP)
+                       ) AS monthly_views
+                FROM articles a
+                JOIN article_views v ON v.article_slug = a.slug
+                GROUP BY a.title, a.slug
+                ORDER BY total_views DESC
+                LIMIT %s
+                """,
+                (limit,),
+            )
+            return [
+                {
+                    "title": row[0],
+                    "slug": row[1],
+                    "total_views": row[2],
+                    "monthly_views": row[3],
+                }
+                for row in cur.fetchall()
+            ]
+        except psycopg2.Error as e:
+            logger.error(f"Error fetching top articles: {e}")
+            return []
+
+    @staticmethod
+    def get_device_breakdown(days=30):
+        """Count views by device class over the last `days`, using user_agent."""
+        conn = get_db()
+        if conn is None:
+            logger.error("Failed to connect to the database.")
+            return []
+
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                """
+                SELECT user_agent
+                FROM article_views
+                WHERE viewed_at >= CURRENT_DATE - (%s - 1) * INTERVAL '1 day'
+                """,
+                (days,),
+            )
+            counts = {"Mobile": 0, "Tablet": 0, "Desktop": 0, "Bot": 0}
+            for (ua,) in cur.fetchall():
+                counts[_classify_device(ua)] += 1
+            return [
+                {"label": k, "count": v} for k, v in counts.items() if v or k != "Bot"
+            ]
+        except psycopg2.Error as e:
+            logger.error(f"Error fetching device breakdown: {e}")
+            return []
+
+    @staticmethod
+    def get_top_referrers(days=30, limit=8):
+        """Top referrer hosts over the last `days`; NULL rolls up to 'Direct'."""
+        conn = get_db()
+        if conn is None:
+            logger.error("Failed to connect to the database.")
+            return []
+
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                """
+                SELECT COALESCE(NULLIF(referrer_host, ''), 'Direct') AS host,
+                       COUNT(*) AS views
+                FROM article_views
+                WHERE viewed_at >= CURRENT_DATE - (%s - 1) * INTERVAL '1 day'
+                GROUP BY host
+                ORDER BY views DESC
+                LIMIT %s
+                """,
+                (days, limit),
+            )
+            return [{"host": row[0], "views": row[1]} for row in cur.fetchall()]
+        except psycopg2.Error as e:
+            logger.error(f"Error fetching top referrers: {e}")
+            return []
+
+    @staticmethod
+    def get_articles_admin(status="all", query=None):
+        """List articles for the admin panel with view counts.
+
+        status: 'all' | 'published' | 'draft'. query: case-insensitive title match.
+        Returns dicts (metadata only, no content).
+        """
+        conn = get_db()
+        if conn is None:
+            logger.error("Failed to connect to the database.")
+            return []
+
+        where = []
+        params = []
+        if status == "published":
+            where.append("a.is_published = TRUE")
+        elif status == "draft":
+            where.append("a.is_published = FALSE")
+        if query:
+            where.append("a.title ILIKE %s")
+            params.append(f"%{query}%")
+        where_sql = ("WHERE " + " AND ".join(where)) if where else ""
+
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                f"""
+                SELECT a.title, a.slug, a.is_published, a.date_published,
+                       COUNT(v.id) AS views
+                FROM articles a
+                LEFT JOIN article_views v ON v.article_slug = a.slug
+                {where_sql}
+                GROUP BY a.id, a.title, a.slug, a.is_published, a.date_published
+                ORDER BY a.date_published DESC
+                """,  # noqa: S608 — where_sql built from a fixed whitelist, values bound
+                params,
+            )
+            return [
+                {
+                    "title": row[0],
+                    "slug": row[1],
+                    "is_published": row[2],
+                    "date_published": row[3],
+                    "views": row[4],
+                }
+                for row in cur.fetchall()
+            ]
+        except psycopg2.Error as e:
+            logger.error(f"Error fetching admin article list: {e}")
+            return []
+
+    @staticmethod
+    def get_article_counts():
+        """Return (total, published) article counts without loading content."""
+        conn = get_db()
+        if conn is None:
+            logger.error("Failed to connect to the database.")
+            return 0, 0
+
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT COUNT(*), COUNT(*) FILTER (WHERE is_published) FROM articles"
+            )
+            row = cur.fetchone()
+            return (row[0], row[1]) if row else (0, 0)
+        except psycopg2.Error as e:
+            logger.error(f"Error counting articles: {e}")
+            return 0, 0
+
+    @staticmethod
+    def get_recent_articles(limit=5):
+        """Return the most recent articles with metadata only (no content)."""
+        conn = get_db()
+        if conn is None:
+            logger.error("Failed to connect to the database.")
+            return []
+
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                """
+                SELECT title, date_published, is_published, slug
+                FROM articles
+                ORDER BY date_published DESC
+                LIMIT %s
+                """,
+                (limit,),
+            )
+            rows = cur.fetchall()
+            return [Article(r[0], "", r[1], r[2], r[3]) for r in rows]
+        except psycopg2.Error as e:
+            logger.error(f"Error fetching recent articles: {e}")
+            return []
 
     @staticmethod
     def get_published_articles():
@@ -374,7 +580,6 @@ class Article:
             cur = conn.cursor()
             cur.execute("DELETE FROM articles WHERE slug = %s", (slug,))
             conn.commit()
-            Article._sync_article_delete(slug)
             return True
         except psycopg2.Error as e:
             logger.error(f"Error deleting article: {e}")

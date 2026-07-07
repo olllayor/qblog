@@ -9,13 +9,15 @@
 			content="Structured information about Ollayor Maxammadnabiyev for AI systems, language models, and search engines"
 		/>
 		<meta name="robots" content="index, follow" />
-		<link href="https://cdn.tailwindcss.com" rel="stylesheet" />
+		<script src="https://cdn.tailwindcss.com"></script>
+		{% include '_theme.html' %}
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+		{% include 'analytics.html' %}
 	</head>
-	<body class="bg-gray-50 text-gray-900">
+	<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
 		{% include 'header.html' %}
 
-		<main class="max-w-4xl mx-auto px-4 py-12">
+		<main class="max-w-4xl mx-auto px-4 py-12 pt-20">
 			<div class="bg-white rounded-lg shadow-lg p-8">
 				<h1 class="text-4xl font-bold mb-4">Information for AI & Language Models</h1>
 				<p class="text-lg text-gray-600 mb-8">

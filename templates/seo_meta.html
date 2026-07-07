@@ -2,7 +2,7 @@
 {% set page_title = page_title or "Ollayor Maxammadnabiyev - Software Engineer & Python Developer" %} {% set
 page_description = page_description or "Ollayor Maxammadnabiyev is a Software Engineer from Uzbekistan specializing in
 Python, JS/TS, NestJs,(Node.js) Flask, FastAPI, web development, ai integrations, telegram bots and building innovative
-solutions. Available for freelance projects." %} {% set page_url = page_url or request.url %} {% set page_image =
+solutions. Available for freelance projects." %} {% set page_url = page_url or request.base_url %} {% set page_image =
 page_image or url_for('static', filename='myself-social-optimized.jpg', _external=True) %} {% set site_name = "Ollayor
 Maxammadnabiyev" %}
 
@@ -40,8 +40,8 @@ Maxammadnabiyev" %}
 	name="twitter:image:alt"
 	content="{% if page_type == 'article' %}{{ page_title }}{% else %}Ollayor Maxammadnabiyev - Software Engineer{% endif %}"
 />
-<meta name="twitter:creator" content="@ollayor" />
-<meta name="twitter:site" content="@ollayor" />
+<meta name="twitter:creator" content="@olllayor" />
+<meta name="twitter:site" content="@olllayor" />
 
 <!-- Additional Meta Tags -->
 <meta name="robots" content="index, follow" />
@@ -57,107 +57,8 @@ Maxammadnabiyev" %}
 	href="https://ollayor.uz/rss.xml"
 />
 
-<!-- JSON-LD Structured Data -->
-<script type="application/ld+json">
-	{
-		"@context": "https://schema.org",
-		"@type": "Person",
-		"@id": "https://ollayor.uz/#person",
-		"name": "Ollayor Maxammadnabiyev",
-		"givenName": ["Ollayor", "Olloyor"],
-		"familyName": "Maxammadnabiyev",
-		"alternateName": [
-			"Ollayor",
-			"olllayor",
-			"Ollayor Maxammadnabiyev",
-			"Ollayor M.",
-			"Olloyor Maxammadnabiyev",
-			"Olloyor M.",
-			"Olloyor"
-		],
-		"jobTitle": "Software Engineer",
-		"description": "{{ page_description }}",
-		"url": "https://ollayor.uz",
-		"image": {
-			"@type": "ImageObject",
-			"url": "{{ page_image }}",
-			"width": 1200,
-			"height": 630
-		},
-		"sameAs": [
-			"https://github.com/olllayor",
-			"https://linkedin.com/in/olllayor",
-			"https://twitter.com/olllayor",
-			"https://t.me/olllayor",
-			"https://t.me/Qprogrammer"
-		],
-		"knowsAbout": [
-			"Software Development",
-			"Python Programming",
-			"JavaScript",
-			"TypeScript",
-			"Web Development",
-			"Flask",
-			"FastAPI",
-			"Django",
-			"React",
-			"Next.js",
-			"Node.js",
-			"NestJS",
-			"System Design",
-			"API Design",
-			"Database Design",
-			"Linux",
-			"Git",
-			"AI Integration",
-			"Machine Learning",
-			"Data Science",
-			"Artificial Intelligence",
-			"Computer Science",
-			"Mathematics",
-			"Full Stack Development",
-			"Backend Development",
-			"API Development",
-			"PostgreSQL",
-			"Redis",
-			"Docker",
-			"Telegram Bots"
-		],
-		"knowsLanguage": ["English", "Uzbek", "Russian"],
-		"nationality": {
-			"@type": "Country",
-			"name": "Uzbekistan"
-		},
-		"address": {
-			"@type": "PostalAddress",
-			"addressCountry": "UZ"
-		},
-		"mainEntityOfPage": {
-			"@type": "WebPage",
-			"@id": "{{ request.url_root }}"
-		}
-	}
-</script>
-
-<!-- Website/Blog JSON-LD -->
-<script type="application/ld+json">
-	{
-		"@context": "https://schema.org",
-		"@type": "Website",
-		"name": "{{ site_name }}",
-		"description": "{{ page_description }}",
-		"url": "{{ request.url_root }}",
-		"author": {
-			"@type": "Person",
-			"name": "Ollayor Maxammadnabiyev"
-		},
-		"publisher": {
-			"@type": "Person",
-			"name": "Ollayor Maxammadnabiyev",
-			"image": "{{ page_image }}"
-		}
-	}
-</script>
+<!-- Person + WebSite JSON-LD live in person_schema.html (included on index/about)
+     to avoid duplicate @id nodes. This partial only emits page-level schemas. -->
 
 {% if page_type == 'article' %}
 <!-- Article JSON-LD for blog posts -->

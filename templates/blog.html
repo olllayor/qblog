@@ -1,43 +1,9 @@
-<!-- blog.html -->
-<!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<script>
-			tailwind.config = {
-				darkMode: 'class',
-			};
-		</script>
+{% extends 'base.html' %}
 
-		<!-- SEO and Social Media Meta Tags -->
-		{% set page_title = "Ollayor's Blog - Technical Articles & Insights" %} {% set page_description = "Technical and
-		non-technical articles by Ollayor Maxammadnabiyev. Exploring software engineering, programming, mathematics, and
-		technology insights." %} {% include 'seo_meta.html' %}
+{% set page_title = "Ollayor's Blog - Technical Articles & Insights" %}
+{% set page_description = "Technical and non-technical articles by Ollayor Maxammadnabiyev. Exploring software engineering, programming, mathematics, and technology insights." %}
 
-		<!-- Preconnect to external domains -->
-		<link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin />
-		<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
-		<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-
-		<link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}" />
-		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon-optimized.ico') }}" />
-		<script src="https://cdn.tailwindcss.com"></script>
-		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
-		<link
-			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
-			rel="stylesheet"
-		/>
-		<!-- Enhanced blog styling -->
-		<link rel="stylesheet" href="{{ url_for('static', filename='blog-styles.css') }}" />
-		{% include 'analytics.html' %}
-	</head>
-
-	<body class="font-mono bg-white dark:bg-black text-gray-900 dark:text-gray-100 min-h-screen flex flex-col relative">
-		{% include "_bg.html" %}
-		{% include "_nav.html" %}
-
+{% block content %}
 		<div class="w-full max-w-4xl mx-auto px-6 flex-grow py-12">
 			<!-- Hero Section -->
 			<section class="mb-16">
@@ -139,9 +105,9 @@
 				{% endif %}
 			</main>
 		</div>
+{% endblock %}
 
-		{% include "_footer.html" %}
-
+{% block scripts %}
 		<script>
 			// Simplified Infinite Scroll Script
 			document.addEventListener('DOMContentLoaded', () => {
@@ -238,5 +204,4 @@
 				}
 			});
 		</script>
-	</body>
-</html>
+{% endblock %}

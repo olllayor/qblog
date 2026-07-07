@@ -6,7 +6,8 @@
 		<title>Admin Projects - Ollayor's Blog</title>
 		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" />
 		<script src="https://cdn.tailwindcss.com"></script>
-		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+		{% include '_theme.html' %}
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 		<link
 			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
 			rel="stylesheet"
@@ -19,7 +20,7 @@
 	</head>
 
 	<body class="font-inter bg-gray-100 dark:bg-gray-900 min-h-screen flex flex-col">
-		{% include 'header.html' %}
+		{% include '_admin_nav.html' %}
 
 		<main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-12 pt-20">
 			<div class="flex justify-between items-center mb-8">
@@ -75,6 +76,29 @@
 							</th>
 							<th
 								scope="col"
+								class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+								style="font-family: 'JetBrains Mono', monospace"
+								title="Shown on the public site"
+							>
+								Visible
+							</th>
+							<th
+								scope="col"
+								class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+								style="font-family: 'JetBrains Mono', monospace"
+								title="Pinned to the homepage"
+							>
+								Featured
+							</th>
+							<th
+								scope="col"
+								class="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+								style="font-family: 'JetBrains Mono', monospace"
+							>
+								Order
+							</th>
+							<th
+								scope="col"
 								class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
 								style="font-family: 'JetBrains Mono', monospace"
 							>
@@ -96,6 +120,66 @@
 								style="font-family: 'JetBrains Mono', monospace"
 							>
 								{{ project.date_added.strftime('%Y-%m-%d %H:%M') if project.date_added else 'N/A' }}
+							</td>
+							<td class="px-4 py-4 whitespace-nowrap text-center">
+								<form
+									action="{{ url_for('toggle_project_visibility', project_id=project.id) }}"
+									method="POST"
+									class="inline-block"
+								>
+									<input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+									<button
+										type="submit"
+										title="{{ 'Hide from site' if project.is_visible else 'Show on site' }}"
+										aria-label="{{ 'Hide from site' if project.is_visible else 'Show on site' }}"
+										class="text-lg {{ 'text-green-600 hover:text-green-800' if project.is_visible else 'text-gray-400 hover:text-gray-600' }} transition-colors"
+									>
+										<i class="fas {{ 'fa-eye' if project.is_visible else 'fa-eye-slash' }}"></i>
+									</button>
+								</form>
+							</td>
+							<td class="px-4 py-4 whitespace-nowrap text-center">
+								<form
+									action="{{ url_for('toggle_project_featured', project_id=project.id) }}"
+									method="POST"
+									class="inline-block"
+								>
+									<input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+									<button
+										type="submit"
+										title="{{ 'Remove from homepage' if project.is_featured else 'Feature on homepage' }}"
+										aria-label="{{ 'Remove from homepage' if project.is_featured else 'Feature on homepage' }}"
+										class="text-lg {{ 'text-amber-500 hover:text-amber-700' if project.is_featured else 'text-gray-400 hover:text-gray-600' }} transition-colors"
+									>
+										<i class="{{ 'fas' if project.is_featured else 'far' }} fa-star"></i>
+									</button>
+								</form>
+							</td>
+							<td class="px-4 py-4 whitespace-nowrap text-center">
+								<div class="inline-flex items-center gap-1">
+									<form action="{{ url_for('move_project', project_id=project.id, direction='up') }}" method="POST">
+										<input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+										<button
+											type="submit"
+											{% if loop.first %}disabled{% endif %}
+											aria-label="Move up"
+											class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors px-1"
+										>
+											<i class="fas fa-chevron-up"></i>
+										</button>
+									</form>
+									<form action="{{ url_for('move_project', project_id=project.id, direction='down') }}" method="POST">
+										<input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+										<button
+											type="submit"
+											{% if loop.last %}disabled{% endif %}
+											aria-label="Move down"
+											class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors px-1"
+										>
+											<i class="fas fa-chevron-down"></i>
+										</button>
+									</form>
+								</div>
 							</td>
 							<td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
 								<a

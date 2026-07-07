@@ -104,7 +104,11 @@ def connect_db():
     for attempt in range(_MAX_RETRIES):
         try:
             if _POOL is None:
-                _POOL = SimpleConnectionPool(minconn=1, maxconn=10, dsn=url)
+                # Serverless functions handle one request at a time, and each
+                # instance gets its own pool; keep it small to avoid Postgres
+                # connection exhaustion across many concurrent instances.
+                max_conn = int(os.getenv("DB_POOL_MAX", "2"))
+                _POOL = SimpleConnectionPool(minconn=1, maxconn=max_conn, dsn=url)
                 logger.info("Initialized DB pool (%s)", _safe_dsn_summary(url, source))
 
             conn = _POOL.getconn()
@@ -232,7 +236,28 @@ def init_db():
                 technologies TEXT, -- Comma-separated or JSON
                 github_link TEXT,
                 live_demo_link TEXT,
-                date_added TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                date_added TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                is_visible BOOLEAN NOT NULL DEFAULT TRUE,
+                is_featured BOOLEAN NOT NULL DEFAULT FALSE,
+                sort_order INTEGER NOT NULL DEFAULT 0
+            )
+        """)
+        # Migrate pre-existing projects tables to the curation columns
+        cur.execute(
+            "ALTER TABLE projects ADD COLUMN IF NOT EXISTS is_visible BOOLEAN NOT NULL DEFAULT TRUE"
+        )
+        cur.execute(
+            "ALTER TABLE projects ADD COLUMN IF NOT EXISTS is_featured BOOLEAN NOT NULL DEFAULT FALSE"
+        )
+        cur.execute(
+            "ALTER TABLE projects ADD COLUMN IF NOT EXISTS sort_order INTEGER NOT NULL DEFAULT 0"
+        )
+        # Key/value store for admin-editable site settings (homepage copy, toggles)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS site_settings (
+                key TEXT PRIMARY KEY,
+                value JSONB NOT NULL,
+                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
             )
         """)
         cur.execute("""
@@ -242,17 +267,70 @@ def init_db():
                 ip_address TEXT NOT NULL,
                 user_agent TEXT,
                 viewed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                UNIQUE(article_slug, ip_address)
+                view_date DATE NOT NULL DEFAULT CURRENT_DATE,
+                UNIQUE(article_slug, ip_address, view_date)
             )
+        """)
+        # Migrate legacy schema (unique per slug+ip forever) to per-day dedup so
+        # daily/monthly aggregates actually reflect returning visitors.
+        cur.execute(
+            "ALTER TABLE article_views ADD COLUMN IF NOT EXISTS view_date DATE NOT NULL DEFAULT CURRENT_DATE"
+        )
+        # When the column is first added to a legacy table, every existing row
+        # gets today's date from the DEFAULT, collapsing all historical views
+        # onto the migration day. Backfill from the real viewed_at timestamp.
+        # Idempotent: matches nothing once view_date already tracks viewed_at.
+        cur.execute(
+            "UPDATE article_views SET view_date = viewed_at::date "
+            "WHERE view_date <> viewed_at::date"
+        )
+        # Referrer host for audience stats (nullable; direct visits stay NULL)
+        cur.execute(
+            "ALTER TABLE article_views ADD COLUMN IF NOT EXISTS referrer_host TEXT"
+        )
+        cur.execute(
+            "ALTER TABLE article_views "
+            "DROP CONSTRAINT IF EXISTS article_views_article_slug_ip_address_key"
+        )
+        cur.execute("""
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1 FROM pg_constraint WHERE conname = 'article_views_slug_ip_date_key'
+                ) THEN
+                    ALTER TABLE article_views
+                        ADD CONSTRAINT article_views_slug_ip_date_key
+                        UNIQUE (article_slug, ip_address, view_date);
+                END IF;
+            END$$;
         """)
         # Helpful index for blog listing performance
         cur.execute(
             "CREATE INDEX IF NOT EXISTS idx_articles_published_date ON articles (is_published, date_published DESC)"
         )
+        # Index for daily/monthly view aggregation
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_article_views_viewed_at ON article_views (viewed_at)"
+        )
+        # Index for per-article view counts
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_article_views_slug ON article_views (article_slug)"
+        )
         # GIN index for Postgres full-text search
         cur.execute(
             "CREATE INDEX IF NOT EXISTS idx_articles_search ON articles USING GIN (search_vector)"
         )
+        # Uploaded images, stored as bytes so they survive Vercel's read-only FS.
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS images (
+                id TEXT PRIMARY KEY,
+                filename TEXT,
+                content_type TEXT NOT NULL,
+                data BYTEA NOT NULL,
+                byte_size INTEGER NOT NULL,
+                uploaded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
         # Using autocommit, but safe to call commit in case autocommit was disabled
         try:
             conn.commit()

@@ -24,32 +24,84 @@
 							charter: ['Charter', 'Georgia', 'Cambria', 'serif'],
 							inter: ['Inter', 'system-ui', 'sans-serif'],
 						},
-						fontSize: {
-							title: ['2.5rem', { lineHeight: '1.2', letterSpacing: '-0.02em' }],
-							body: ['1.125rem', { lineHeight: '1.7' }],
-						},
 					},
 				},
 				darkMode: 'class',
 			};
+			// Apply theme before paint to avoid a flash of the wrong mode.
+			try {
+				if (
+					localStorage.theme === 'dark' ||
+					(!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
+				) {
+					document.documentElement.classList.add('dark');
+				}
+			} catch (e) {}
 		</script>
 
 		<!-- Font Awesome -->
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
 		<style>
-			/* Medium-style custom styles */
 			.medium-editor {
 				font-family: Charter, Georgia, Cambria, serif;
 				font-size: 1.125rem;
 				line-height: 1.7;
 				color: #292929;
 			}
-
 			.medium-editor:focus {
 				outline: none;
 			}
-
+			/* Placeholder without injecting nodes into the editable content. */
+			.medium-editor.is-empty::before {
+				content: attr(data-placeholder);
+				color: #9e9e9e;
+				pointer-events: none;
+			}
+			.medium-editor.drag-over {
+				outline: 2px dashed #1a8917;
+				outline-offset: 8px;
+				border-radius: 4px;
+			}
+			.medium-editor img {
+				max-width: 100%;
+				height: auto;
+				border-radius: 6px;
+			}
+			.medium-editor figure {
+				margin: 1.5rem 0;
+			}
+			.medium-editor figcaption {
+				font-size: 0.85rem;
+				color: #6b6b6b;
+				text-align: center;
+				margin-top: 0.5rem;
+			}
+			.medium-editor h2 {
+				font-size: 1.75rem;
+				font-weight: 700;
+				line-height: 1.3;
+				margin: 1.5rem 0 0.5rem;
+			}
+			.medium-editor blockquote {
+				border-left: 3px solid #292929;
+				padding-left: 1rem;
+				font-style: italic;
+				color: #515151;
+				margin: 1.5rem 0;
+			}
+			.medium-editor pre {
+				background: #f2f2f2;
+				border-radius: 6px;
+				padding: 1rem;
+				font-family: 'JetBrains Mono', ui-monospace, monospace;
+				font-size: 0.95rem;
+				overflow-x: auto;
+			}
+			.medium-editor ul {
+				list-style: disc;
+				padding-left: 1.5rem;
+			}
 			.medium-title {
 				font-family: Charter, Georgia, Cambria, serif;
 				font-size: 2.5rem;
@@ -62,16 +114,10 @@
 				resize: none;
 				overflow: hidden;
 			}
-
 			.medium-title::placeholder {
 				color: #9e9e9e;
 			}
 
-			.medium-editor::placeholder {
-				color: #9e9e9e;
-			}
-
-			/* Floating toolbar styles */
 			.floating-toolbar {
 				position: absolute;
 				background: #242424;
@@ -84,13 +130,11 @@
 				transition: all 0.2s ease;
 				pointer-events: none;
 			}
-
 			.floating-toolbar.show {
 				opacity: 1;
 				transform: translateY(0);
 				pointer-events: all;
 			}
-
 			.toolbar-btn {
 				background: none;
 				border: none;
@@ -102,16 +146,13 @@
 				font-size: 14px;
 				transition: background-color 0.2s;
 			}
-
 			.toolbar-btn:hover {
 				background: rgba(255, 255, 255, 0.1);
 			}
-
 			.toolbar-btn.active {
 				background: rgba(255, 255, 255, 0.2);
 			}
 
-			/* Top toolbar styles */
 			.top-toolbar {
 				position: sticky;
 				top: 0;
@@ -120,36 +161,29 @@
 				border-bottom: 1px solid #e6e6e6;
 				z-index: 100;
 			}
-
-			/* Dropdown menu styles */
-			.dropdown-container {
-				position: relative;
-			}
-
-			/* Dark mode styles */
 			.dark .medium-editor {
 				color: #e6e6e6;
-				background: #1a1a1a;
 			}
-
+			.dark .medium-editor blockquote {
+				border-left-color: #e6e6e6;
+				color: #b8b8b8;
+			}
+			.dark .medium-editor pre {
+				background: #262626;
+			}
 			.dark .medium-title {
 				color: #e6e6e6;
-				background: #1a1a1a;
 			}
-
 			.dark .top-toolbar {
 				background: rgba(26, 26, 26, 0.95);
 				border-bottom-color: #404040;
 			}
 
-			/* Story stats */
 			.story-stats {
 				font-family: Inter, system-ui, sans-serif;
 				font-size: 0.875rem;
 				color: #6b6b6b;
 			}
-
-			/* Auto-save indicator */
 			.auto-save {
 				font-size: 0.75rem;
 				color: #6b6b6b;
@@ -157,20 +191,12 @@
 				align-items: center;
 				gap: 4px;
 			}
-
 			.auto-save.saving {
 				color: #1a8917;
 			}
-
-			.auto-save.saved {
-				color: #6b6b6b;
-			}
-
 			.auto-save.error {
 				color: #dc2626;
 			}
-
-			/* Publish button */
 			.publish-btn {
 				background: #1a8917;
 				color: white;
@@ -181,17 +207,25 @@
 				cursor: pointer;
 				transition: background-color 0.2s;
 			}
-
 			.publish-btn:hover {
 				background: #156d13;
 			}
-
 			.publish-btn:disabled {
 				background: #ccc;
 				cursor: not-allowed;
 			}
-
-			/* Draft indicator */
+			.icon-btn {
+				color: #6b6b6b;
+				padding: 6px 8px;
+				border-radius: 4px;
+				transition: background-color 0.2s;
+			}
+			.icon-btn:hover {
+				background: rgba(0, 0, 0, 0.05);
+			}
+			.dark .icon-btn:hover {
+				background: rgba(255, 255, 255, 0.08);
+			}
 			.draft-badge {
 				background: #f7931e;
 				color: white;
@@ -200,31 +234,24 @@
 				border-radius: 12px;
 				font-weight: 500;
 			}
-
-			/* Content area */
 			.content-area {
 				max-width: 680px;
 				margin: 0 auto;
 				padding: 40px 20px;
 			}
-
-			/* Responsive adjustments */
 			@media (max-width: 768px) {
 				.medium-title {
 					font-size: 2rem;
 				}
-
 				.content-area {
 					padding: 20px 16px;
 				}
-
 				.floating-toolbar {
 					bottom: 20px;
 					left: 50%;
 					transform: translateX(-50%);
 					position: fixed;
 				}
-
 				.floating-toolbar.show {
 					transform: translateX(-50%) translateY(0);
 				}
@@ -236,49 +263,64 @@
 		<!-- Top Toolbar -->
 		<div class="top-toolbar">
 			<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-				<div class="flex items-center justify-between h-16">
+				<div class="flex items-center justify-between h-16 gap-3">
 					<!-- Left side -->
-					<div class="flex items-center space-x-4">
+					<div class="flex items-center space-x-3 min-w-0">
 						<a
-							href="{{ url_for('admin_dashboard') }}"
-							class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+							href="{{ url_for('admin_articles') }}"
+							title="Back to articles"
+							class="icon-btn text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
 						>
 							<i class="fas fa-arrow-left"></i>
 						</a>
-						<span class="text-sm text-gray-500 dark:text-gray-400">Draft in</span>
-						<span class="text-sm font-medium text-gray-900 dark:text-gray-100">Ollayor's Blog</span>
+						<span id="stateLabel" class="text-sm text-gray-500 dark:text-gray-400 truncate">
+							{% if article and article.is_published %}Editing{% else %}Draft in{% endif %}
+						</span>
+						<span class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate hidden sm:inline"
+							>Ollayor's Blog</span
+						>
 					</div>
 
 					<!-- Center - Auto-save status -->
 					<div class="auto-save" id="autoSaveStatus">
 						<i class="fas fa-circle text-gray-400" id="saveIcon"></i>
-						<span id="saveText">Saved</span>
+						<span id="saveText">{% if article %}Saved{% else %}Unsaved draft{% endif %}</span>
 					</div>
 
 					<!-- Right side -->
-					<div class="flex items-center space-x-4">
+					<div class="flex items-center space-x-2">
+						<button type="button" id="imageBtn" title="Insert image" class="icon-btn hidden sm:block">
+							<i class="fas fa-image"></i>
+						</button>
+
 						{% if article and not article.is_published %}
-						<span class="draft-badge">Draft</span>
+						<span class="draft-badge" id="draftBadge">Draft</span>
 						{% endif %}
 
 						<button type="button" id="publishBtn" class="publish-btn">
-							{% if article and article.is_published %} Update {% else %} Publish {% endif %}
+							{% if article and article.is_published %}Update{% else %}Publish{% endif %}
 						</button>
 
-						<div class="dropdown-container">
+						<div class="relative">
 							<button
 								type="button"
 								id="menuBtn"
-								class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors relative"
+								class="icon-btn text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
 							>
 								<i class="fas fa-ellipsis-h"></i>
 							</button>
 
-							<!-- Dropdown Menu -->
 							<div
 								id="dropdownMenu"
-								class="absolute right-0 top-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-2 min-w-48 z-50 hidden"
+								class="absolute right-0 top-11 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-2 min-w-52 z-50 hidden"
 							>
+								<button
+									type="button"
+									id="menuImageBtn"
+									class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 sm:hidden"
+								>
+									<i class="fas fa-image mr-2"></i>Insert image
+								</button>
 								<a
 									href="{{ url_for('admin_dashboard') }}"
 									class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -286,16 +328,18 @@
 									<i class="fas fa-chart-line mr-2"></i>Dashboard
 								</a>
 								<a
-									href="{{ url_for('blog') }}"
+									href="{{ url_for('admin_articles') }}"
 									class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
 								>
-									<i class="fas fa-list mr-2"></i>All Stories
+									<i class="fas fa-newspaper mr-2"></i>All Articles
 								</a>
 								<a
-									href="{{ url_for('publish_classic') }}"
-									class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+									id="viewLink"
+									href="#"
+									target="_blank"
+									class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hidden"
 								>
-									<i class="fas fa-edit mr-2"></i>Classic Editor
+									<i class="fas fa-arrow-up-right-from-square mr-2"></i>View live
 								</a>
 								<div class="border-t border-gray-200 dark:border-gray-600 my-1"></div>
 								<button
@@ -305,19 +349,17 @@
 								>
 									<i class="fas fa-moon mr-2 dark:hidden"></i>
 									<i class="fas fa-sun mr-2 hidden dark:inline"></i>
-									<span class="dark:hidden">Dark Mode</span>
-									<span class="hidden dark:inline">Light Mode</span>
+									<span class="dark:hidden">Dark mode</span>
+									<span class="hidden dark:inline">Light mode</span>
 								</button>
-								{% if article %}
-								<div class="border-t border-gray-200 dark:border-gray-600 my-1"></div>
+								<div class="border-t border-gray-200 dark:border-gray-600 my-1" id="deleteDivider"></div>
 								<button
 									type="button"
 									id="deleteBtn"
-									class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900"
+									class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/40"
 								>
-									<i class="fas fa-trash mr-2"></i>Delete Story
+									<i class="fas fa-trash mr-2"></i>Delete story
 								</button>
-								{% endif %}
 							</div>
 						</div>
 					</div>
@@ -329,7 +371,6 @@
 		<div class="content-area">
 			<form id="storyForm" method="POST">
 				<input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-				<!-- Title Input -->
 				<textarea
 					id="titleInput"
 					name="title"
@@ -337,22 +378,16 @@
 					placeholder="Title"
 					rows="1"
 					required
-				>
-{% if article %}{{ article.title }}{% endif %}</textarea
-				>
+				>{{ article.title if article else '' }}</textarea>
 
-				<!-- Content Editor -->
 				<div class="mt-8">
 					<div
 						id="contentEditor"
 						class="medium-editor w-full bg-transparent border-none resize-none min-h-96 focus:outline-none"
 						contenteditable="true"
-						data-placeholder="Tell your story..."
-					>
-						{% if article %}{{ article.content | safe }}{% endif %}
-					</div>
+						data-placeholder="Tell your story…"
+					>{% if article %}{{ article.content | safe }}{% endif %}</div>
 
-					<!-- Hidden input for content -->
 					<input type="hidden" name="content" id="contentInput" />
 					<input
 						type="hidden"
@@ -366,92 +401,72 @@
 				<div
 					class="story-stats mt-8 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
 				>
-					<div class="flex items-center justify-between flex-wrap gap-4">
-						<div class="flex items-center space-x-6">
-							<div class="flex items-center space-x-2">
-								<i class="fas fa-file-word text-blue-500"></i>
-								<span id="wordCount" class="font-medium">0 words</span>
-							</div>
-							<div class="flex items-center space-x-2">
-								<i class="fas fa-clock text-green-500"></i>
-								<span id="readingTime" class="font-medium">1 min read</span>
-							</div>
-							<div class="flex items-center space-x-2">
-								<i class="fas fa-keyboard text-purple-500"></i>
-								<span id="charCount" class="font-medium">0 characters</span>
-							</div>
-						</div>
+					<div class="flex items-center gap-6 flex-wrap">
+						<span class="flex items-center gap-2"><i class="fas fa-file-word text-blue-500"></i><span id="wordCount">0 words</span></span>
+						<span class="flex items-center gap-2"><i class="fas fa-clock text-green-500"></i><span id="readingTime">1 min read</span></span>
+						<span class="flex items-center gap-2"><i class="fas fa-keyboard text-purple-500"></i><span id="charCount">0 characters</span></span>
 					</div>
 				</div>
 			</form>
 		</div>
 
-		<!-- Floating Toolbar -->
+		<!-- Floating Toolbar (appears on text selection) -->
 		<div id="floatingToolbar" class="floating-toolbar">
-			<button type="button" class="toolbar-btn" data-command="bold" title="Bold (Ctrl+B)">
-				<i class="fas fa-bold"></i>
-			</button>
-			<button type="button" class="toolbar-btn" data-command="italic" title="Italic (Ctrl+I)">
-				<i class="fas fa-italic"></i>
-			</button>
-			<button type="button" class="toolbar-btn" data-command="underline" title="Underline (Ctrl+U)">
-				<i class="fas fa-underline"></i>
-			</button>
+			<button type="button" class="toolbar-btn" data-command="bold" title="Bold (Ctrl+B)"><i class="fas fa-bold"></i></button>
+			<button type="button" class="toolbar-btn" data-command="italic" title="Italic (Ctrl+I)"><i class="fas fa-italic"></i></button>
+			<button type="button" class="toolbar-btn" data-command="underline" title="Underline (Ctrl+U)"><i class="fas fa-underline"></i></button>
 			<div class="w-px h-6 bg-gray-600 mx-1"></div>
-			<button type="button" class="toolbar-btn" data-command="createLink" title="Add Link (Ctrl+K)">
-				<i class="fas fa-link"></i>
-			</button>
-			<button type="button" class="toolbar-btn" data-command="insertHTML" data-value="<blockquote>" title="Quote">
-				<i class="fas fa-quote-left"></i>
-			</button>
-			<button type="button" class="toolbar-btn" data-command="formatBlock" data-value="h2" title="Heading">
-				<i class="fas fa-heading"></i>
-			</button>
+			<button type="button" class="toolbar-btn" data-command="createLink" title="Add link (Ctrl+K)"><i class="fas fa-link"></i></button>
+			<button type="button" class="toolbar-btn" data-command="formatBlock" data-value="blockquote" title="Quote"><i class="fas fa-quote-left"></i></button>
+			<button type="button" class="toolbar-btn" data-command="formatBlock" data-value="h2" title="Heading"><i class="fas fa-heading"></i></button>
+			<div class="w-px h-6 bg-gray-600 mx-1"></div>
+			<button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="Bullet list"><i class="fas fa-list-ul"></i></button>
+			<button type="button" class="toolbar-btn" data-command="formatBlock" data-value="pre" title="Code block"><i class="fas fa-code"></i></button>
+			<button type="button" class="toolbar-btn" data-command="insertImage" title="Insert image"><i class="fas fa-image"></i></button>
 		</div>
 
 		<!-- Publish Modal -->
-		<div id="publishModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
-			<div class="flex items-center justify-center min-h-screen p-4">
-				<div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
-					<div class="flex items-center justify-between mb-4">
-						<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-							{% if article and article.is_published %}Update Story{% else %}Publish Story{% endif %}
-						</h3>
-						<button type="button" id="closeModal" class="text-gray-500 hover:text-gray-700">
-							<i class="fas fa-times"></i>
-						</button>
-					</div>
+		<div id="publishModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4">
+			<div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full" role="dialog" aria-modal="true">
+				<div class="flex items-center justify-between mb-4">
+					<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100" id="modalTitle">
+						{% if article and article.is_published %}Update story{% else %}Publish story{% endif %}
+					</h3>
+					<button type="button" id="closeModal" class="text-gray-500 hover:text-gray-700" aria-label="Close"><i class="fas fa-times"></i></button>
+				</div>
 
-					<div class="space-y-4">
-						<div class="flex items-center space-x-3">
-							<input type="radio" id="publishNow" name="publishOption" value="publish" checked class="text-green-600" />
-							<label for="publishNow" class="text-gray-900 dark:text-gray-100">Publish now</label>
+				<div class="space-y-4">
+					<div>
+						<span class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">URL</span>
+						<div class="flex items-center gap-1 text-sm font-mono">
+							<span class="text-gray-400 dark:text-gray-500 shrink-0">/blog/</span>
+							<span id="slugPreview" class="text-gray-900 dark:text-gray-100 truncate">—</span>
 						</div>
-
-						<div class="flex items-center space-x-3">
-							<input type="radio" id="saveDraft" name="publishOption" value="draft" class="text-green-600" />
-							<label for="saveDraft" class="text-gray-900 dark:text-gray-100">Save as draft</label>
-						</div>
+						<p class="text-xs text-gray-500 mt-1">Derived from the title. It won't change once the story is created.</p>
 					</div>
 
-					<div class="flex justify-end space-x-3 mt-6">
-						<button
-							type="button"
-							id="cancelPublish"
-							class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
-						>
-							Cancel
-						</button>
-						<button type="button" id="confirmPublish" class="publish-btn">
-							{% if article and article.is_published %}Update{% else %}Publish{% endif %}
-						</button>
-					</div>
+					<label class="flex items-center gap-3 cursor-pointer">
+						<input type="radio" name="publishOption" value="publish" checked class="text-green-600" />
+						<span class="text-gray-900 dark:text-gray-100">Publish now</span>
+					</label>
+					<label class="flex items-center gap-3 cursor-pointer">
+						<input type="radio" name="publishOption" value="draft" class="text-green-600" />
+						<span class="text-gray-900 dark:text-gray-100">Save as draft</span>
+					</label>
+				</div>
+
+				<div class="flex justify-end gap-3 mt-6">
+					<button type="button" id="cancelPublish" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
+						Cancel
+					</button>
+					<button type="button" id="confirmPublish" class="publish-btn">
+						{% if article and article.is_published %}Update{% else %}Publish{% endif %}
+					</button>
 				</div>
 			</div>
 		</div>
 
 		<script>
-			// Medium-style Editor JavaScript
 			class MediumStyleEditor {
 				constructor() {
 					this.titleInput = document.getElementById('titleInput');
@@ -466,9 +481,9 @@
 					this.autoSaveStatus = document.getElementById('autoSaveStatus');
 					this.menuBtn = document.getElementById('menuBtn');
 					this.dropdownMenu = document.getElementById('dropdownMenu');
-					this.darkModeToggle = document.getElementById('darkModeToggle');
-					this.deleteBtn = document.getElementById('deleteBtn');
 
+					// Single source of truth for which article we're editing.
+					this.currentSlug = {% if article %}{{ article.slug | tojson }}{% else %}null{% endif %};
 					this.autoSaveTimeout = null;
 					this.isDirty = false;
 
@@ -477,143 +492,129 @@
 
 				init() {
 					this.setupEventListeners();
-					this.setupAutoResize();
-					this.setupFloatingToolbar();
+					this.autoResize(this.titleInput);
 					this.updateStats();
-					this.setupAutoSave();
-					this.setupKeyboardShortcuts();
-					this.setupMenu();
-					this.setupDarkMode();
+					this.updateEmptyState();
+					this.refreshMenuLinks();
+
+					window.addEventListener('beforeunload', (e) => {
+						if (this.isDirty) {
+							e.preventDefault();
+							e.returnValue = '';
+						}
+					});
 				}
 
 				setupEventListeners() {
-					// Title auto-resize
 					this.titleInput.addEventListener('input', () => {
 						this.autoResize(this.titleInput);
 						this.markDirty();
 					});
+					// Enter in the title jumps to the body instead of adding a newline.
+					this.titleInput.addEventListener('keydown', (e) => {
+						if (e.key === 'Enter') {
+							e.preventDefault();
+							this.contentEditor.focus();
+						}
+					});
 
-					// Content editor events
 					this.contentEditor.addEventListener('input', () => {
 						this.updateStats();
+						this.updateEmptyState();
 						this.markDirty();
 					});
+					this.contentEditor.addEventListener('keydown', (e) => this.handleKeydown(e));
 
-					this.contentEditor.addEventListener('keydown', (e) => {
-						this.handleKeydown(e);
+					// Drag & drop images
+					this.contentEditor.addEventListener('dragover', (e) => {
+						if (e.dataTransfer && Array.from(e.dataTransfer.types).includes('Files')) {
+							e.preventDefault();
+							this.contentEditor.classList.add('drag-over');
+						}
+					});
+					this.contentEditor.addEventListener('dragleave', () => this.contentEditor.classList.remove('drag-over'));
+					this.contentEditor.addEventListener('drop', (e) => {
+						this.contentEditor.classList.remove('drag-over');
+						const files = Array.from(e.dataTransfer?.files || []).filter((f) => f.type.startsWith('image/'));
+						if (files.length) {
+							e.preventDefault();
+							files.forEach((f) => this.uploadAndInsert(f));
+						}
+					});
+					// Paste images
+					this.contentEditor.addEventListener('paste', (e) => {
+						const item = Array.from(e.clipboardData?.items || []).find((it) => it.type.startsWith('image/'));
+						if (item) {
+							e.preventDefault();
+							const file = item.getAsFile();
+							if (file) this.uploadAndInsert(file);
+						}
 					});
 
-					// Selection change for floating toolbar
-					document.addEventListener('selectionchange', () => {
-						this.handleSelectionChange();
-					});
-
-					// Toolbar buttons
+					document.addEventListener('selectionchange', () => this.handleSelectionChange());
 					this.floatingToolbar.addEventListener('click', (e) => {
-						if (e.target.closest('.toolbar-btn')) {
-							this.handleToolbarClick(e.target.closest('.toolbar-btn'));
-						}
+						const btn = e.target.closest('.toolbar-btn');
+						if (btn) this.handleToolbarClick(btn);
 					});
 
-					// Publish button
-					this.publishBtn.addEventListener('click', () => {
-						this.showPublishModal();
+					this.publishBtn.addEventListener('click', () => this.showPublishModal());
+					document.getElementById('closeModal').addEventListener('click', () => this.hidePublishModal());
+					document.getElementById('cancelPublish').addEventListener('click', () => this.hidePublishModal());
+					document.getElementById('confirmPublish').addEventListener('click', () => this.handlePublish());
+					// Close modal on backdrop click or Escape.
+					this.publishModal.addEventListener('click', (e) => {
+						if (e.target === this.publishModal) this.hidePublishModal();
+					});
+					document.addEventListener('keydown', (e) => {
+						if (e.key === 'Escape' && !this.publishModal.classList.contains('hidden')) this.hidePublishModal();
 					});
 
-					// Modal events
-					document.getElementById('closeModal').addEventListener('click', () => {
-						this.hidePublishModal();
+					// Always-available image insert (top toolbar + mobile menu item)
+					document.getElementById('imageBtn')?.addEventListener('click', () => this.pickAndUploadImage());
+					document.getElementById('menuImageBtn')?.addEventListener('click', () => {
+						this.hideMenu();
+						this.pickAndUploadImage();
 					});
 
-					document.getElementById('cancelPublish').addEventListener('click', () => {
-						this.hidePublishModal();
+					this.menuBtn.addEventListener('click', (e) => {
+						e.stopPropagation();
+						this.toggleMenu();
 					});
-
-					document.getElementById('confirmPublish').addEventListener('click', () => {
-						this.handlePublish();
-					});
-
-					// Menu events
-					if (this.menuBtn) {
-						this.menuBtn.addEventListener('click', (e) => {
-							e.stopPropagation();
-							this.toggleMenu();
-						});
-					}
-
-					// Click outside to close menu
 					document.addEventListener('click', (e) => {
-						if (this.dropdownMenu && !this.dropdownMenu.contains(e.target)) {
-							this.hideMenu();
-						}
+						if (!this.dropdownMenu.contains(e.target) && e.target !== this.menuBtn) this.hideMenu();
 					});
-
-					// Dark mode toggle
-					if (this.darkModeToggle) {
-						this.darkModeToggle.addEventListener('click', () => {
-							this.toggleDarkMode();
-						});
-					}
-
-					// Delete button
-					if (this.deleteBtn) {
-						this.deleteBtn.addEventListener('click', () => {
-							this.handleDelete();
-						});
-					}
+					document.getElementById('darkModeToggle').addEventListener('click', () => this.toggleDarkMode());
+					document.getElementById('deleteBtn').addEventListener('click', () => this.handleDelete());
 				}
 
-				setupAutoResize() {
-					this.autoResize(this.titleInput);
+				autoResize(el) {
+					el.style.height = 'auto';
+					el.style.height = el.scrollHeight + 'px';
 				}
 
-				autoResize(element) {
-					element.style.height = 'auto';
-					element.style.height = element.scrollHeight + 'px';
-				}
-
-				setupFloatingToolbar() {
-					// Hide toolbar initially
-					this.floatingToolbar.classList.remove('show');
+				updateEmptyState() {
+					const empty = this.contentEditor.textContent.trim() === '' && !this.contentEditor.querySelector('img');
+					this.contentEditor.classList.toggle('is-empty', empty);
 				}
 
 				handleSelectionChange() {
 					const selection = window.getSelection();
-
-					if (selection.rangeCount === 0 || selection.isCollapsed) {
-						this.hideFloatingToolbar();
-						return;
-					}
-
+					if (selection.rangeCount === 0 || selection.isCollapsed) return this.hideFloatingToolbar();
 					const range = selection.getRangeAt(0);
 					const rect = range.getBoundingClientRect();
-
-					if (rect.width === 0 || rect.height === 0) {
-						this.hideFloatingToolbar();
-						return;
-					}
-
-					// Check if selection is within content editor
-					if (!this.contentEditor.contains(range.commonAncestorContainer)) {
-						this.hideFloatingToolbar();
-						return;
-					}
-
+					if (rect.width === 0 || rect.height === 0) return this.hideFloatingToolbar();
+					if (!this.contentEditor.contains(range.commonAncestorContainer)) return this.hideFloatingToolbar();
 					this.showFloatingToolbar(rect);
 				}
 
-				showFloatingToolbar(selectionRect) {
-					const toolbar = this.floatingToolbar;
-					const toolbarRect = toolbar.getBoundingClientRect();
-
-					// Position above selection
-					const left = selectionRect.left + selectionRect.width / 2 - toolbarRect.width / 2;
-					const top = selectionRect.top - toolbarRect.height - 10;
-
-					toolbar.style.left = Math.max(10, Math.min(left, window.innerWidth - toolbarRect.width - 10)) + 'px';
-					toolbar.style.top = Math.max(10, top) + 'px';
-
-					toolbar.classList.add('show');
+				showFloatingToolbar(rect) {
+					const t = this.floatingToolbar;
+					const tr = t.getBoundingClientRect();
+					const left = rect.left + rect.width / 2 - tr.width / 2;
+					const top = rect.top - tr.height - 10;
+					t.style.left = Math.max(10, Math.min(left, window.innerWidth - tr.width - 10)) + 'px';
+					t.style.top = Math.max(10, top) + 'px';
+					t.classList.add('show');
 				}
 
 				hideFloatingToolbar() {
@@ -623,302 +624,257 @@
 				handleToolbarClick(button) {
 					const command = button.dataset.command;
 					const value = button.dataset.value;
-
 					if (command === 'createLink') {
 						const url = prompt('Enter URL:');
-						if (url) {
-							document.execCommand(command, false, url);
-						}
-					} else if (command === 'insertHTML') {
-						document.execCommand(command, false, value);
+						if (url) document.execCommand(command, false, url);
+					} else if (command === 'insertImage') {
+						this.pickAndUploadImage();
+					} else if (command === 'formatBlock') {
+						// Toggle the block back to a paragraph if it's already applied.
+						const active = document.queryCommandValue('formatBlock').toLowerCase().replace(/[<>]/g, '');
+						document.execCommand('formatBlock', false, active === value ? 'p' : value);
 					} else {
 						document.execCommand(command, false, value);
 					}
-
-					// Update toolbar button states
 					this.updateToolbarStates();
-
-					// Focus back to editor
+					this.updateEmptyState();
+					this.markDirty();
 					this.contentEditor.focus();
 				}
 
-				updateToolbarStates() {
-					const buttons = this.floatingToolbar.querySelectorAll('.toolbar-btn');
-					buttons.forEach((button) => {
-						const command = button.dataset.command;
-						if (command && document.queryCommandState(command)) {
-							button.classList.add('active');
+				pickAndUploadImage() {
+					const input = document.createElement('input');
+					input.type = 'file';
+					input.accept = 'image/*';
+					input.addEventListener('change', () => {
+						const file = input.files && input.files[0];
+						if (file) this.uploadAndInsert(file);
+					});
+					input.click();
+				}
+
+				async uploadAndInsert(file) {
+					if (!file.type.startsWith('image/')) return;
+					const marker = 'img-' + this._token();
+					this.contentEditor.focus();
+					// If the editor is empty, execCommand has no range; append directly.
+					const html = `<figure data-uploading="${marker}" contenteditable="false" style="opacity:0.5"><img alt="uploading…" /><figcaption>Uploading…</figcaption></figure><p><br></p>`;
+					if (!document.execCommand('insertHTML', false, html)) {
+						this.contentEditor.insertAdjacentHTML('beforeend', html);
+					}
+					this.updateEmptyState();
+					this.markDirty();
+
+					const formData = new FormData();
+					formData.append('image', file);
+					try {
+						const res = await fetch('/admin/upload-image', {
+							method: 'POST',
+							headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+							body: formData,
+						});
+						const data = await res.json();
+						const figure = this.contentEditor.querySelector(`figure[data-uploading="${marker}"]`);
+						if (res.ok && data.status === 'success' && figure) {
+							const img = figure.querySelector('img');
+							img.src = data.url;
+							img.alt = file.name.replace(/\.[^.]+$/, '');
+							figure.removeAttribute('data-uploading');
+							figure.removeAttribute('contenteditable');
+							figure.style.opacity = '1';
+							figure.querySelector('figcaption')?.remove();
 						} else {
-							button.classList.remove('active');
+							figure?.remove();
+							alert(data.message || 'Image upload failed');
 						}
+					} catch (err) {
+						this.contentEditor.querySelector(`figure[data-uploading="${marker}"]`)?.remove();
+						alert('Image upload failed — check your connection and try again.');
+						console.error(err);
+					}
+					this.updateStats();
+					this.markDirty();
+				}
+
+				_token() {
+					return Date.now().toString(36) + Math.round(performance.now()).toString(36);
+				}
+
+				updateToolbarStates() {
+					this.floatingToolbar.querySelectorAll('.toolbar-btn[data-command]').forEach((button) => {
+						const command = button.dataset.command;
+						let active = false;
+						try {
+							active = document.queryCommandState(command);
+						} catch (e) {}
+						button.classList.toggle('active', active);
 					});
 				}
 
 				handleKeydown(e) {
-					// Handle Enter key for better line spacing
-					if (e.key === 'Enter' && !e.shiftKey) {
-						// Allow default behavior
-					}
-
-					// Handle Tab key
 					if (e.key === 'Tab') {
 						e.preventDefault();
-						document.execCommand('insertHTML', false, '&nbsp;&nbsp;&nbsp;&nbsp;');
+						document.execCommand('insertHTML', false, '    ');
 					}
-				}
-
-				setupKeyboardShortcuts() {
-					document.addEventListener('keydown', (e) => {
-						if (e.ctrlKey || e.metaKey) {
-							switch (e.key) {
-								case 'b':
-									e.preventDefault();
-									document.execCommand('bold');
-									break;
-								case 'i':
-									e.preventDefault();
-									document.execCommand('italic');
-									break;
-								case 'u':
-									e.preventDefault();
-									document.execCommand('underline');
-									break;
-								case 'k':
-									e.preventDefault();
-									const url = prompt('Enter URL:');
-									if (url) {
-										document.execCommand('createLink', false, url);
-									}
-									break;
-								case 's':
-									e.preventDefault();
-									this.autoSave();
-									break;
-							}
-						}
-					});
 				}
 
 				updateStats() {
-					const content = this.contentEditor.textContent || '';
-					const words = content
-						.trim()
-						.split(/\s+/)
-						.filter((word) => word.length > 0);
-					const wordCount = content.trim() === '' ? 0 : words.length;
-					const charCount = content.length;
-					const readingTime = Math.max(1, Math.ceil(wordCount / 200)); // 200 words per minute
-
-					// Update display with better formatting
-					this.wordCount.textContent = `${wordCount.toLocaleString()} ${wordCount === 1 ? 'word' : 'words'}`;
+					const text = this.contentEditor.textContent || '';
+					const trimmed = text.trim();
+					const words = trimmed === '' ? 0 : trimmed.split(/\s+/).length;
+					const readingTime = Math.max(1, Math.round(words / 225)); // matches backend
+					this.wordCount.textContent = `${words.toLocaleString()} ${words === 1 ? 'word' : 'words'}`;
 					this.readingTime.textContent = `${readingTime} min read`;
-					this.charCount.textContent = `${charCount.toLocaleString()} ${charCount === 1 ? 'character' : 'characters'}`;
+					this.charCount.textContent = `${text.length.toLocaleString()} ${text.length === 1 ? 'character' : 'characters'}`;
 				}
 
 				markDirty() {
 					this.isDirty = true;
-					this.scheduleAutoSave();
+					if (this.autoSaveTimeout) clearTimeout(this.autoSaveTimeout);
+					this.autoSaveTimeout = setTimeout(() => this.autoSave(), 2000);
 				}
 
-				scheduleAutoSave() {
-					if (this.autoSaveTimeout) {
-						clearTimeout(this.autoSaveTimeout);
-					}
-
-					this.autoSaveTimeout = setTimeout(() => {
-						this.autoSave();
-					}, 2000); // Auto-save after 2 seconds of inactivity
-				}
-
-				setupAutoSave() {
-					// Set initial state
-					this.updateAutoSaveStatus('saved');
-				}
-
-				autoSave() {
+				async autoSave() {
 					if (!this.isDirty) return;
-
-					this.updateAutoSaveStatus('saving');
-
-					const data = {
-						title: this.titleInput.value.trim(),
-						content: this.contentEditor.innerHTML,
-						slug: '{% if article %}{{ article.slug }}{% endif %}' || null,
-					};
-
-					fetch('/api/auto-save', {
-						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json',
-							'X-CSRFToken': '{{ csrf_token() }}',
-						},
-						body: JSON.stringify(data),
-					})
-						.then((response) => response.json())
-						.then((result) => {
-							if (result.status === 'success') {
-								this.isDirty = false;
-								this.updateAutoSaveStatus('saved');
-
-								// Update URL if this is a new article
-								if (result.slug && !window.location.pathname.includes('/edit')) {
-									const newUrl = `/blog/${result.slug}/edit`;
-									window.history.replaceState({}, '', newUrl);
-								}
-							} else {
-								this.updateAutoSaveStatus('error');
-								console.error('Auto-save failed:', result.message);
-							}
-						})
-						.catch((error) => {
-							this.updateAutoSaveStatus('error');
-							console.error('Auto-save error:', error);
+					// A title is required to save; wait silently until there is one.
+					if (!this.titleInput.value.trim()) {
+						this.setStatus('idle', 'Title needed to save');
+						return;
+					}
+					this.setStatus('saving', 'Saving…');
+					try {
+						const res = await fetch('/api/auto-save', {
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}' },
+							body: JSON.stringify({
+								title: this.titleInput.value.trim(),
+								content: this.contentEditor.innerHTML,
+								slug: this.currentSlug,
+							}),
 						});
+						const result = await res.json();
+						if (res.ok && result.status === 'success') {
+							this.isDirty = false;
+							this.setStatus('saved', 'Saved');
+							const isNew = this.currentSlug === null;
+							this.currentSlug = result.slug;
+							if (isNew) {
+								window.history.replaceState({}, '', `/blog/${result.slug}/edit`);
+								this.onBecameDraft();
+							}
+						} else {
+							this.setStatus('error', result.message || 'Save failed');
+						}
+					} catch (err) {
+						this.setStatus('error', 'Save failed');
+						console.error(err);
+					}
 				}
 
-				updateAutoSaveStatus(status) {
+				setStatus(state, text) {
 					const icon = document.getElementById('saveIcon');
-					const text = document.getElementById('saveText');
-
-					if (status === 'saving') {
+					document.getElementById('saveText').textContent = text;
+					this.autoSaveStatus.classList.remove('saving', 'error');
+					if (state === 'saving') {
 						icon.className = 'fas fa-spinner fa-spin text-green-600';
-						text.textContent = 'Saving...';
 						this.autoSaveStatus.classList.add('saving');
-						this.autoSaveStatus.classList.remove('saved', 'error');
-					} else if (status === 'error') {
+					} else if (state === 'error') {
 						icon.className = 'fas fa-exclamation-triangle text-red-600';
-						text.textContent = 'Save failed';
 						this.autoSaveStatus.classList.add('error');
-						this.autoSaveStatus.classList.remove('saving', 'saved');
 					} else {
 						icon.className = 'fas fa-circle text-gray-400';
-						text.textContent = 'Saved';
-						this.autoSaveStatus.classList.add('saved');
-						this.autoSaveStatus.classList.remove('saving', 'error');
 					}
+				}
+
+				// Called the first time a brand-new story gets a slug.
+				onBecameDraft() {
+					document.getElementById('stateLabel').textContent = 'Draft in';
+					this.refreshMenuLinks();
+				}
+
+				refreshMenuLinks() {
+					const view = document.getElementById('viewLink');
+					if (this.currentSlug) {
+						view.href = `/blog/${this.currentSlug}`;
+						view.classList.remove('hidden');
+					} else {
+						view.classList.add('hidden');
+					}
+					// Delete only makes sense once the story exists.
+					const canDelete = !!this.currentSlug;
+					document.getElementById('deleteBtn').classList.toggle('hidden', !canDelete);
+					document.getElementById('deleteDivider').classList.toggle('hidden', !canDelete);
 				}
 
 				showPublishModal() {
+					if (!this.titleInput.value.trim()) {
+						alert('Add a title before publishing.');
+						this.titleInput.focus();
+						return;
+					}
+					if (this.contentEditor.textContent.trim() === '' && !this.contentEditor.querySelector('img')) {
+						alert('Write some content before publishing.');
+						this.contentEditor.focus();
+						return;
+					}
+					const slug = this.currentSlug || this.slugify(this.titleInput.value);
+					document.getElementById('slugPreview').textContent = slug || '—';
 					this.publishModal.classList.remove('hidden');
-					this.publishModal.style.display = 'flex';
+					this.publishModal.classList.add('flex');
 				}
 
 				hidePublishModal() {
 					this.publishModal.classList.add('hidden');
-					this.publishModal.style.display = 'none';
+					this.publishModal.classList.remove('flex');
+				}
+
+				slugify(text) {
+					return (text || '')
+						.toLowerCase()
+						.normalize('NFKD')
+						.replace(/[̀-ͯ]/g, '')
+						.replace(/[^a-z0-9]+/g, '-')
+						.replace(/^-+|-+$/g, '');
 				}
 
 				handlePublish() {
-					const publishOption = document.querySelector('input[name="publishOption"]:checked').value;
-					const isPublished = publishOption === 'publish';
-
-					// Update form data
+					if (this.autoSaveTimeout) clearTimeout(this.autoSaveTimeout);
+					const isPublished = document.querySelector('input[name="publishOption"]:checked').value === 'publish';
 					this.contentInput.value = this.contentEditor.innerHTML;
 					document.getElementById('isPublishedInput').value = isPublished ? 'on' : '';
-
-					// Submit form
+					this.isDirty = false; // deliberate submit — no unsaved-changes warning
 					document.getElementById('storyForm').submit();
 				}
 
-				setupMenu() {
-					// Initialize menu state
-					this.hideMenu();
-				}
-
 				toggleMenu() {
-					if (this.dropdownMenu.classList.contains('hidden')) {
-						this.showMenu();
-					} else {
-						this.hideMenu();
-					}
+					this.dropdownMenu.classList.toggle('hidden');
 				}
-
-				showMenu() {
-					this.dropdownMenu.classList.remove('hidden');
-				}
-
 				hideMenu() {
 					this.dropdownMenu.classList.add('hidden');
 				}
 
-				setupDarkMode() {
-					// Check for saved theme preference or default to light mode
-					const savedTheme = localStorage.getItem('theme');
-					if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-						document.documentElement.classList.add('dark');
-					}
-				}
-
 				toggleDarkMode() {
-					const isDark = document.documentElement.classList.contains('dark');
-
-					if (isDark) {
-						document.documentElement.classList.remove('dark');
-						localStorage.setItem('theme', 'light');
-					} else {
-						document.documentElement.classList.add('dark');
-						localStorage.setItem('theme', 'dark');
-					}
-
+					const isDark = document.documentElement.classList.toggle('dark');
+					try {
+						localStorage.theme = isDark ? 'dark' : 'light';
+					} catch (e) {}
 					this.hideMenu();
 				}
 
 				handleDelete() {
-					if (confirm('Are you sure you want to delete this story? This action cannot be undone.')) {
-						const slug = '{% if article %}{{ article.slug }}{% endif %}';
-						if (slug) {
-							const form = document.createElement('form');
-							form.method = 'POST';
-							form.action = `/blog/${slug}/delete`;
-							const csrfInput = document.createElement('input');
-							csrfInput.type = 'hidden';
-							csrfInput.name = 'csrf_token';
-							csrfInput.value = '{{ csrf_token() }}';
-							form.appendChild(csrfInput);
-							document.body.appendChild(form);
-							form.submit();
-						}
-					}
-					this.hideMenu();
+					if (!this.currentSlug) return;
+					if (!confirm('Delete this story? This cannot be undone.')) return;
+					this.isDirty = false;
+					const form = document.createElement('form');
+					form.method = 'POST';
+					form.action = `/blog/${this.currentSlug}/delete`;
+					form.innerHTML = `<input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />`;
+					document.body.appendChild(form);
+					form.submit();
 				}
 			}
 
-			// Initialize editor when DOM is loaded
-			document.addEventListener('DOMContentLoaded', () => {
-				new MediumStyleEditor();
-			});
-
-			// Handle placeholder for content editor
-			document.addEventListener('DOMContentLoaded', () => {
-				const contentEditor = document.getElementById('contentEditor');
-
-				function updatePlaceholder() {
-					if (contentEditor.textContent.trim() === '') {
-						contentEditor.classList.add('empty');
-						if (!contentEditor.querySelector('.placeholder')) {
-							const placeholder = document.createElement('div');
-							placeholder.className = 'placeholder';
-							placeholder.style.cssText = 'position: absolute; color: #9e9e9e; pointer-events: none;';
-							placeholder.textContent = 'Tell your story...';
-							contentEditor.style.position = 'relative';
-							contentEditor.appendChild(placeholder);
-						}
-					} else {
-						contentEditor.classList.remove('empty');
-						const placeholder = contentEditor.querySelector('.placeholder');
-						if (placeholder) {
-							placeholder.remove();
-						}
-					}
-				}
-
-				contentEditor.addEventListener('input', updatePlaceholder);
-				contentEditor.addEventListener('focus', updatePlaceholder);
-				contentEditor.addEventListener('blur', updatePlaceholder);
-
-				// Initial check
-				updatePlaceholder();
-			});
+			document.addEventListener('DOMContentLoaded', () => new MediumStyleEditor());
 		</script>
 	</body>
 </html>
