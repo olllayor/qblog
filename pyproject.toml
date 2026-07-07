@@ -5,16 +5,13 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "api-analytics>=1.2.7",
     "blinker==1.7.0",
     "click==8.1.7",
     "colorama==0.4.6",
     "flask==3.0.2",
     "flask-caching>=2.3.1",
     "flask-login>=0.6.3",
-    "flask-sqlalchemy==3.1.1",
     "flask-wtf>=1.2.2",
-    "greenlet>=3.2.2",
     "itsdangerous==2.1.2",
     "jinja2==3.1.3",
     "markupsafe==2.1.5",
@@ -25,7 +22,6 @@ dependencies = [
     "python-slugify==8.0.4",
     "redis>=6.1.0",
     "sentry-sdk[flask]>=2.30.0",
-    "sqlalchemy==2.0.30",
     "text-unidecode==1.3",
     "typing-extensions==4.11.0",
     "werkzeug==3.0.1",
@@ -33,8 +29,19 @@ dependencies = [
 
 [tool.setuptools]
 packages = []
-py-modules = ["app", "articles", "database", "projects", "search", "sitemap_generator"]
+py-modules = [
+    "app",
+    "articles",
+    "database",
+    "images",
+    "projects",
+    "search",
+    "settings",
+    "sitemap_generator",
+]
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
 
 [tool.ruff]
 # Same as Black.
@@ -90,12 +97,17 @@ skip-magic-trailing-comma = false
 line-ending = "auto"
 
 [dependency-groups]
-dev = ["ruff>=0.12.7"]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.12.7",
+]
 
 [tool.ruff.lint.per-file-ignores]
-# Tests can use magic values, assertions, and imports
+# Tests can use magic values, assertions, imports, and stdlib XML parsing
+# (they parse this app's own output, not untrusted data)
 "test_*.py" = ["S101", "S105", "S106"]
 "*_test.py" = ["S101", "S105", "S106"]
+"tests/*.py" = ["S101", "S105", "S106", "S318"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app", "articles", "database", "projects", "search"]

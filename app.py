@@ -1,8 +1,12 @@
+import hmac
 import logging
 import os
+import threading
 import time
 from datetime import UTC, datetime
 from functools import wraps
+from urllib.parse import urlparse
+from xml.sax.saxutils import escape as xml_escape
 
 import redis
 import sentry_sdk
@@ -28,29 +32,39 @@ from flask_login import (
 )
 from flask_wtf.csrf import CSRFProtect
 from posthog import Posthog
+from werkzeug.security import check_password_hash
 
 from articles import Article
 from database import close_db, get_database_url, init_db
+from images import ImageStore
 from projects import Project
 from search import get_search_service
+from settings import HOMEPAGE_DEFAULTS, get_homepage_settings, save_homepage_settings
 
 load_dotenv()
-
-posthog = Posthog(
-    project_api_key="phc_CfLxspEhOAhLn6L3vQH2wP5Os31vXojDeaIqK8f4Y0W",
-    host="https://us.i.posthog.com",
-)
 
 # Configure logging early so we can see startup messages
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-sentry_sdk.init(
-    dsn="https://abb5b78f25e14da8713e4d4c8be6c5da@o4508810359144448.ingest.de.sentry.io/4509507866001488",
-    # Add data like request headers and IP for users,
-    # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
-    send_default_pii=True,
-)
+POSTHOG_API_KEY = os.getenv("POSTHOG_API_KEY")
+POSTHOG_HOST = os.getenv("POSTHOG_HOST", "https://us.i.posthog.com")
+posthog = None
+if POSTHOG_API_KEY:
+    posthog = Posthog(project_api_key=POSTHOG_API_KEY, host=POSTHOG_HOST)
+else:
+    logger.info("POSTHOG_API_KEY not set. PostHog analytics disabled.")
+
+SENTRY_DSN = os.getenv("SENTRY_DSN")
+if SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        # Add data like request headers and IP for users,
+        # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+        send_default_pii=True,
+    )
+else:
+    logger.info("SENTRY_DSN not set. Sentry error tracking disabled.")
 
 app = Flask(__name__)
 csrf = CSRFProtect(app)
@@ -101,7 +115,7 @@ def setup_cache():
             app.config["CACHE_DEFAULT_TIMEOUT"] = 300
             logger.info("Using Redis cache")
 
-        except (redis.ConnectionError, redis.TimeoutError, Exception) as e:
+        except redis.RedisError as e:
             logger.warning(f"Redis connection failed: {e}. Falling back to SimpleCache")
             app.config["CACHE_TYPE"] = "SimpleCache"
             app.config["CACHE_DEFAULT_TIMEOUT"] = 300
@@ -120,15 +134,14 @@ cache = setup_cache()
 # Cache decorator with error handling
 def safe_cached(timeout=360, **kwargs):
     def decorator(f):
+        # Build the cached view once at decoration time, not per request.
+        cached_func = cache.cached(timeout=timeout, **kwargs)(f)
+
         @wraps(f)
         def wrapper(*args, **kwargs_inner):
             try:
-                # Try to use cache
-                cached_func = cache.cached(timeout=timeout, **kwargs)(f)
-                result = cached_func(*args, **kwargs_inner)
-                logger.debug(f"Cache hit for {f.__name__}")
-                return result
-            except (redis.ConnectionError, redis.TimeoutError, Exception) as e:
+                return cached_func(*args, **kwargs_inner)
+            except (redis.ConnectionError, redis.TimeoutError) as e:
                 logger.warning(
                     f"Cache error for {f.__name__}: {e}. Executing function without cache."
                 )
@@ -175,19 +188,57 @@ def invalidate_multiple_caches(*view_specs):
 
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
+# Prefer a hashed password; fall back to plaintext for backward compatibility.
+ADMIN_PASSWORD_HASH = os.getenv("ADMIN_PASSWORD_HASH")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 
-if not app.secret_key:
-    logger.error("FLASK_SECRET_KEY not set in environment!")
-if not ADMIN_USERNAME or not ADMIN_PASSWORD:
-    logger.error("ADMIN_USERNAME or ADMIN_PASSWORD not set in environment!")
+_IS_DEV = os.getenv("FLASK_ENV") == "development" or os.getenv("FLASK_DEBUG") == "1"
 
-with app.app_context():
-    try:
-        if not init_db():
-            logger.error("Error initializing database during app setup")
-    except Exception as e:
-        logger.error(f"Exception during db initialization: {e}")
+# Fail fast in production when required secrets are missing, rather than booting
+# with secret_key=None (insecure sessions) or an unauthenticatable admin.
+_missing = [
+    name
+    for name, val in (
+        ("FLASK_SECRET_KEY", app.secret_key),
+        ("ADMIN_USERNAME", ADMIN_USERNAME),
+        ("ADMIN_PASSWORD/ADMIN_PASSWORD_HASH", ADMIN_PASSWORD or ADMIN_PASSWORD_HASH),
+    )
+    if not val
+]
+if _missing:
+    msg = f"Required secrets not set in environment: {', '.join(_missing)}"
+    if _IS_DEV:
+        logger.error(msg)
+    else:
+        raise RuntimeError(msg)
+
+# Harden the session cookie for production HTTPS.
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=not _IS_DEV,
+)
+
+_db_init_lock = threading.Lock()
+_db_initialized = False
+
+
+@app.before_request
+def _ensure_db_initialized():
+    # Defer schema init off the import path (Vercel cold starts) and run it at
+    # most once per process, on the first request that actually needs the DB.
+    global _db_initialized
+    if _db_initialized:
+        return
+    with _db_init_lock:
+        if _db_initialized:
+            return
+        try:
+            if not init_db():
+                logger.error("Error initializing database during first request")
+        except Exception as e:
+            logger.error(f"Exception during db initialization: {e}")
+        _db_initialized = True
 
 
 @app.teardown_appcontext
@@ -196,7 +247,17 @@ def teardown_db(exception):
 
 
 def check_admin(username, password):
-    return username == ADMIN_USERNAME and password == ADMIN_PASSWORD
+    # Reject empty/None credentials outright so unset env vars can never match.
+    if not username or not password or not ADMIN_USERNAME:
+        return False
+    user_ok = hmac.compare_digest(username, ADMIN_USERNAME)
+    if ADMIN_PASSWORD_HASH:
+        pass_ok = check_password_hash(ADMIN_PASSWORD_HASH, password)
+    elif ADMIN_PASSWORD:
+        pass_ok = hmac.compare_digest(password, ADMIN_PASSWORD)
+    else:
+        pass_ok = False
+    return user_ok and pass_ok
 
 
 def get_blog_articles(page: int, per_page: int, query: str):
@@ -262,40 +323,36 @@ def logout():
 @app.route("/")
 @safe_cached(timeout=300)
 def index():
-    try:
-        projects = Project.get_all_projects()
-    except Exception as e:
-        logger.warning(f"Failed to load projects: {e}")
-        projects = []
+    settings = get_homepage_settings()
 
-    try:
-        view_totals = Article.get_view_totals()
-        all_time_readers = view_totals.get("all_time", view_totals.get("monthly", 0))
-    except Exception as e:
-        logger.warning(f"Failed to load view totals: {e}")
-        all_time_readers = 0
+    projects = []
+    if settings.get("show_projects", True):
+        try:
+            projects = Project.get_homepage_projects()
+        except Exception as e:
+            logger.warning(f"Failed to load projects: {e}")
 
-    # PostHog feature flag implementation
-    distinct_id = request.remote_addr or "anonymous"
-    is_my_flag_enabled = posthog.feature_enabled("my-flag", distinct_id)
-
-    if is_my_flag_enabled:
-        # Do something differently for this user
-        logger.info(f"Feature flag 'my-flag' enabled for user {distinct_id}")
+    all_time_readers = 0
+    if settings.get("show_readers_badge", True):
+        try:
+            view_totals = Article.get_view_totals()
+            all_time_readers = view_totals.get(
+                "all_time", view_totals.get("monthly", 0)
+            )
+        except Exception as e:
+            logger.warning(f"Failed to load view totals: {e}")
 
     return render_template(
-        "index.html", projects=projects, all_time_readers=all_time_readers
+        "index.html",
+        projects=projects,
+        all_time_readers=all_time_readers,
+        hp=settings,
     )
 
 
 @app.route("/favicon.ico")
 def favicon():
     return redirect(url_for("static", filename="favicon.ico"))
-
-
-@app.route("/robots.txt")
-def robots_txt():
-    return redirect(url_for("static", filename="robots.txt"))
 
 
 @app.route("/rss")
@@ -312,14 +369,18 @@ def rss_feed():
     for article in articles:
         pub_date = article.date_published.strftime("%a, %d %b %Y %H:%M:%S GMT")
         description = article.get_summary(300)
+        title = xml_escape(article.title or "")
+        slug = xml_escape(article.slug or "")
+        # A CDATA block cannot contain the sequence "]]>"; split it if present.
+        safe_description = (description or "").replace("]]>", "]]]]><![CDATA[>")
 
         rss_items.append(f"""
         <item>
-            <title>{article.title}</title>
-            <link>https://ollayor.uz/blog/{article.slug}</link>
-            <guid isPermaLink="true">https://ollayor.uz/blog/{article.slug}</guid>
+            <title>{title}</title>
+            <link>https://ollayor.uz/blog/{slug}</link>
+            <guid isPermaLink="true">https://ollayor.uz/blog/{slug}</guid>
             <pubDate>{pub_date}</pubDate>
-            <description><![CDATA[{description}]]></description>
+            <description><![CDATA[{safe_description}]]></description>
             <author>contact@ollayor.uz (Ollayor Maxammadnabiyev)</author>
         </item>""")
 
@@ -349,8 +410,8 @@ def rss_feed():
 @app.route("/projects")
 @safe_cached(timeout=180)
 def projects():
-    all_projects = Project.get_all_projects()
-    return render_template("projects.html", projects=all_projects)
+    visible_projects = Project.get_visible_projects()
+    return render_template("projects.html", projects=visible_projects)
 
 
 @app.route("/blog")
@@ -437,7 +498,8 @@ def article(slug: str):
         "HTTP_X_FORWARDED_FOR", request.environ.get("REMOTE_ADDR", "unknown")
     )
     user_agent = request.environ.get("HTTP_USER_AGENT", "")
-    Article.track_view(slug, ip_address, user_agent)
+    referrer_host = _referrer_host(request.referrer)
+    Article.track_view(slug, ip_address, user_agent, referrer_host)
 
     # Get article with caching (article content rarely changes)
     cache_key = f"article_content_{slug}"
@@ -489,20 +551,59 @@ def matrix():
     return render_template("matrix.html")
 
 
+def _referrer_host(referrer):
+    """Extract a bare host from a referrer URL; None for direct/self visits."""
+    if not referrer:
+        return None
+    try:
+        parsed = urlparse(referrer)
+        host = (parsed.hostname or "").lower()
+        if not host or host == request.host.split(":")[0]:
+            return None  # direct or same-site navigation
+        return host[4:] if host.startswith("www.") else host
+    except (ValueError, AttributeError):
+        return None
+
+
+def _unique_slug(desired_slug, title):
+    """Slugify and dedupe against existing articles."""
+    from slugify import slugify
+
+    base = slugify(desired_slug or "") or slugify(title or "")
+    if not base:
+        return None
+    candidate = base
+    suffix = 2
+    while Article.get_by_slug(candidate) is not None:
+        candidate = f"{base}-{suffix}"
+        suffix += 1
+    return candidate
+
+
 @app.route("/publish", methods=["GET", "POST"])
 @login_required
 def publish():
     if request.method == "POST":
-        title = request.form.get("title")
-        content = request.form.get("content")
+        title = (request.form.get("title") or "").strip()
+        content = (request.form.get("content") or "").strip()
         is_published = request.form.get("is_published") == "on"
         date_published = datetime.now(UTC)
         if not title or not content:
             flash("Title or content is missing", "error")
             return redirect(url_for("publish"))
 
-        new_article = Article(title, content, date_published, is_published=is_published)
-        Article.save_article(new_article)
+        slug = _unique_slug(request.form.get("slug"), title)
+        if not slug:
+            flash("Could not derive a URL slug from the title.", "error")
+            return redirect(url_for("publish"))
+
+        new_article = Article(
+            title, content, date_published, is_published=is_published, slug=slug
+        )
+        if not Article.save_article(new_article):
+            flash("Error saving article — nothing was published.", "error")
+            return redirect(url_for("publish"))
+
         # remove the article from cache
         try:
             invalidate_multiple_caches("blog", ("article", {"slug": new_article.slug}))
@@ -524,41 +625,6 @@ def publish():
     return render_template("publish_modern.html")
 
 
-@app.route("/publish/classic", methods=["GET", "POST"])
-@login_required
-def publish_classic():
-    if request.method == "POST":
-        title = request.form.get("title")
-        content = request.form.get("content")
-        is_published = request.form.get("is_published") == "on"
-        date_published = datetime.now(UTC)
-        if not title or not content:
-            flash("Title or content is missing", "error")
-            return redirect(url_for("publish_classic"))
-
-        new_article = Article(title, content, date_published, is_published=is_published)
-        Article.save_article(new_article)
-        # remove the article from cache
-        try:
-            invalidate_multiple_caches("blog", ("article", {"slug": new_article.slug}))
-            # Also clear the article content cache for new articles
-            cache.delete(f"article_content_{new_article.slug}")
-            logger.info(
-                f"Blog and article caches invalidated after publishing new article: {new_article.slug}"
-            )
-        except Exception as e:
-            logger.warning(f"Cache invalidation failed: {e}")
-
-        if is_published:
-            flash("Article published successfully!", "success")
-            return redirect(url_for("article", slug=new_article.slug))
-        else:
-            flash("Article saved as draft. You can publish it later.", "info")
-            return redirect(url_for("edit_article", slug=new_article.slug))
-
-    return render_template("publish.html")
-
-
 @app.route("/blog/<slug>/edit", methods=["GET", "POST"])
 @login_required
 def edit_article(slug):
@@ -567,8 +633,13 @@ def edit_article(slug):
         return render_template("404.html"), 404
     if request.method == "POST":
         old_published_status = article.is_published
-        article.title = request.form.get("title")
-        article.content = request.form.get("content")
+        title = (request.form.get("title") or "").strip()
+        content = (request.form.get("content") or "").strip()
+        if not title or not content:
+            flash("Title or content is missing", "error")
+            return render_template("publish_modern.html", article=article)
+        article.title = title
+        article.content = content
         article.is_published = request.form.get("is_published") == "on"
 
         if Article.update_article(article):
@@ -602,16 +673,11 @@ def edit_article(slug):
 @app.route("/blog/<slug>/delete", methods=["DELETE", "POST"])
 @login_required
 def delete_article(slug):
-    print(f"Attempting to delete article with slug: {slug}")
+    logger.info(f"Attempting to delete article with slug: {slug}")
 
     success = Article.delete_article_by_slug(slug)
     if success:
-        try:
-            print(f"Deleting article file: {slug}")
-            flash("Article deleted successfully.", "success")
-        except OSError as e:
-            print(f"Error deleting article file: {e.strerror}")
-            flash(f"Error deleting article file: {e.strerror}", "error")
+        flash("Article deleted successfully.", "success")
 
         try:
             invalidate_multiple_caches("blog", ("article", {"slug": slug}))
@@ -623,7 +689,7 @@ def delete_article(slug):
         except Exception as e:
             logger.warning(f"Cache invalidation failed: {e}")
     else:
-        print("Error deleting article from the database.")
+        logger.error("Error deleting article from the database.")
         flash("Error deleting article from the database.", "error")
 
     return redirect(url_for("blog"))
@@ -632,15 +698,12 @@ def delete_article(slug):
 @app.route("/admin")
 @login_required
 def admin_dashboard():
-    # Aggregate basic stats
+    # Aggregate basic stats via COUNT queries — avoid loading article bodies
     try:
-        all_articles = Article.get_all_articles()
+        articles_count, published_count = Article.get_article_counts()
     except Exception as e:
-        logger.warning("Failed to fetch all articles: %s", e)
-        all_articles = []
-
-    articles_count = len(all_articles)
-    published_count = sum(1 for a in all_articles if getattr(a, "is_published", False))
+        logger.warning("Failed to fetch article counts: %s", e)
+        articles_count, published_count = 0, 0
     drafts_count = articles_count - published_count
 
     try:
@@ -655,15 +718,37 @@ def admin_dashboard():
     except Exception as exc:
         logger.warning("Failed to fetch view totals: %s", exc)
 
-    # Recent 5 articles by last update or publish date
-    def _article_dt(a):
-        return (
-            getattr(a, "date_updated", None)
-            or getattr(a, "date_published", None)
-            or datetime.fromtimestamp(0, UTC)
-        )
+    try:
+        recent_articles = Article.get_recent_articles(5)
+    except Exception as e:
+        logger.warning("Failed to fetch recent articles: %s", e)
+        recent_articles = []
 
-    recent_articles = sorted(all_articles, key=_article_dt, reverse=True)[:5]
+    try:
+        views_by_day = Article.get_views_by_day(30)
+    except Exception as e:
+        logger.warning("Failed to fetch daily views: %s", e)
+        views_by_day = []
+    max_daily_views = max((d["views"] for d in views_by_day), default=0)
+
+    try:
+        top_articles = Article.get_top_articles_by_views(5)
+    except Exception as e:
+        logger.warning("Failed to fetch top articles: %s", e)
+        top_articles = []
+
+    try:
+        device_breakdown = Article.get_device_breakdown(30)
+    except Exception as e:
+        logger.warning("Failed to fetch device breakdown: %s", e)
+        device_breakdown = []
+    device_total = sum(d["count"] for d in device_breakdown)
+
+    try:
+        top_referrers = Article.get_top_referrers(30)
+    except Exception as e:
+        logger.warning("Failed to fetch referrers: %s", e)
+        top_referrers = []
 
     return render_template(
         "admin_dashboard.html",
@@ -674,7 +759,58 @@ def admin_dashboard():
         daily_views=view_totals.get("daily", 0),
         monthly_views=view_totals.get("monthly", 0),
         recent_articles=recent_articles,
+        views_by_day=views_by_day,
+        max_daily_views=max_daily_views,
+        top_articles=top_articles,
+        device_breakdown=device_breakdown,
+        device_total=device_total,
+        top_referrers=top_referrers,
     )
+
+
+@app.route("/admin/articles")
+@login_required
+def admin_articles():
+    status = request.args.get("status", "all")
+    if status not in ("all", "published", "draft"):
+        status = "all"
+    query = (request.args.get("q") or "").strip() or None
+    articles = Article.get_articles_admin(status=status, query=query)
+    return render_template(
+        "admin_articles.html", articles=articles, status=status, query=query or ""
+    )
+
+
+@app.route("/admin/upload-image", methods=["POST"])
+@login_required
+def upload_image():
+    file = request.files.get("image")
+    if file is None or not file.filename:
+        return jsonify({"status": "error", "message": "No image provided"}), 400
+    try:
+        image_id = ImageStore.save(
+            file.read(),
+            filename=file.filename,
+            content_type=file.mimetype,
+        )
+    except ValueError as e:
+        return jsonify({"status": "error", "message": str(e)}), 400
+    if not image_id:
+        return jsonify({"status": "error", "message": "Failed to store image"}), 500
+    return jsonify(
+        {"status": "success", "url": url_for("serve_image", image_id=image_id)}
+    )
+
+
+@app.route("/media/img/<image_id>")
+def serve_image(image_id):
+    result = ImageStore.get(image_id)
+    if result is None:
+        return "Not found", 404
+    data, content_type = result
+    response = app.response_class(data, mimetype=content_type)
+    response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    return response
 
 
 @app.route("/admin/projects")
@@ -701,11 +837,11 @@ def admin_db_info():
         "source": source,
     }
 
-    articles_count = len(Article.get_all_articles())
+    articles_count, _ = Article.get_article_counts()
     projects_count = len(Project.get_all_projects())
 
     return render_template(
-        "analytics.html",
+        "admin_db_info.html",
         db_summary=db_summary,
         articles_count=articles_count,
         projects_count=projects_count,
@@ -821,6 +957,85 @@ def delete_project(project_id):
     return redirect(url_for("admin_projects"))
 
 
+def _invalidate_project_caches():
+    try:
+        invalidate_multiple_caches("projects", "index")
+    except Exception as e:
+        logger.warning(f"Cache invalidation failed: {e}")
+
+
+@app.route("/admin/projects/<int:project_id>/toggle-visibility", methods=["POST"])
+@login_required
+def toggle_project_visibility(project_id):
+    project = Project.get_project_by_id(project_id)
+    if not project:
+        flash("Project not found.", "error")
+    elif Project.set_flag(project_id, "is_visible", not project.is_visible):
+        _invalidate_project_caches()
+        state = "hidden from" if project.is_visible else "visible on"
+        flash(f"'{project.title}' is now {state} the site.", "success")
+    else:
+        flash("Error updating project visibility.", "error")
+    return redirect(url_for("admin_projects"))
+
+
+@app.route("/admin/projects/<int:project_id>/toggle-featured", methods=["POST"])
+@login_required
+def toggle_project_featured(project_id):
+    project = Project.get_project_by_id(project_id)
+    if not project:
+        flash("Project not found.", "error")
+    elif Project.set_flag(project_id, "is_featured", not project.is_featured):
+        _invalidate_project_caches()
+        state = "unfeatured" if project.is_featured else "featured on the homepage"
+        flash(f"'{project.title}' {state}.", "success")
+    else:
+        flash("Error updating featured flag.", "error")
+    return redirect(url_for("admin_projects"))
+
+
+@app.route("/admin/projects/<int:project_id>/move/<direction>", methods=["POST"])
+@login_required
+def move_project(project_id, direction):
+    if direction not in ("up", "down"):
+        flash("Invalid direction.", "error")
+    elif Project.move(project_id, direction):
+        _invalidate_project_caches()
+    else:
+        flash("Error reordering projects.", "error")
+    return redirect(url_for("admin_projects"))
+
+
+@app.route("/admin/homepage", methods=["GET", "POST"])
+@login_required
+def admin_homepage():
+    if request.method == "POST":
+        values = {
+            "hero_emoji": (request.form.get("hero_emoji") or "").strip()
+            or HOMEPAGE_DEFAULTS["hero_emoji"],
+            "hero_greeting": (request.form.get("hero_greeting") or "").strip()
+            or HOMEPAGE_DEFAULTS["hero_greeting"],
+            "hero_line1": (request.form.get("hero_line1") or "").strip(),
+            "hero_line2": (request.form.get("hero_line2") or "").strip(),
+            "blog_cta_text": (request.form.get("blog_cta_text") or "").strip()
+            or HOMEPAGE_DEFAULTS["blog_cta_text"],
+            "show_readers_badge": request.form.get("show_readers_badge") == "on",
+            "show_projects": request.form.get("show_projects") == "on",
+        }
+        if save_homepage_settings(values):
+            _invalidate_project_caches()  # also clears the cached index view
+            flash("Homepage settings saved.", "success")
+        else:
+            flash("Error saving homepage settings.", "error")
+        return redirect(url_for("admin_homepage"))
+
+    return render_template(
+        "admin_homepage.html",
+        settings=get_homepage_settings(),
+        defaults=HOMEPAGE_DEFAULTS,
+    )
+
+
 @app.route("/compare")
 def compare_projects():
     # Logic for comparing projects
@@ -863,7 +1078,7 @@ def health_check():
 def sitemap():
     """Generate sitemap for SEO"""
     try:
-        articles = Article.get_all_articles()
+        articles = Article.get_published_articles()
 
         from sitemap_generator import generate_sitemap
 
@@ -881,7 +1096,7 @@ def sitemap():
 def image_sitemap():
     """Generate image sitemap for better image SEO"""
     try:
-        articles = Article.get_all_articles()
+        articles = Article.get_published_articles()
 
         from sitemap_generator import generate_image_sitemap
 

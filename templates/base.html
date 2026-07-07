@@ -1,0 +1,55 @@
+{# Shared page skeleton for the public mono-style pages (blog, projects, about, article).
+   Child templates set page_title / page_description (and other seo_meta vars)
+   with top-level {% set %} before their blocks. #}
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+		<!-- SEO and Social Media Meta Tags -->
+		{% include 'seo_meta.html' %}
+
+		<!-- Preconnect to external domains -->
+		<link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin />
+		<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+		<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+		<link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}" />
+		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon-optimized.ico') }}" />
+		<script src="https://cdn.tailwindcss.com"></script>
+		{% include '_theme.html' %}
+
+		<!-- Non-blocking Font Awesome -->
+		<link
+			rel="preload"
+			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+			as="style"
+			onload="this.onload=null;this.rel='stylesheet'"
+		/>
+		<noscript
+			><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+		/></noscript>
+
+		<link
+			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+		<!-- Enhanced blog styling -->
+		<link rel="stylesheet" href="{{ url_for('static', filename='blog-styles.css') }}" />
+		{% include 'analytics.html' %}
+		{% block head_extra %}{% endblock %}
+	</head>
+
+	<body class="font-mono bg-white dark:bg-black text-gray-900 dark:text-gray-100 min-h-screen flex flex-col relative">
+		{% include "_bg.html" %}
+		{% include "_nav.html" %}
+
+		{% block content %}{% endblock %}
+
+		{% include "_footer.html" %}
+
+		{% block scripts %}{% endblock %}
+	</body>
+</html>

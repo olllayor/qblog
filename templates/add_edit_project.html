@@ -6,6 +6,7 @@
 		<title>{{ 'Edit' if is_edit else 'Add' }} Project - Admin</title>
 		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" />
 		<script src="https://cdn.tailwindcss.com"></script>
+		{% include '_theme.html' %}
 		<link
 			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
 			rel="stylesheet"
@@ -18,7 +19,7 @@
 	</head>
 
 	<body class="font-inter bg-gray-100 dark:bg-gray-900 min-h-screen">
-		{% include 'header.html' %}
+		{% include '_admin_nav.html' %}
 
 		<main class="container mx-auto px-4 sm:px-6 lg:px-8 py-12 pt-20">
 			<div class="flex items-center space-x-4 mb-8">

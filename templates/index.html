@@ -33,6 +33,7 @@
 		<!-- Preload critical CSS -->
 		<link rel="preload" href="https://cdn.tailwindcss.com" as="script" />
 		<script src="https://cdn.tailwindcss.com"></script>
+		{% include '_theme.html' %}
 
 		<!-- Non-blocking Font Awesome -->
 		<link
@@ -75,15 +76,14 @@
 			<div class="space-y-8 flex flex-col items-center">
 				<div class="space-y-4">
 					<div class="flex items-center space-x-1">
-						<span class="text-2xl">👋</span>
-						<h1 class="text-3xl font-bold tracking-tight">hey! i'm ollayor</h1>
+						<span class="text-2xl">{{ hp.hero_emoji }}</span>
+						<h1 class="text-3xl font-bold tracking-tight">{{ hp.hero_greeting }}</h1>
 					</div>
-					<p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-						i'm a software developer & full-time breaker.
-					</p>
-					<p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-						I break things, fix them, then break them better.
-					</p>
+					{% if hp.hero_line1 %}
+					<p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{{ hp.hero_line1 }}</p>
+					{% endif %} {% if hp.hero_line2 %}
+					<p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{{ hp.hero_line2 }}</p>
+					{% endif %}
 				</div>
 
 				<!-- Social Links -->
@@ -164,11 +164,13 @@
 						<div class="flex flex-col items-start text-left leading-tight">
 							<span
 								class="text-xs font-medium text-gray-900 dark:text-gray-100 group-hover:underline decoration-gray-400/50 underline-offset-2"
-								>Read my thoughts</span
+								>{{ hp.blog_cta_text }}</span
 							>
+							{% if hp.show_readers_badge %}
 							<span class="text-[10px] text-gray-500 dark:text-gray-400"
 								>{{ all_time_readers }} users read our blog</span
 							>
+							{% endif %}
 						</div>
 						<i
 							class="fas fa-arrow-right text-xs text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-transform group-hover:translate-x-0.5 ml-1"
@@ -178,6 +180,7 @@
 			</div>
 
 			<!-- Right Column: Projects -->
+			{% if hp.show_projects %}
 			<div class="space-y-4">
 				<!-- Projects Grid -->
 				<div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="projects-grid">
@@ -266,6 +269,7 @@
 					</a>
 				</div>
 			</div>
+			{% endif %}
 		</main>
 		</div>
 
@@ -287,22 +291,6 @@
 				background-color: rgba(75, 85, 99, 0.5);
 			}
 
-			/* Filter button states */
-			.filter-btn.active {
-				background-color: #111827;
-				color: white;
-				border-color: #111827;
-			}
-			.dark .filter-btn.active {
-				background-color: white;
-				color: #111827;
-				border-color: white;
-			}
-
-			/* Project card hidden state */
-			.project-card.hidden {
-				display: none;
-			}
 		</style>
 
 		<!-- Project Quick View Modal -->
@@ -441,65 +429,6 @@
 					modal.classList.add('opacity-0', 'pointer-events-none');
 					document.body.style.overflow = 'auto';
 				}
-
-				// Technology Filter Functions - Debounced for better INP
-				const filterProjects = debounce(function(tech) {
-					document.querySelectorAll('.project-card').forEach((card) => {
-						const cardTechs = card.dataset.technologies.toLowerCase();
-						if (tech === 'all' || cardTechs.includes(tech.toLowerCase())) {
-							card.classList.remove('hidden');
-						} else {
-							card.classList.add('hidden');
-						}
-					});
-				}, 50);
-
-				document.querySelectorAll('.filter-btn').forEach((btn) => {
-					btn.addEventListener('click', function () {
-						const tech = this.dataset.tech;
-
-						// Update active state
-						document.querySelectorAll('.filter-btn').forEach((b) => {
-							b.classList.remove('active');
-							b.classList.remove(
-								'bg-gray-900',
-								'dark:bg-white',
-								'text-white',
-								'dark:text-gray-900',
-								'border-gray-900',
-								'dark:border-white',
-							);
-							b.classList.add(
-								'bg-transparent',
-								'text-gray-600',
-								'dark:text-gray-400',
-								'border-gray-200',
-								'dark:border-gray-700',
-							);
-						});
-						this.classList.add('active');
-						this.classList.remove(
-							'bg-transparent',
-							'text-gray-600',
-							'dark:text-gray-400',
-							'border-gray-200',
-							'dark:border-gray-700',
-						);
-						this.classList.add(
-							'bg-gray-900',
-							'dark:bg-white',
-							'text-white',
-							'dark:text-gray-900',
-							'border-gray-900',
-							'dark:border-white',
-						);
-
-						// Filter projects with debounce
-						filterProjects(tech);
-							}
-						});
-					});
-				});
 
 				// Keyboard support - Use passive listener
 				document.addEventListener('keydown', function (event) {

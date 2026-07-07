@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Articles - Ollayor's Blog</title>
+		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+		<script src="https://cdn.tailwindcss.com"></script>
+		{% include '_theme.html' %}
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+		<link
+			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+		<link rel="stylesheet" href="{{ url_for('static', filename='blog-styles.css') }}" />
+		{% include 'analytics.html' %}
+	</head>
+	<body class="font-inter bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
+		{% include '_admin_nav.html' %}
+
+		<main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-12 pt-20">
+			<div class="flex flex-wrap items-center justify-between gap-4 mb-8">
+				<h1 class="text-3xl font-bold font-mono text-gray-800 dark:text-gray-100">Articles</h1>
+				<a
+					href="{{ url_for('publish') }}"
+					class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors"
+					style="font-family: 'JetBrains Mono', monospace"
+				>
+					<i class="fas fa-plus mr-2"></i>New Article
+				</a>
+			</div>
+
+			{% with messages = get_flashed_messages(with_categories=true) %} {% if messages %}
+			<div class="mb-4">
+				{% for category, message in messages %}
+				<div
+					class="p-4 rounded-md {{ 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300' if category == 'error' else 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' }}"
+					role="alert"
+				>
+					{{ message }}
+				</div>
+				{% endfor %}
+			</div>
+			{% endif %} {% endwith %}
+
+			<!-- Filters -->
+			<div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+				<div class="inline-flex rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden text-sm">
+					{% for key, label in [('all', 'All'), ('published', 'Published'), ('draft', 'Drafts')] %}
+					<a
+						href="{{ url_for('admin_articles', status=key, q=query or None) }}"
+						class="px-4 py-2 font-medium transition-colors {{ 'bg-blue-600 text-white' if status == key else 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700' }}"
+						style="font-family: 'JetBrains Mono', monospace"
+						>{{ label }}</a
+					>
+					{% endfor %}
+				</div>
+
+				<form action="{{ url_for('admin_articles') }}" method="GET" class="flex gap-2">
+					<input type="hidden" name="status" value="{{ status }}" />
+					<input
+						type="search"
+						name="q"
+						value="{{ query }}"
+						placeholder="Search titles…"
+						class="rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none"
+					/>
+					<button
+						type="submit"
+						class="px-3 py-2 rounded-md bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 text-sm"
+					>
+						<i class="fas fa-search"></i>
+					</button>
+				</form>
+			</div>
+
+			{% if articles %}
+			<div class="bg-white dark:bg-gray-800 shadow rounded-xl overflow-x-auto">
+				<table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+					<thead class="bg-gray-50 dark:bg-gray-700">
+						<tr>
+							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+								Title
+							</th>
+							<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+								Status
+							</th>
+							<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+								Published
+							</th>
+							<th class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+								Views
+							</th>
+							<th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+								Actions
+							</th>
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+						{% for a in articles %}
+						<tr>
+							<td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100 max-w-md">
+								<span class="line-clamp-1">{{ a.title }}</span>
+								<span class="text-xs text-gray-400 font-mono">/blog/{{ a.slug }}</span>
+							</td>
+							<td class="px-4 py-4 whitespace-nowrap text-sm">
+								{% if a.is_published %}
+								<span
+									class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+									>Published</span
+								>
+								{% else %}
+								<span
+									class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200"
+									>Draft</span
+								>
+								{% endif %}
+							</td>
+							<td class="px-4 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300 font-mono">
+								{{ a.date_published.strftime('%Y-%m-%d') if a.date_published else '—' }}
+							</td>
+							<td class="px-4 py-4 whitespace-nowrap text-sm text-right font-semibold text-gray-900 dark:text-gray-100">
+								{{ a.views }}
+							</td>
+							<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
+								<a
+									href="{{ url_for('article', slug=a.slug) }}"
+									target="_blank"
+									class="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
+									title="View"
+									><i class="fas fa-arrow-up-right-from-square"></i
+								></a>
+								<a
+									href="{{ url_for('edit_article', slug=a.slug) }}"
+									class="text-blue-600 hover:text-blue-800 dark:text-blue-400"
+									title="Edit"
+									><i class="fas fa-pen"></i
+								></a>
+								<form
+									action="{{ url_for('delete_article', slug=a.slug) }}"
+									method="POST"
+									class="inline-block"
+									onsubmit="return confirm('Delete “{{ a.title }}”? This cannot be undone.');"
+								>
+									<input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+									<button type="submit" class="text-red-600 hover:text-red-800 dark:text-red-400" title="Delete">
+										<i class="fas fa-trash"></i>
+									</button>
+								</form>
+							</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+			<p class="mt-4 text-sm text-gray-500 dark:text-gray-400">{{ articles | length }} article(s)</p>
+			{% else %}
+			<div class="text-center py-16 bg-white dark:bg-gray-800 rounded-xl shadow">
+				<p class="text-gray-600 dark:text-gray-400">
+					{% if query %}No articles match “{{ query }}”.{% else %}No articles yet.{% endif %}
+					<a href="{{ url_for('publish') }}" class="text-blue-600 dark:text-blue-400 hover:underline">Write one</a>.
+				</p>
+			</div>
+			{% endif %}
+		</main>
+
+		{% include 'footer.html' %}
+	</body>
+</html>

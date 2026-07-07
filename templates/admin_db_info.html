@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Database Info - Ollayor's Blog</title>
+		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+		<script src="https://cdn.tailwindcss.com"></script>
+		{% include '_theme.html' %}
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+		<link
+			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+		<link rel="stylesheet" href="{{ url_for('static', filename='blog-styles.css') }}" />
+		{% include 'analytics.html' %}
+	</head>
+	<body class="font-inter bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
+		{% include '_admin_nav.html' %}
+
+		<main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-12 pt-20">
+			<h1 class="text-3xl font-bold font-mono text-gray-800 dark:text-gray-100 mb-8">Database Info</h1>
+
+			<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+				<div class="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
+					<p class="text-sm text-gray-700 dark:text-gray-200">Articles</p>
+					<p class="text-3xl font-bold text-gray-900 dark:text-gray-100">{{ articles_count }}</p>
+				</div>
+				<div class="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
+					<p class="text-sm text-gray-700 dark:text-gray-200">Projects</p>
+					<p class="text-3xl font-bold text-gray-900 dark:text-gray-100">{{ projects_count }}</p>
+				</div>
+			</section>
+
+			<section class="bg-white dark:bg-gray-800 rounded-xl shadow">
+				<div class="p-6 border-b border-gray-200 dark:border-gray-700">
+					<h2 class="text-xl font-semibold font-mono text-gray-800 dark:text-gray-100">Connection</h2>
+				</div>
+				<div class="overflow-x-auto">
+					<table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+						<tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+							{% for key, value in db_summary.items() %}
+							<tr>
+								<td class="px-6 py-3 text-sm font-medium text-gray-800 dark:text-gray-100 uppercase tracking-wider">
+									{{ key }}
+								</td>
+								<td class="px-6 py-3 text-sm text-gray-700 dark:text-gray-200 font-mono">{{ value if value is not none else '—' }}</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+			</section>
+
+			<div class="mt-8">
+				<a href="{{ url_for('admin_dashboard') }}" class="text-blue-600 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-200">
+					<i class="fas fa-arrow-left mr-1"></i>Back to Dashboard
+				</a>
+			</div>
+		</main>
+
+		{% include 'footer.html' %}
+	</body>
+</html>

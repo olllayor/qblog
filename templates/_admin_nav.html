@@ -1,0 +1,96 @@
+{# Admin panel header. Include inside <body> on admin pages only.
+   Requires Tailwind (darkMode: 'class') + Font Awesome on the page. #}
+<header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 fixed w-full top-0 z-50">
+	<div class="container mx-auto px-4 sm:px-6 lg:px-8">
+		<div class="flex items-center justify-between h-14 gap-4">
+			<!-- Brand -->
+			<a href="{{ url_for('admin_dashboard') }}" class="flex items-center gap-2 shrink-0">
+				<span
+					class="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-600 text-white"
+					style="font-family: 'JetBrains Mono', monospace"
+					>Admin</span
+				>
+				<span class="hidden sm:inline text-sm font-semibold text-gray-800 dark:text-gray-100 font-mono"
+					>Ollayor's Blog</span
+				>
+			</a>
+
+			<!-- Primary admin nav (scrolls horizontally on small screens) -->
+			<nav
+				class="flex items-center gap-1 overflow-x-auto flex-1 min-w-0 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+				aria-label="Admin"
+			>
+				{% set nav_items = [
+					('admin_dashboard', 'fa-chart-line', 'Dashboard'),
+					('admin_articles', 'fa-newspaper', 'Articles'),
+					('publish', 'fa-pen', 'Write'),
+					('admin_projects', 'fa-layer-group', 'Projects'),
+					('admin_homepage', 'fa-home', 'Homepage'),
+					('admin_db_info', 'fa-database', 'DB Info'),
+				] %}
+				{% for endpoint, icon, label in nav_items %}
+				<a
+					href="{{ url_for(endpoint) }}"
+					{% if request.endpoint == endpoint %}aria-current="page"{% endif %}
+					class="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm whitespace-nowrap transition-colors {{ 'bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-medium' if request.endpoint == endpoint else 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700' }}"
+					style="font-family: 'JetBrains Mono', monospace"
+				>
+					<i class="fas {{ icon }} text-xs"></i><span>{{ label }}</span>
+				</a>
+				{% endfor %}
+			</nav>
+
+			<!-- Right side -->
+			<div class="flex items-center gap-1 shrink-0">
+				<a
+					href="{{ url_for('clear_cache') }}"
+					onclick="return confirm('Clear all caches?')"
+					title="Clear cache"
+					class="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+				>
+					<i class="fas fa-broom"></i>
+					<span class="sr-only">Clear cache</span>
+				</a>
+				<a
+					href="{{ url_for('index') }}"
+					target="_blank"
+					title="View site"
+					class="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+				>
+					<i class="fas fa-arrow-up-right-from-square"></i>
+					<span class="sr-only">View site</span>
+				</a>
+				<button
+					id="admin-theme-toggle"
+					type="button"
+					aria-label="Toggle dark mode"
+					class="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+				>
+					<i class="fas fa-moon dark:hidden"></i>
+					<i class="fas fa-sun hidden dark:inline"></i>
+				</button>
+				<a
+					href="{{ url_for('logout') }}"
+					title="Logout"
+					class="p-2 rounded-md text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+				>
+					<i class="fas fa-right-from-bracket"></i>
+					<span class="sr-only">Logout</span>
+				</a>
+			</div>
+		</div>
+	</div>
+</header>
+
+<script>
+	(function () {
+		var btn = document.getElementById('admin-theme-toggle');
+		if (!btn) return;
+		btn.addEventListener('click', function () {
+			var isDark = document.documentElement.classList.toggle('dark');
+			try {
+				localStorage.theme = isDark ? 'dark' : 'light';
+			} catch (e) {}
+		});
+	})();
+</script>

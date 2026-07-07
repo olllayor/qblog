@@ -1,0 +1,31 @@
+{# Shared dark-mode setup. Include in <head> AFTER the Tailwind CDN <script>
+   (the CDN script must load first so the `tailwind` global exists).
+   Applies the stored/system theme before first paint — no flash. #}
+<script>
+	(function () {
+		try {
+			var stored = localStorage.theme;
+			var isDark = stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches);
+			document.documentElement.classList.toggle('dark', isDark);
+		} catch (e) {}
+		if (typeof tailwind !== 'undefined') {
+			tailwind.config = { darkMode: 'class' };
+		}
+		// Follow system changes only while the user hasn't chosen explicitly.
+		window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
+			try {
+				if (!('theme' in localStorage)) {
+					document.documentElement.classList.toggle('dark', e.matches);
+				}
+			} catch (err) {}
+		});
+	})();
+</script>
+<style>
+	body,
+	body * {
+		transition-property: background-color, border-color, color, fill, stroke;
+		transition-duration: 0.3s;
+		transition-timing-function: ease;
+	}
+</style>

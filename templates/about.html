@@ -1,44 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<script>
-			tailwind.config = {
-				darkMode: 'class',
-			};
-		</script>
+{% extends 'base.html' %}
 
-		<!-- SEO Meta Tags for About Page -->
-		{% set page_title = "About Ollayor Maxammadnabiyev - Software Engineer | Python Developer" %} {% set
-		page_description = "Learn about Ollayor Maxammadnabiyev, a Software Engineer from Uzbekistan specializing in Python,
-		web development, Flask, FastAPI, and building innovative solutions. Available for freelance projects." %} {% include
-		'seo_meta.html' %}
+{% set page_title = "About Ollayor Maxammadnabiyev - Software Engineer | Python Developer" %}
+{% set page_description = "Learn about Ollayor Maxammadnabiyev, a Software Engineer from Uzbekistan specializing in Python, web development, Flask, FastAPI, and building innovative solutions. Available for freelance projects." %}
 
-		<!-- Preconnect to external domains -->
-		<link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin />
-		<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
-		<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+{% block head_extra %}
+<!-- Enhanced Person Schema for this page -->
+{% include 'person_schema.html' %}
+{% endblock %}
 
-		<link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}" />
-		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon-optimized.ico') }}" />
-		<script src="https://cdn.tailwindcss.com"></script>
-		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-		<link
-			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
-			rel="stylesheet"
-		/>
-		{% include 'analytics.html' %}
-
-		<!-- Enhanced Person Schema for this page -->
-		{% include 'person_schema.html' %}
-	</head>
-
-	<body class="font-mono bg-white dark:bg-black text-gray-900 dark:text-gray-100 min-h-screen flex flex-col relative">
-		{% include "_bg.html" %}
-		{% include "_nav.html" %}
-
+{% block content %}
 		<main class="w-full max-w-4xl mx-auto px-6 flex-grow py-12">
 			<!-- Hero Section -->
 			<section class="mb-16">
@@ -247,7 +217,4 @@
 				</div>
 			</section>
 		</main>
-
-		{% include "_footer.html" %}
-	</body>
-</html>
+{% endblock %}

@@ -1,55 +1,13 @@
-<!-- article.html -->
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<!-- Detect dark mode preference before page renders -->
-		<script>
-			(function () {
-				const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+{% extends 'base.html' %}
 
-				function applyTheme(isDark) {
-					if (isDark) {
-						document.documentElement.classList.add('dark');
-					} else {
-						document.documentElement.classList.remove('dark');
-					}
-				}
+{% set page_title = article.title + " - Ollayor's Blog" %}
+{% set page_description = article.get_summary(160) %}
+{% set page_type = "article" %}
+{% set page_image = first_image if first_image else url_for('static', filename='myself-social-optimized.jpg', _external=True) %}
+{% set article_date = article.date_published.isoformat() if article.date_published else "" %}
+{% set article_modified = article.date_updated.isoformat() if article.date_updated else "" %}
 
-				// Apply on initial load
-				applyTheme(darkModeQuery.matches);
-
-				// Listen for changes in real-time
-				darkModeQuery.addEventListener('change', (e) => applyTheme(e.matches));
-			})();
-			tailwind.config = { darkMode: 'class' };
-		</script>
-
-		<!-- Preconnect to external domains -->
-		<link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin />
-		<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
-		<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-
-		<script src="https://cdn.tailwindcss.com"></script>
-
-		<!-- SEO and Social Media Meta Tags for Articles -->
-		{% set page_title = article.title + " - Ollayor's Blog" %} {% set page_description = article.get_summary(160) %} {%
-		set page_type = "article" %} {% set page_image = first_image if first_image else url_for('static',
-		filename='myself-social-optimized.jpg', _external=True) %} {% set article_date = article.date_published.isoformat()
-		if article.date_published else "" %} {% set article_modified = article.date_updated.isoformat() if
-		article.date_updated else "" %} {% include 'seo_meta.html' %}
-		<link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}" />
-		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon-optimized.ico') }}" />
-		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
-		<link
-			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
-			rel="stylesheet"
-		/>
-		<!-- Enhanced blog styling -->
-		<link rel="stylesheet" href="{{ url_for('static', filename='blog-styles.css') }}" />
-
+{% block head_extra %}
 		<!-- Dark mode article text fix - loaded after Tailwind to override -->
 		<style>
 			/* Light mode - ensure dark text */
@@ -92,15 +50,11 @@
 				color: #bfdbfe !important;
 			}
 		</style>
-		{% include 'analytics.html' %}
-
 		<!-- Syntax highlighting runtime (no theme CSS; we style via blog-styles.css) -->
 		<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-	</head>
+{% endblock %}
 
-	<body class="font-mono bg-white dark:bg-black text-gray-900 dark:text-gray-100 min-h-screen flex flex-col relative">
-		{% include "_bg.html" %}
-
+{% block content %}
 		<!-- Reading progress indicator -->
 		<div id="reading-progress" class="fixed top-0 left-0 w-full h-0.5 bg-transparent z-50">
 			<div
@@ -108,8 +62,6 @@
 				style="width: 0%"
 			></div>
 		</div>
-
-		{% include "_nav.html" %}
 
 		<main class="flex-grow w-full max-w-3xl mx-auto px-6 py-12">
 			{% if article %}
@@ -144,9 +96,9 @@
 			</div>
 			{% endif %}
 		</main>
+{% endblock %}
 
-		{% include "_footer.html" %}
-
+{% block scripts %}
 		<script>
 			// Add copy buttons to code blocks inside article content
 			document.addEventListener('DOMContentLoaded', () => {
@@ -275,5 +227,4 @@
 			data-y_margin="15"
 		></script>
 		{% endif %}
-	</body>
-</html>
+{% endblock %}

@@ -47,12 +47,6 @@ class PostgresSearchService:
             logger.warning("Failed verifying search_vector column: %s", exc)
             return False
 
-    def index_article(self, article) -> bool:
-        return self.ensure_index()
-
-    def delete_article(self, slug: str) -> bool:
-        return True
-
     def search_published_slugs(
         self, query: str, page: int, per_page: int
     ) -> SearchResult:
