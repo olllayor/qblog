@@ -103,17 +103,21 @@ def connect_db():
 
     for attempt in range(_MAX_RETRIES):
         try:
+            fresh_pool = False
             if _POOL is None:
                 # Serverless functions handle one request at a time, and each
                 # instance gets its own pool; keep it small to avoid Postgres
                 # connection exhaustion across many concurrent instances.
                 max_conn = int(os.getenv("DB_POOL_MAX", "2"))
                 _POOL = SimpleConnectionPool(minconn=1, maxconn=max_conn, dsn=url)
+                fresh_pool = True
                 logger.info("Initialized DB pool (%s)", _safe_dsn_summary(url, source))
 
             conn = _POOL.getconn()
 
-            if not _is_connection_alive(conn):
+            # Connections straight out of a brand-new pool are fresh by
+            # definition; skip the liveness roundtrip on cold starts.
+            if not fresh_pool and not _is_connection_alive(conn):
                 logger.warning(
                     "Got stale connection from pool, resetting pool (attempt %d)",
                     attempt + 1,
@@ -191,6 +195,53 @@ def close_db(e=None):
         logger.debug("Database connection released.")
 
 
+# Tables plus the newest migrated columns. When adding a future migration,
+# extend this probe so cold starts keep skipping the full DDL walk.
+_SCHEMA_PROBE_TABLES = (
+    "articles",
+    "projects",
+    "site_settings",
+    "article_views",
+    "images",
+)
+_SCHEMA_PROBE_COLUMNS = (
+    ("article_views", "view_date"),
+    ("article_views", "referrer_host"),
+    ("projects", "is_visible"),
+    ("projects", "is_featured"),
+    ("projects", "sort_order"),
+)
+
+
+def _schema_is_ready(conn) -> bool:
+    """One-roundtrip check that the schema already exists.
+
+    Full init_db() runs ~25 sequential statements; on cold starts next to the
+    DB that is still ~25 RTTs of pure overhead on every fresh instance.
+    """
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT COUNT(*) FROM information_schema.tables "
+            "WHERE table_schema NOT IN ('pg_catalog', 'information_schema') "
+            "AND table_name = ANY(%s)",
+            (list(_SCHEMA_PROBE_TABLES),),
+        )
+        row = cur.fetchone()
+        if not row or row[0] < len(_SCHEMA_PROBE_TABLES):
+            return False
+        cur.execute(
+            "SELECT COUNT(*) FROM information_schema.columns "
+            "WHERE table_name || '.' || column_name = ANY(%s)",
+            (["{}.{}".format(*pair) for pair in _SCHEMA_PROBE_COLUMNS],),
+        )
+        row = cur.fetchone()
+        return bool(row and row[0] >= len(_SCHEMA_PROBE_COLUMNS))
+    except Exception as e:
+        logger.debug("Schema probe failed, running full init: %s", e)
+        return False
+
+
 def init_db():
     conn = get_db()  # Use get_db instead of connect_db
     if conn is None:
@@ -198,6 +249,9 @@ def init_db():
         return False
 
     try:
+        if _schema_is_ready(conn):
+            logger.debug("Schema already present, skipping DDL.")
+            return True
         cur = conn.cursor()
         cur.execute("""
             CREATE TABLE IF NOT EXISTS articles (

@@ -312,8 +312,9 @@
 			}
 		}
 		</style>
-		<!-- Syntax highlighting runtime (no theme CSS; we style via blog-styles.css) -->
-		<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+	<!-- Syntax highlighting runtime (no theme CSS; we style via blog-styles.css) -->
+	<link rel="preconnect" href="https://cdnjs.buymeacoffee.com" crossorigin />
+	<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -329,7 +330,7 @@
 	<aside id="article-rail" aria-label="Article sections">
 		<div class="rail-views" title="{{ view_count }} views">
 			<i class="far fa-eye" aria-hidden="true"></i>
-			<span>{{ view_count }} views</span>
+			<span data-view-count>{{ view_count }} views</span>
 		</div>
 		<nav id="article-rail-ticks" aria-label="Sections"></nav>
 		<div id="rail-track" hidden aria-hidden="true"><span id="rail-track-fill"></span></div>
@@ -352,7 +353,7 @@
 
 		<main class="flex-grow w-full max-w-3xl mx-auto px-6 py-12">
 			{% if article %}
-			<article>
+			<article data-article-slug="{{ article.slug }}">
 				<header class="mb-12 text-center">
 					<div
 						class="flex items-center justify-center gap-3 text-xs text-gray-500 dark:text-gray-500 uppercase tracking-wider font-medium mb-6"
@@ -366,7 +367,7 @@
 					</h1>
 				<div id="article-views-header" class="flex items-center justify-center gap-2 text-sm text-gray-500">
 					<i class="far fa-eye"></i>
-					<span>{{ view_count }} views</span>
+					<span data-view-count>{{ view_count }} views</span>
 				</div>
 				</header>
 
@@ -614,12 +615,59 @@
 					pre.appendChild(btn);
 				});
 
-				// Initialize highlight.js if available and add a small language badge like ChatGPT
-				try {
-					if (window.hljs && typeof window.hljs.highlightAll === 'function') {
-						window.hljs.highlightAll();
+			// Report this view + refresh the count. Runs client-side so the
+			// article HTML stays edge-cacheable; counts patch in async.
+			try {
+				const slugHost = document.querySelector('[data-article-slug]');
+				const slug = slugHost && slugHost.dataset.articleSlug;
+				if (slug) {
+					const payload = JSON.stringify({ slug, ref: document.referrer || '' });
+					if (navigator.sendBeacon) {
+						navigator.sendBeacon(
+							'/api/track-view',
+							new Blob([payload], { type: 'application/json' }),
+						);
+					} else {
+						fetch('/api/track-view', {
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body: payload,
+							keepalive: true,
+						}).catch(() => {});
 					}
-				} catch (_) {}
+					fetch(`/api/views/${encodeURIComponent(slug)}`, {
+						headers: { Accept: 'application/json' },
+					})
+						.then((r) => (r.ok ? r.json() : null))
+						.then((d) => {
+							if (!d || typeof d.views !== 'number') return;
+							const label = `${d.views} view${d.views === 1 ? '' : 's'}`;
+							document.querySelectorAll('[data-view-count]').forEach((el) => {
+								el.textContent = label;
+							});
+							const railViews = document.querySelector('#article-rail .rail-views');
+							if (railViews) railViews.title = label;
+						})
+						.catch(() => {});
+				}
+			} catch (_) {}
+
+			// Initialize highlight.js off the critical path: big code blocks
+			// can hold the main thread for hundreds of ms (INP).
+			try {
+				const runHl = () => {
+					try {
+						if (window.hljs && typeof window.hljs.highlightAll === 'function') {
+							window.hljs.highlightAll();
+						}
+					} catch (_) {}
+				};
+				if ('requestIdleCallback' in window) {
+					window.requestIdleCallback(runHl, { timeout: 2000 });
+				} else {
+					setTimeout(runHl, 0);
+				}
+			} catch (_) {}
 
 				// Add language badges to code blocks
 				blocks.forEach((pre) => {
@@ -655,18 +703,32 @@
 		</script>
 
 		{% if article %}
-		<!-- Buy Me a Coffee Widget: only on article pages -->
-		<script
-			data-name="BMC-Widget"
-			data-cfasync="false"
-			src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js"
-			data-id="ollayor"
-			data-description="Support me on Buy me a coffee!"
-			data-message="Tip me a coffee — thank you!"
-			data-color="#5F7FFF"
-			data-position="Right"
-			data-x_margin="15"
-			data-y_margin="15"
-		></script>
+		<!-- Buy Me a Coffee Widget: only on article pages, idle-loaded so it
+		     never blocks paint or input (supports JS-disabled: nothing breaks) -->
+		<script>
+			(function () {
+				function loadBmc() {
+					try {
+						var s = document.createElement('script');
+						s.src = 'https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js';
+						s.dataset.name = 'BMC-Widget';
+						s.dataset.cfasync = 'false';
+						s.dataset.id = 'ollayor';
+						s.dataset.description = 'Support me on Buy me a coffee!';
+						s.dataset.message = 'Tip me a coffee — thank you!';
+						s.dataset.color = '#5F7FFF';
+						s.dataset.position = 'Right';
+						s.dataset.x_margin = '15';
+						s.dataset.y_margin = '15';
+						document.body.appendChild(s);
+					} catch (_) {}
+				}
+				if ('requestIdleCallback' in window) {
+					window.requestIdleCallback(loadBmc, { timeout: 4000 });
+				} else {
+					window.addEventListener('load', loadBmc, { once: true });
+				}
+			})();
+		</script>
 		{% endif %}
 {% endblock %}

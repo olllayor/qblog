@@ -1,6 +1,7 @@
 import hmac
 import logging
 import os
+import re
 import threading
 import time
 from datetime import UTC, datetime
@@ -9,13 +10,13 @@ from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 from xml.sax.saxutils import escape as xml_escape
 
 import redis
-import sentry_sdk
 from dotenv import load_dotenv
 from flask import (
     Flask,
     Response,
     flash,
     jsonify,
+    make_response,
     redirect,
     render_template,
     request,
@@ -31,7 +32,6 @@ from flask_login import (
     logout_user,
 )
 from flask_wtf.csrf import CSRFProtect
-from posthog import Posthog
 from werkzeug.security import check_password_hash
 
 from articles import Article
@@ -51,12 +51,18 @@ POSTHOG_API_KEY = os.getenv("POSTHOG_API_KEY")
 POSTHOG_HOST = os.getenv("POSTHOG_HOST", "https://us.i.posthog.com")
 posthog = None
 if POSTHOG_API_KEY:
+    # Lazy import: posthog is heavy and only needed when configured.
+    from posthog import Posthog
+
     posthog = Posthog(project_api_key=POSTHOG_API_KEY, host=POSTHOG_HOST)
 else:
     logger.info("POSTHOG_API_KEY not set. PostHog analytics disabled.")
 
 SENTRY_DSN = os.getenv("SENTRY_DSN")
 if SENTRY_DSN:
+    # Lazy import: sentry_sdk costs hundreds of ms on cold starts.
+    import sentry_sdk
+
     sentry_sdk.init(
         dsn=SENTRY_DSN,
         # Add data like request headers and IP for users,
@@ -205,6 +211,55 @@ def invalidate_multiple_caches(*view_specs):
             logger.warning(f"Invalid view spec: {view_spec}")
 
 
+def edge_cache(response, s_maxage, swr=86400):
+    """Let Vercel's edge serve this response without running Python.
+
+    Warm function instances still benefit from safe_cached; this covers the
+    far more common case of a cold edge request. Only for public, logged-out
+    content (no sessions, flashes, or per-user data).
+    """
+    response.headers["Cache-Control"] = (
+        f"public, s-maxage={s_maxage}, stale-while-revalidate={swr}"
+    )
+    return response
+
+
+def _client_ip():
+    """Best-effort client IP: first entry of X-Forwarded-For on Vercel."""
+    xff = request.environ.get("HTTP_X_FORWARDED_FOR", "")
+    if xff:
+        return xff.split(",")[0].strip() or "unknown"
+    return request.environ.get("REMOTE_ADDR", "unknown")
+
+
+_IMG_TAG_RE = re.compile(r"<img\b[^>]*>", re.IGNORECASE)
+
+
+def lazy_content_images(html):
+    """Mark article content images for lazy load, except the first one.
+
+    Idempotent (skips tags that already declare loading). Keeps the lead
+    image eager with high fetch priority as the likely LCP element.
+    """
+    if not html:
+        return html
+    seen = 0
+
+    def repl(match):
+        nonlocal seen
+        tag = match.group(0)
+        if "loading=" in tag.lower():
+            return tag
+        seen += 1
+        if seen == 1:
+            extra = ' loading="eager" fetchpriority="high" decoding="async"'
+        else:
+            extra = ' loading="lazy" decoding="async"'
+        return tag[:-1].rstrip() + extra + ">"
+
+    return _IMG_TAG_RE.sub(repl, html)
+
+
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
 # Prefer a hashed password; fall back to plaintext for backward compatibility.
@@ -339,6 +394,18 @@ def logout():
     return redirect(url_for("login"))
 
 
+_view_totals_cache = {"ts": 0.0, "data": None}
+
+
+def cached_view_totals(ttl=120):
+    """view_totals is a full-table COUNT(*); reuse it briefly on hot paths."""
+    now = time.time()
+    if _view_totals_cache["data"] is None or now - _view_totals_cache["ts"] > ttl:
+        _view_totals_cache["data"] = Article.get_view_totals()
+        _view_totals_cache["ts"] = now
+    return _view_totals_cache["data"]
+
+
 @app.route("/")
 @safe_cached(timeout=300)
 def index():
@@ -354,18 +421,23 @@ def index():
     all_time_readers = 0
     if settings.get("show_readers_badge", True):
         try:
-            view_totals = Article.get_view_totals()
+            view_totals = cached_view_totals()
             all_time_readers = view_totals.get(
                 "all_time", view_totals.get("monthly", 0)
             )
         except Exception as e:
             logger.warning(f"Failed to load view totals: {e}")
 
-    return render_template(
-        "index.html",
-        projects=projects,
-        all_time_readers=all_time_readers,
-        hp=settings,
+    return edge_cache(
+        make_response(
+            render_template(
+                "index.html",
+                projects=projects,
+                all_time_readers=all_time_readers,
+                hp=settings,
+            )
+        ),
+        300,
     )
 
 
@@ -423,14 +495,17 @@ def rss_feed():
     </channel>
 </rss>"""
 
-    return Response(rss_xml, mimetype="application/rss+xml")
+    return edge_cache(Response(rss_xml, mimetype="application/rss+xml"), 600)
 
 
 @app.route("/projects")
 @safe_cached(timeout=180)
 def projects():
     visible_projects = Project.get_visible_projects()
-    return render_template("projects.html", projects=visible_projects)
+    return edge_cache(
+        make_response(render_template("projects.html", projects=visible_projects)),
+        300,
+    )
 
 
 @app.route("/blog")
@@ -445,14 +520,19 @@ def blog():
     duration = time.time() - start
     logger.info(f"/blog route executed in {duration:.3f} seconds")
     has_more = per_page < total_articles
-    return render_template(
-        "blog.html",
-        articles=articles,
-        per_page=per_page,
-        total_articles=total_articles,
-        has_more=has_more,
-        query=query,
-        search_degraded=search_degraded,
+    return edge_cache(
+        make_response(
+            render_template(
+                "blog.html",
+                articles=articles,
+                per_page=per_page,
+                total_articles=total_articles,
+                has_more=has_more,
+                query=query,
+                search_degraded=search_degraded,
+            )
+        ),
+        120,
     )
 
 
@@ -494,14 +574,18 @@ def api_articles():
             }
         )
 
-    return jsonify(
-        {
-            "articles": article_payload,
-            "has_more": has_more,
-            "total": total_articles,
-            "query": query,
-            "search_degraded": search_degraded,
-        }
+    return edge_cache(
+        jsonify(
+            {
+                "articles": article_payload,
+                "has_more": has_more,
+                "total": total_articles,
+                "query": query,
+                "search_degraded": search_degraded,
+            }
+        ),
+        120,
+        600,
     )
 
 
@@ -512,14 +596,8 @@ def cv_redirect():
 
 @app.route("/blog/<slug>")
 def article(slug: str):
-    # Always track the view (not cached) - this should always run
-    ip_address = request.environ.get(
-        "HTTP_X_FORWARDED_FOR", request.environ.get("REMOTE_ADDR", "unknown")
-    )
-    user_agent = request.environ.get("HTTP_USER_AGENT", "")
-    referrer_host = _referrer_host(request.referrer)
-    Article.track_view(slug, ip_address, user_agent, referrer_host)
-
+    # View tracking is intentionally NOT here: it runs client-side via
+    # /api/track-view so this HTML stays edge-cacheable.
     # Get article with caching (article content rarely changes)
     cache_key = f"article_content_{slug}"
     article = cache.get(cache_key)
@@ -543,45 +621,89 @@ def article(slug: str):
     # Extract first image for social media sharing
     first_image = article.get_first_image(request.url_root.rstrip("/"))
 
-    return render_template(
-        "article.html", article=article, view_count=view_count, first_image=first_image
+    # Lazy-load below-the-fold content images (idempotent, cached object safe)
+    article.content = lazy_content_images(article.content)
+
+    response = make_response(
+        render_template(
+            "article.html",
+            article=article,
+            view_count=view_count,
+            first_image=first_image,
+        )
+    )
+    if article.is_published:
+        # Same HTML for everyone; the count is patched fresh client-side.
+        return edge_cache(response, 600)
+    # Draft preview for the admin must never sit in a shared cache.
+    response.headers["Cache-Control"] = "private, no-store"
+    return response
+
+
+@app.route("/api/track-view", methods=["POST"])
+@csrf.exempt
+def track_view_api():
+    """Client-side view reporting so article HTML stays edge-cacheable."""
+    data = request.get_json(silent=True) or {}
+    slug = (data.get("slug") or "").strip()
+    if not slug or len(slug) > 200:
+        return jsonify({"status": "error", "message": "Bad slug"}), 400
+    user_agent = request.environ.get("HTTP_USER_AGENT", "")
+    referrer_host = _referrer_host_from_url((data.get("ref") or "").strip())
+    Article.track_view(slug, _client_ip(), user_agent, referrer_host)
+    return ("", 204)
+
+
+@app.route("/api/views/<slug>")
+def api_views(slug):
+    """Fresh view count for client-side patching of cached article HTML."""
+    slug = (slug or "").strip()
+    if not slug or len(slug) > 200:
+        return jsonify({"status": "error", "message": "Bad slug"}), 400
+    return edge_cache(
+        jsonify({"slug": slug, "views": Article.get_view_count(slug)}), 30, 300
     )
 
 
 @app.route("/talks")
 def talks():
-    return render_template("talks.html")
+    return edge_cache(make_response(render_template("talks.html")), 3600)
 
 
 @app.route("/about")
 @safe_cached(timeout=600)
 def about():
-    return render_template("about.html")
+    return edge_cache(make_response(render_template("about.html")), 3600)
 
 
 @app.route("/for-llms")
 @safe_cached(timeout=600)
 def for_llms():
-    return render_template("for_llms.html")
+    return edge_cache(make_response(render_template("for_llms.html")), 3600)
 
 
 @app.route("/matrix")
 def matrix():
-    return render_template("matrix.html")
+    return edge_cache(make_response(render_template("matrix.html")), 3600)
 
 
-def _referrer_host(referrer):
-    """Extract a bare host from a referrer URL; None for direct/self visits."""
-    if not referrer:
+def _referrer_host_from_url(url):
+    """Bare host from a referrer URL; None for empty/self visits."""
+    if not url:
         return None
     try:
-        parsed = urlparse(referrer)
+        parsed = urlparse(url)
         host = (parsed.hostname or "").lower()
         if not host or host == request.host.split(":")[0]:
             return None  # direct or same-site navigation
         return host[4:] if host.startswith("www.") else host
     except (ValueError, AttributeError):
         return None
+
+
+def _referrer_host(referrer):
+    """Extract a bare host from a referrer URL; None for direct/self visits."""
+    return _referrer_host_from_url(referrer)
 
 
 def _unique_slug(desired_slug, title):
@@ -1058,7 +1180,7 @@ def admin_homepage():
 @app.route("/compare")
 def compare_projects():
     # Logic for comparing projects
-    return render_template("compare.html")
+    return edge_cache(make_response(render_template("compare.html")), 3600)
 
 
 @app.errorhandler(404)
@@ -1104,7 +1226,9 @@ def sitemap():
         pages = generate_sitemap(app, articles=articles)
 
         sitemap_xml = render_template("sitemap.xml", pages=pages)
-        response = app.response_class(sitemap_xml, mimetype="application/xml")
+        response = edge_cache(
+            app.response_class(sitemap_xml, mimetype="application/xml"), 600
+        )
         return response
     except Exception as e:
         logger.error(f"Error generating sitemap: {e}")
@@ -1122,7 +1246,9 @@ def image_sitemap():
         images = generate_image_sitemap(app, articles=articles)
 
         sitemap_xml = render_template("image_sitemap.xml", images=images)
-        response = app.response_class(sitemap_xml, mimetype="application/xml")
+        response = edge_cache(
+            app.response_class(sitemap_xml, mimetype="application/xml"), 600
+        )
         return response
     except Exception as e:
         logger.error(f"Error generating image sitemap: {e}")
@@ -1146,7 +1272,9 @@ Disallow: /logout
 Disallow: /publish
 """
 
-    response = app.response_class(robots_content, mimetype="text/plain")
+    response = edge_cache(
+        app.response_class(robots_content, mimetype="text/plain"), 86400
+    )
     return response
 
 

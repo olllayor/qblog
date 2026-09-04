@@ -1,5 +1,8 @@
 {
 	"version": 2,
+	// Co-locate functions with Neon Postgres (eu-central-1) so each DB
+	// roundtrip costs single-digit ms instead of a transatlantic ~100ms.
+	"regions": ["fra1"],
 	"git": {
 		"deploymentEnabled": false
 	},
