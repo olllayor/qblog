@@ -14,39 +14,17 @@
 		{% include 'person_schema.html' %}
 
 		<!-- Preconnect to external domains for better performance -->
-		<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
-		<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link rel="preconnect" href="https://cloud.umami.is" crossorigin />
 
 		<!-- Favicon with multiple formats and cache busting -->
-		<link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}" />
-		<link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}" />
-		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon-optimized.ico') }}" />
-		<link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='favicon-optimized.ico') }}" />
-		<link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='favicon-256x256.png') }}" />
+		<link rel="icon" type="image/png" sizes="32x32" href="{{ static_versioned('favicon-32x32.png') }}" />
+		<link rel="icon" type="image/png" sizes="16x16" href="{{ static_versioned('favicon-16x16.png') }}" />
+		<link rel="icon" type="image/x-icon" href="{{ static_versioned('favicon-optimized.ico') }}" />
+		<link rel="shortcut icon" type="image/x-icon" href="{{ static_versioned('favicon-optimized.ico') }}" />
+		<link rel="apple-touch-icon" sizes="180x180" href="{{ static_versioned('favicon-256x256.png') }}" />
 
-		<link rel="stylesheet" href="{{ url_for('static', filename='tailwind.css') }}" />
+		<link rel="stylesheet" href="{{ static_versioned('tailwind.css') }}" />
 		{% include '_theme.html' %}
-
-		<!-- Non-blocking Font Awesome -->
-		<link
-			rel="preload"
-			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-			as="style"
-			onload="this.onload=null;this.rel='stylesheet'"
-		/>
-		<noscript
-			><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-		/></noscript>
-
-		<!-- Non-blocking fonts with display=swap -->
-		<link
-			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
-			rel="stylesheet"
-			media="print"
-			onload="this.media='all'"
-		/>
 		{% include 'analytics.html' %}
 	</head>
 
@@ -84,7 +62,7 @@
 						title="Ollayor's GitHub Profile"
 						itemprop="sameAs"
 					>
-						<i class="fab fa-github text-2xl"></i>
+						{{ icon('github', 'w-6 h-6') }}
 						<span class="sr-only">GitHub - olllayor</span>
 					</a>
 					<a
@@ -95,7 +73,7 @@
 						title="Ollayor's Twitter Profile"
 						itemprop="sameAs"
 					>
-						<i class="fab fa-twitter text-2xl"></i>
+						{{ icon('twitter', 'w-6 h-6') }}
 						<span class="sr-only">Twitter - @olllayor</span>
 					</a>
 					<a
@@ -106,7 +84,7 @@
 						title="Ollayor's Telegram Channel"
 						itemprop="sameAs"
 					>
-						<i class="fab fa-telegram text-2xl"></i>
+						{{ icon('telegram', 'w-6 h-6') }}
 						<span class="sr-only">Telegram - @Qprogrammer</span>
 					</a>
 					<a
@@ -117,7 +95,7 @@
 						title="Ollayor's LinkedIn Profile"
 						itemprop="sameAs"
 					>
-						<i class="fab fa-linkedin text-2xl"></i>
+						{{ icon('linkedin', 'w-6 h-6') }}
 						<span class="sr-only">LinkedIn - Ollayor Maxammadnabiyev</span>
 					</a>
 					<a
@@ -125,16 +103,16 @@
 						class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
 						title="Terminal Matrix"
 					>
-						<i class="fas fa-terminal text-2xl"></i>
+						{{ icon('terminal', 'w-6 h-6') }}
 						<span class="sr-only">Terminal</span>
 					</a>
 					<a
-						href="{{ url_for('static', filename='media/Olloyor_s_resume.pdf') }}"
+						href="{{ static_versioned('media/Olloyor_s_resume.pdf') }}"
 						target="_blank"
 						class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
 						title="Download Ollayor's CV / Resume"
 					>
-						<i class="fa-solid fa-newspaper text-2xl"></i>
+						{{ icon('newspaper', 'w-6 h-6') }}
 						<span class="sr-only">CV / Resume</span>
 					</a>
 				</div>
@@ -160,9 +138,7 @@
 							>
 							{% endif %}
 						</div>
-						<i
-							class="fas fa-arrow-right text-xs text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-transform group-hover:translate-x-0.5 ml-1"
-						></i>
+						{{ icon('arrow-right', 'w-3 h-3 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-transform group-hover:translate-x-0.5 ml-1') }}
 					</a>
 				</div>
 			</div>
@@ -192,12 +168,13 @@
 									class="w-6 h-6 object-cover rounded"
 									width="24"
 									height="24"
-									loading="lazy"
+									loading="{{ 'eager' if loop.index <= 2 else 'lazy' }}"
+									{% if loop.index <= 2 %}fetchpriority="high"{% endif %}
 									decoding="async"
 								/>
 								{% else %}
 								<div class="p-1.5 bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
-									<i class="fas fa-code text-gray-500 text-xs"></i>
+									{{ icon('code', 'w-3 h-3 text-gray-500') }}
 								</div>
 								{% endif %}
 								<h3 class="font-bold text-sm">{{ project.title }}</h3>
@@ -210,7 +187,7 @@
 									class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
 									title="View on GitHub"
 								>
-									<i class="fab fa-github text-xs"></i>
+									{{ icon('github', 'w-3 h-3') }}
 								</a>
 								{% endif %} {% if project.live_demo_link %}
 								<a
@@ -219,7 +196,7 @@
 									class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
 									title="Live Demo"
 								>
-									<i class="fas fa-external-link-alt text-xs"></i>
+									{{ icon('external-link', 'w-3 h-3') }}
 								</a>
 								{% endif %}
 							</div>
@@ -261,7 +238,7 @@
 						class="inline-flex items-center gap-2 text-xs text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors group"
 					>
 						<span>View all projects</span>
-						<i class="fas fa-arrow-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
+						{{ icon('arrow-right', 'w-2.5 h-2.5 group-hover:translate-x-1 transition-transform') }}
 					</a>
 				</div>
 			</div>
@@ -314,8 +291,9 @@
 						<button
 							onclick="closeProjectModal(event)"
 							class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors p-1"
+							aria-label="Close modal"
 						>
-							<i class="fas fa-times text-lg"></i>
+							{{ icon('times', 'w-5 h-5') }}
 						</button>
 					</div>
 
@@ -333,7 +311,7 @@
 							class="flex-1 items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium text-sm hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
 							style="display: none"
 						>
-							<i class="fab fa-github"></i>
+							{{ icon('github', 'w-4 h-4') }}
 							<span>View Code</span>
 						</a>
 						<a
@@ -343,7 +321,7 @@
 							class="flex-1 items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 font-medium text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
 							style="display: none"
 						>
-							<i class="fas fa-external-link-alt"></i>
+							{{ icon('external-link', 'w-4 h-4') }}
 							<span>Live Demo</span>
 						</a>
 					</div>

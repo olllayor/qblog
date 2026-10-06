@@ -179,7 +179,7 @@
 						target="_blank"
 						class="flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
 					>
-						<i class="fab fa-github text-xl"></i>
+						{{ icon('github', 'w-5 h-5') }}
 						<span>GitHub</span>
 					</a>
 					<a
@@ -187,7 +187,7 @@
 						target="_blank"
 						class="flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
 					>
-						<i class="fab fa-linkedin text-xl text-blue-600"></i>
+						{{ icon('linkedin', 'w-5 h-5 text-blue-600') }}
 						<span>LinkedIn</span>
 					</a>
 					<a
@@ -195,7 +195,7 @@
 						target="_blank"
 						class="flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
 					>
-						<i class="fab fa-twitter text-xl text-blue-400"></i>
+						{{ icon('twitter', 'w-5 h-5 text-blue-400') }}
 						<span>Twitter</span>
 					</a>
 					<a
@@ -203,15 +203,15 @@
 						target="_blank"
 						class="flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
 					>
-						<i class="fab fa-telegram text-xl text-blue-500"></i>
+						{{ icon('telegram', 'w-5 h-5 text-blue-500') }}
 						<span>Telegram</span>
 					</a>
 					<a
-						href="{{ url_for('static', filename='media/Olloyor_s_resume.pdf') }}"
+						href="{{ static_versioned('media/Olloyor_s_resume.pdf') }}"
 						target="_blank"
 						class="flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
 					>
-						<i class="fas fa-file-pdf text-xl text-red-500"></i>
+						{{ icon('file-pdf', 'w-5 h-5 text-red-500') }}
 						<span>Resume/CV</span>
 					</a>
 				</div>

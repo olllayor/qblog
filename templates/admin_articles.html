@@ -4,15 +4,10 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Articles - Ollayor's Blog</title>
-		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+		<link rel="icon" type="image/x-icon" href="{{ static_versioned('favicon.ico') }}" />
 		<script src="https://cdn.tailwindcss.com"></script>
 		{% include '_theme.html' %}
-		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-		<link
-			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
-			rel="stylesheet"
-		/>
-		<link rel="stylesheet" href="{{ url_for('static', filename='blog-styles.css') }}" />
+		<link rel="stylesheet" href="{{ static_versioned('blog-styles.css') }}" />
 		{% include 'analytics.html' %}
 	</head>
 	<body class="font-inter bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
@@ -23,10 +18,10 @@
 				<h1 class="text-3xl font-bold font-mono text-gray-800 dark:text-gray-100">Articles</h1>
 				<a
 					href="{{ url_for('publish') }}"
-					class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors"
+					class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors"
 					style="font-family: 'JetBrains Mono', monospace"
 				>
-					<i class="fas fa-plus mr-2"></i>New Article
+					{{ icon('plus', 'w-4 h-4 mr-2 inline-block') }}New Article
 				</a>
 			</div>
 
@@ -68,8 +63,9 @@
 					<button
 						type="submit"
 						class="px-3 py-2 rounded-md bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 text-sm"
+						aria-label="Search"
 					>
-						<i class="fas fa-search"></i>
+						{{ icon('search', 'w-4 h-4') }}
 					</button>
 				</form>
 			</div>
@@ -126,16 +122,18 @@
 								<a
 									href="{{ url_for('article', slug=a.slug) }}"
 									target="_blank"
-									class="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
+									class="inline-block text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
 									title="View"
-									><i class="fas fa-arrow-up-right-from-square"></i
-								></a>
+									aria-label="View"
+									>{{ icon('external-link', 'w-4 h-4') }}</a
+								>
 								<a
 									href="{{ url_for('edit_article', slug=a.slug) }}"
-									class="text-blue-600 hover:text-blue-800 dark:text-blue-400"
+									class="inline-block text-blue-600 hover:text-blue-800 dark:text-blue-400"
 									title="Edit"
-									><i class="fas fa-pen"></i
-								></a>
+									aria-label="Edit"
+									>{{ icon('pencil', 'w-4 h-4') }}</a
+								>
 								<form
 									action="{{ url_for('delete_article', slug=a.slug) }}"
 									method="POST"
@@ -143,8 +141,8 @@
 									onsubmit="return confirm('Delete “{{ a.title }}”? This cannot be undone.');"
 								>
 									<input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-									<button type="submit" class="text-red-600 hover:text-red-800 dark:text-red-400" title="Delete">
-										<i class="fas fa-trash"></i>
+									<button type="submit" class="text-red-600 hover:text-red-800 dark:text-red-400" title="Delete" aria-label="Delete">
+										{{ icon('trash', 'w-4 h-4') }}
 									</button>
 								</form>
 							</td>

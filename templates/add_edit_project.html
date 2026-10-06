@@ -4,17 +4,9 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>{{ 'Edit' if is_edit else 'Add' }} Project - Admin</title>
-		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+		<link rel="icon" type="image/x-icon" href="{{ static_versioned('favicon.ico') }}" />
 		<script src="https://cdn.tailwindcss.com"></script>
 		{% include '_theme.html' %}
-		<link
-			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
-			rel="stylesheet"
-		/>
-		<link
-			href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap"
-			rel="stylesheet"
-		/>
 		{% include 'analytics.html' %}
 	</head>
 
@@ -26,8 +18,9 @@
 				<a
 					href="{{ url_for('admin_projects') }}"
 					class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+					aria-label="Back to projects"
 				>
-					<i class="fas fa-arrow-left text-xl"></i>
+					{{ icon('arrow-left', 'w-5 h-5') }}
 				</a>
 				<h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200" style="font-family: 'Geist Mono', monospace">
 					{{ 'Edit' if is_edit else 'Add New' }} Project

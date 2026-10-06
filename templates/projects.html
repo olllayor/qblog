@@ -29,7 +29,8 @@
 								src="{{ project.image_url }}"
 								alt="{{ project.title }}"
 								class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-								loading="lazy"
+								loading="{{ 'eager' if loop.index <= 2 else 'lazy' }}"
+								{% if loop.index <= 2 %}fetchpriority="high"{% endif %}
 							/>
 						</div>
 						{% endif %}
@@ -47,16 +48,18 @@
 										href="{{ project.github_link }}"
 										target="_blank"
 										class="text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+										aria-label="GitHub Repository"
 									>
-										<i class="fab fa-github text-lg"></i>
+										{{ icon('github', 'w-5 h-5') }}
 									</a>
 									{% endif %} {% if project.live_demo_link %}
 									<a
 										href="{{ project.live_demo_link }}"
 										target="_blank"
 										class="text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+										aria-label="Live Demo"
 									>
-										<i class="fas fa-external-link-alt text-lg"></i>
+										{{ icon('external-link', 'w-5 h-5') }}
 									</a>
 									{% endif %}
 								</div>
@@ -102,8 +105,9 @@
 				<button
 					class="absolute top-0 right-0 -mt-12 text-white/70 hover:text-white transition-colors"
 					onclick="closeModal()"
+					aria-label="Close modal"
 				>
-					<i class="fas fa-times text-2xl"></i>
+					{{ icon('times', 'w-6 h-6') }}
 				</button>
 			</div>
 		</div>

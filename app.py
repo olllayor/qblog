@@ -1,3 +1,4 @@
+import hashlib
 import hmac
 import logging
 import os
@@ -6,6 +7,7 @@ import threading
 import time
 from datetime import UTC, datetime
 from functools import wraps
+from pathlib import Path
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 from xml.sax.saxutils import escape as xml_escape
 
@@ -15,6 +17,7 @@ from flask import (
     Flask,
     Response,
     flash,
+    has_request_context,
     jsonify,
     make_response,
     redirect,
@@ -36,6 +39,7 @@ from werkzeug.security import check_password_hash
 
 from articles import Article
 from database import close_db, get_database_url, init_db
+from icons import render_icon
 from images import ImageStore
 from projects import Project
 from search import get_search_service
@@ -77,10 +81,58 @@ csrf = CSRFProtect(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
+_static_hash_cache: dict[str, str] = {}
+
+
+def get_static_version(filename: str) -> str:
+    """Return an MD5 hash query parameter for static assets for cache busting."""
+    if not filename:
+        return ""
+    if not app.debug and filename in _static_hash_cache:
+        return _static_hash_cache[filename]
+    filepath = Path(app.static_folder or "static") / filename
+    if filepath.is_file():
+        try:
+            h = hashlib.md5(filepath.read_bytes(), usedforsecurity=False).hexdigest()[
+                :8
+            ]
+            if not app.debug:
+                _static_hash_cache[filename] = h
+            return h
+        except OSError:
+            pass
+    return ""
+
+
+def versioned_static(filename: str) -> str:
+    """Return versioned URL for a static file (e.g. /static/css/tailwind.css?v=abcdef12)."""
+    if has_request_context():
+        url = url_for("static", filename=filename)
+    else:
+        url = f"/static/{filename}"
+    v = get_static_version(filename)
+    return f"{url}?v={v}" if v else url
+
+
+static_versioned = versioned_static
+
 
 @app.context_processor
 def inject_globals():
-    return {"now_year": datetime.now(UTC).year}
+    return {
+        "now_year": datetime.now(UTC).year,
+        "versioned_static": versioned_static,
+        "static_versioned": static_versioned,
+        "icon": render_icon,
+    }
+
+
+app.jinja_env.filters["versioned_static"] = versioned_static
+app.jinja_env.filters["static_versioned"] = static_versioned
+app.jinja_env.filters["icon"] = render_icon
+app.jinja_env.globals["versioned_static"] = versioned_static
+app.jinja_env.globals["static_versioned"] = static_versioned
+app.jinja_env.globals["icon"] = render_icon
 
 
 TWITTER_IMAGE_HOSTS = {"pbs.twimg.com"}
@@ -248,6 +300,8 @@ def lazy_content_images(html):
 
     Idempotent (skips tags that already declare loading). Keeps the lead
     image eager with high fetch priority as the likely LCP element.
+    Enforces aspect-ratio or dimensions so browsers allocate layout space before
+    image decode, preventing layout shifts (CLS).
     """
     if not html:
         return html
@@ -256,14 +310,37 @@ def lazy_content_images(html):
     def repl(match):
         nonlocal seen
         tag = match.group(0)
-        if "loading=" in tag.lower():
-            return tag
-        seen += 1
-        if seen == 1:
-            extra = ' loading="eager" fetchpriority="high" decoding="async"'
-        else:
-            extra = ' loading="lazy" decoding="async"'
-        return tag[:-1].rstrip() + extra + ">"
+        tag_lower = tag.lower()
+
+        has_dims = "width=" in tag_lower and "height=" in tag_lower
+        has_aspect = "aspect-ratio" in tag_lower
+
+        extra_parts = []
+        if "loading=" not in tag_lower:
+            seen += 1
+            if seen == 1:
+                extra_parts.append(
+                    'loading="eager" fetchpriority="high" decoding="async"'
+                )
+            else:
+                extra_parts.append('loading="lazy" decoding="async"')
+
+        if not has_dims and not has_aspect:
+            style_match = re.search(r'style=(["\'])(.*?)\1', tag, re.IGNORECASE)
+            if style_match:
+                existing_style = style_match.group(2).rstrip(";")
+                new_style = f'style="{existing_style}; aspect-ratio: 16 / 9;"'
+                tag = tag[: style_match.start()] + new_style + tag[style_match.end() :]
+            else:
+                extra_parts.append('style="aspect-ratio: 16 / 9;"')
+
+        if extra_parts:
+            if tag.endswith("/>"):
+                tag = tag[:-2].rstrip() + " " + " ".join(extra_parts) + " />"
+            else:
+                tag = tag[:-1].rstrip() + " " + " ".join(extra_parts) + ">"
+
+        return tag
 
     return _IMG_TAG_RE.sub(repl, html)
 

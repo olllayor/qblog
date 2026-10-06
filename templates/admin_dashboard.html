@@ -4,15 +4,10 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Admin Dashboard - Ollayor's Blog</title>
-		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+		<link rel="icon" type="image/x-icon" href="{{ static_versioned('favicon.ico') }}" />
 		<script src="https://cdn.tailwindcss.com"></script>
 		{% include '_theme.html' %}
-		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-		<link
-			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
-			rel="stylesheet"
-		/>
-		<link rel="stylesheet" href="{{ url_for('static', filename='blog-styles.css') }}" />
+		<link rel="stylesheet" href="{{ static_versioned('blog-styles.css') }}" />
 		{% include 'analytics.html' %}
 	</head>
 	<body class="font-inter bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col">
@@ -29,7 +24,7 @@
 							<p class="text-sm text-gray-700 dark:text-gray-200">Total Articles</p>
 							<p class="text-3xl font-bold text-gray-900 dark:text-gray-100">{{ articles_count }}</p>
 						</div>
-						<i class="fas fa-file-lines text-blue-500 text-2xl"></i>
+						{{ icon('file-lines', 'w-6 h-6 text-blue-500') }}
 					</div>
 				</div>
 				<div class="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
@@ -38,7 +33,7 @@
 							<p class="text-sm text-gray-700 dark:text-gray-200">Published</p>
 							<p class="text-3xl font-bold text-gray-900 dark:text-gray-100">{{ published_count }}</p>
 						</div>
-						<i class="fas fa-check-circle text-green-500 text-2xl"></i>
+						{{ icon('check-circle', 'w-6 h-6 text-green-500') }}
 					</div>
 				</div>
 				<div class="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
@@ -47,7 +42,7 @@
 							<p class="text-sm text-gray-700 dark:text-gray-200">Drafts</p>
 							<p class="text-3xl font-bold text-gray-900 dark:text-gray-100">{{ drafts_count }}</p>
 						</div>
-						<i class="fas fa-pencil text-amber-500 text-2xl"></i>
+						{{ icon('pencil', 'w-6 h-6 text-amber-500') }}
 					</div>
 				</div>
 				<div class="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
@@ -56,7 +51,7 @@
 							<p class="text-sm text-gray-700 dark:text-gray-200">Projects</p>
 							<p class="text-3xl font-bold text-gray-900 dark:text-gray-100">{{ projects_count }}</p>
 						</div>
-						<i class="fas fa-diagram-project text-purple-500 text-2xl"></i>
+						{{ icon('diagram-project', 'w-6 h-6 text-purple-500') }}
 					</div>
 				</div>
 				<div class="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
@@ -65,7 +60,7 @@
 							<p class="text-sm text-gray-700 dark:text-gray-200">Views (Today)</p>
 							<p class="text-3xl font-bold text-gray-900 dark:text-gray-100">{{ daily_views }}</p>
 						</div>
-						<i class="fas fa-calendar-day text-amber-500 text-2xl"></i>
+						{{ icon('calendar', 'w-6 h-6 text-amber-500') }}
 					</div>
 				</div>
 				<div class="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
@@ -74,7 +69,7 @@
 							<p class="text-sm text-gray-700 dark:text-gray-200">Views (This Month)</p>
 							<p class="text-3xl font-bold text-gray-900 dark:text-gray-100">{{ monthly_views }}</p>
 						</div>
-						<i class="fas fa-calendar-alt text-indigo-500 text-2xl"></i>
+						{{ icon('calendar', 'w-6 h-6 text-indigo-500') }}
 					</div>
 				</div>
 			</section>
@@ -165,10 +160,8 @@
 						{% for d in device_breakdown %}
 						<div>
 							<div class="flex justify-between text-sm mb-1">
-								<span class="text-gray-700 dark:text-gray-200">
-									<i
-										class="fas {{ {'Mobile':'fa-mobile-screen','Tablet':'fa-tablet-screen-button','Desktop':'fa-desktop','Bot':'fa-robot'}[d.label] }} text-gray-400 mr-1.5"
-									></i>{{ d.label }}
+								<span class="text-gray-700 dark:text-gray-200 flex items-center">
+									{{ icon(d.label, 'w-4 h-4 text-gray-400 mr-1.5 inline-block') }}{{ d.label }}
 								</span>
 								<span class="text-gray-500 dark:text-gray-400"
 									>{{ d.count }} · {{ (d.count / device_total * 100) | round }}%</span
@@ -197,10 +190,8 @@
 					<ul class="divide-y divide-gray-100 dark:divide-gray-700">
 						{% for r in top_referrers %}
 						<li class="flex items-center justify-between py-2 text-sm">
-							<span class="text-gray-700 dark:text-gray-200 truncate">
-								{% if r.host == 'Direct' %}<i class="fas fa-link text-gray-400 mr-1.5"></i>{% else %}<i
-									class="fas fa-globe text-gray-400 mr-1.5"
-								></i>{% endif %}{{ r.host }}
+							<span class="text-gray-700 dark:text-gray-200 truncate flex items-center">
+								{% if r.host == 'Direct' %}{{ icon('link', 'w-4 h-4 text-gray-400 mr-1.5 inline-block') }}{% else %}{{ icon('globe', 'w-4 h-4 text-gray-400 mr-1.5 inline-block') }}{% endif %}{{ r.host }}
 							</span>
 							<span class="font-semibold text-gray-900 dark:text-gray-100">{{ r.views }}</span>
 						</li>
@@ -217,25 +208,25 @@
 				<h2 class="text-xl font-semibold font-mono text-gray-800 dark:text-gray-100 mb-4">Quick Actions</h2>
 				<div class="flex flex-wrap gap-4">
 					<a href="{{ url_for('publish') }}" class="liquid-glass-btn liquid-glass-btn--primary"
-						><i class="fas fa-plus"></i><span class="text-gray-900 dark:text-gray-100">New Article</span></a
+						>{{ icon('plus', 'w-4 h-4') }}<span class="text-gray-900 dark:text-gray-100">New Article</span></a
 					>
 					<a href="{{ url_for('admin_articles') }}" class="liquid-glass-btn"
-						><i class="fas fa-newspaper"></i><span class="text-gray-900 dark:text-gray-100">All Articles</span></a
+						>{{ icon('newspaper', 'w-4 h-4') }}<span class="text-gray-900 dark:text-gray-100">All Articles</span></a
 					>
 					<a href="{{ url_for('admin_projects') }}" class="liquid-glass-btn"
-						><i class="fas fa-layer-group"></i><span class="text-gray-900 dark:text-gray-100">Manage Projects</span></a
+						>{{ icon('layer-group', 'w-4 h-4') }}<span class="text-gray-900 dark:text-gray-100">Manage Projects</span></a
 					>
 					<a href="{{ url_for('admin_homepage') }}" class="liquid-glass-btn"
-						><i class="fas fa-home"></i><span class="text-gray-900 dark:text-gray-100">Homepage Settings</span></a
+						>{{ icon('home', 'w-4 h-4') }}<span class="text-gray-900 dark:text-gray-100">Homepage Settings</span></a
 					>
 					<a href="{{ url_for('blog') }}" class="liquid-glass-btn"
-						><i class="fas fa-list"></i><span class="text-gray-900 dark:text-gray-100">View Blog</span></a
+						>{{ icon('list', 'w-4 h-4') }}<span class="text-gray-900 dark:text-gray-100">View Blog</span></a
 					>
 					<a
 						href="{{ url_for('clear_cache') }}"
 						class="liquid-glass-btn liquid-glass-btn--danger"
 						onclick="return confirm('Clear all caches?')"
-						><i class="fas fa-broom"></i><span class="text-gray-900 dark:text-gray-100">Clear Cache</span></a
+						>{{ icon('broom', 'w-4 h-4') }}<span class="text-gray-900 dark:text-gray-100">Clear Cache</span></a
 					>
 				</div>
 			</section>

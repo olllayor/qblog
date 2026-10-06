@@ -4,15 +4,7 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>{{ 'Edit Story' if article else 'Write your story' }} - Ollayor's Blog</title>
-		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" />
-
-		<!-- Fonts -->
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link
-			href="https://fonts.googleapis.com/css2?family=Charter:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@300;400;500;600;700&display=swap"
-			rel="stylesheet"
-		/>
+		<link rel="icon" type="image/x-icon" href="{{ static_versioned('favicon.ico') }}" />
 
 		<!-- Tailwind CSS -->
 		<script src="https://cdn.tailwindcss.com"></script>
@@ -38,9 +30,6 @@
 				}
 			} catch (e) {}
 		</script>
-
-		<!-- Font Awesome -->
-		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
 		<style>
 			.medium-editor {
@@ -269,9 +258,10 @@
 						<a
 							href="{{ url_for('admin_articles') }}"
 							title="Back to articles"
+							aria-label="Back to articles"
 							class="icon-btn text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
 						>
-							<i class="fas fa-arrow-left"></i>
+							{{ icon('arrow-left', 'w-4 h-4') }}
 						</a>
 						<span id="stateLabel" class="text-sm text-gray-500 dark:text-gray-400 truncate">
 							{% if article and article.is_published %}Editing{% else %}Draft in{% endif %}
@@ -283,14 +273,14 @@
 
 					<!-- Center - Auto-save status -->
 					<div class="auto-save" id="autoSaveStatus">
-						<i class="fas fa-circle text-gray-400" id="saveIcon"></i>
+						<span id="saveIcon" class="inline-flex items-center">{{ icon('circle', 'w-2.5 h-2.5 text-gray-400') }}</span>
 						<span id="saveText">{% if article %}Saved{% else %}Unsaved draft{% endif %}</span>
 					</div>
 
 					<!-- Right side -->
 					<div class="flex items-center space-x-2">
-						<button type="button" id="imageBtn" title="Insert image" class="icon-btn hidden sm:block">
-							<i class="fas fa-image"></i>
+						<button type="button" id="imageBtn" title="Insert image" aria-label="Insert image" class="icon-btn hidden sm:block">
+							{{ icon('image', 'w-4 h-4') }}
 						</button>
 
 						{% if article and not article.is_published %}
@@ -305,9 +295,10 @@
 							<button
 								type="button"
 								id="menuBtn"
+								aria-label="Menu"
 								class="icon-btn text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
 							>
-								<i class="fas fa-ellipsis-h"></i>
+								{{ icon('ellipsis-h', 'w-4 h-4') }}
 							</button>
 
 							<div
@@ -317,38 +308,38 @@
 								<button
 									type="button"
 									id="menuImageBtn"
-									class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 sm:hidden"
+									class="inline-flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 sm:hidden"
 								>
-									<i class="fas fa-image mr-2"></i>Insert image
+									{{ icon('image', 'w-4 h-4 mr-2 inline-block') }}Insert image
 								</button>
 								<a
 									href="{{ url_for('admin_dashboard') }}"
-									class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+									class="inline-flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
 								>
-									<i class="fas fa-chart-line mr-2"></i>Dashboard
+									{{ icon('chart-line', 'w-4 h-4 mr-2 inline-block') }}Dashboard
 								</a>
 								<a
 									href="{{ url_for('admin_articles') }}"
-									class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+									class="inline-flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
 								>
-									<i class="fas fa-newspaper mr-2"></i>All Articles
+									{{ icon('newspaper', 'w-4 h-4 mr-2 inline-block') }}All Articles
 								</a>
 								<a
 									id="viewLink"
 									href="#"
 									target="_blank"
-									class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hidden"
+									class="inline-flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hidden"
 								>
-									<i class="fas fa-arrow-up-right-from-square mr-2"></i>View live
+									{{ icon('external-link', 'w-4 h-4 mr-2 inline-block') }}View live
 								</a>
 								<div class="border-t border-gray-200 dark:border-gray-600 my-1"></div>
 								<button
 									type="button"
 									id="darkModeToggle"
-									class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+									class="inline-flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
 								>
-									<i class="fas fa-moon mr-2 dark:hidden"></i>
-									<i class="fas fa-sun mr-2 hidden dark:inline"></i>
+									{{ icon('moon', 'w-4 h-4 mr-2 inline-block dark:hidden') }}
+									{{ icon('sun', 'w-4 h-4 mr-2 inline-block hidden dark:inline') }}
 									<span class="dark:hidden">Dark mode</span>
 									<span class="hidden dark:inline">Light mode</span>
 								</button>
@@ -356,9 +347,9 @@
 								<button
 									type="button"
 									id="deleteBtn"
-									class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/40"
+									class="inline-flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/40"
 								>
-									<i class="fas fa-trash mr-2"></i>Delete story
+									{{ icon('trash', 'w-4 h-4 mr-2 inline-block') }}Delete story
 								</button>
 							</div>
 						</div>
@@ -402,9 +393,9 @@
 					class="story-stats mt-8 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
 				>
 					<div class="flex items-center gap-6 flex-wrap">
-						<span class="flex items-center gap-2"><i class="fas fa-file-word text-blue-500"></i><span id="wordCount">0 words</span></span>
-						<span class="flex items-center gap-2"><i class="fas fa-clock text-green-500"></i><span id="readingTime">1 min read</span></span>
-						<span class="flex items-center gap-2"><i class="fas fa-keyboard text-purple-500"></i><span id="charCount">0 characters</span></span>
+						<span class="flex items-center gap-2">{{ icon('file-lines', 'w-4 h-4 text-blue-500 inline-block') }}<span id="wordCount">0 words</span></span>
+						<span class="flex items-center gap-2">{{ icon('clock', 'w-4 h-4 text-green-500 inline-block') }}<span id="readingTime">1 min read</span></span>
+						<span class="flex items-center gap-2">{{ icon('keyboard', 'w-4 h-4 text-purple-500 inline-block') }}<span id="charCount">0 characters</span></span>
 					</div>
 				</div>
 			</form>
@@ -412,17 +403,17 @@
 
 		<!-- Floating Toolbar (appears on text selection) -->
 		<div id="floatingToolbar" class="floating-toolbar">
-			<button type="button" class="toolbar-btn" data-command="bold" title="Bold (Ctrl+B)"><i class="fas fa-bold"></i></button>
-			<button type="button" class="toolbar-btn" data-command="italic" title="Italic (Ctrl+I)"><i class="fas fa-italic"></i></button>
-			<button type="button" class="toolbar-btn" data-command="underline" title="Underline (Ctrl+U)"><i class="fas fa-underline"></i></button>
+			<button type="button" class="toolbar-btn" data-command="bold" title="Bold (Ctrl+B)" aria-label="Bold">{{ icon('bold', 'w-3.5 h-3.5') }}</button>
+			<button type="button" class="toolbar-btn" data-command="italic" title="Italic (Ctrl+I)" aria-label="Italic">{{ icon('italic', 'w-3.5 h-3.5') }}</button>
+			<button type="button" class="toolbar-btn" data-command="underline" title="Underline (Ctrl+U)" aria-label="Underline">{{ icon('underline', 'w-3.5 h-3.5') }}</button>
 			<div class="w-px h-6 bg-gray-600 mx-1"></div>
-			<button type="button" class="toolbar-btn" data-command="createLink" title="Add link (Ctrl+K)"><i class="fas fa-link"></i></button>
-			<button type="button" class="toolbar-btn" data-command="formatBlock" data-value="blockquote" title="Quote"><i class="fas fa-quote-left"></i></button>
-			<button type="button" class="toolbar-btn" data-command="formatBlock" data-value="h2" title="Heading"><i class="fas fa-heading"></i></button>
+			<button type="button" class="toolbar-btn" data-command="createLink" title="Add link (Ctrl+K)" aria-label="Add link">{{ icon('link', 'w-3.5 h-3.5') }}</button>
+			<button type="button" class="toolbar-btn" data-command="formatBlock" data-value="blockquote" title="Quote" aria-label="Quote">{{ icon('quote-left', 'w-3.5 h-3.5') }}</button>
+			<button type="button" class="toolbar-btn" data-command="formatBlock" data-value="h2" title="Heading" aria-label="Heading">{{ icon('heading', 'w-3.5 h-3.5') }}</button>
 			<div class="w-px h-6 bg-gray-600 mx-1"></div>
-			<button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="Bullet list"><i class="fas fa-list-ul"></i></button>
-			<button type="button" class="toolbar-btn" data-command="formatBlock" data-value="pre" title="Code block"><i class="fas fa-code"></i></button>
-			<button type="button" class="toolbar-btn" data-command="insertImage" title="Insert image"><i class="fas fa-image"></i></button>
+			<button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="Bullet list" aria-label="Bullet list">{{ icon('list', 'w-3.5 h-3.5') }}</button>
+			<button type="button" class="toolbar-btn" data-command="formatBlock" data-value="pre" title="Code block" aria-label="Code block">{{ icon('code', 'w-3.5 h-3.5') }}</button>
+			<button type="button" class="toolbar-btn" data-command="insertImage" title="Insert image" aria-label="Insert image">{{ icon('image', 'w-3.5 h-3.5') }}</button>
 		</div>
 
 		<!-- Publish Modal -->
@@ -432,7 +423,7 @@
 					<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100" id="modalTitle">
 						{% if article and article.is_published %}Update story{% else %}Publish story{% endif %}
 					</h3>
-					<button type="button" id="closeModal" class="text-gray-500 hover:text-gray-700" aria-label="Close"><i class="fas fa-times"></i></button>
+					<button type="button" id="closeModal" class="text-gray-500 hover:text-gray-700" aria-label="Close">{{ icon('times', 'w-4 h-4') }}</button>
 				</div>
 
 				<div class="space-y-4">
@@ -776,13 +767,13 @@
 					document.getElementById('saveText').textContent = text;
 					this.autoSaveStatus.classList.remove('saving', 'error');
 					if (state === 'saving') {
-						icon.className = 'fas fa-spinner fa-spin text-green-600';
+						icon.innerHTML = '<svg class="w-3 h-3 animate-spin text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>';
 						this.autoSaveStatus.classList.add('saving');
 					} else if (state === 'error') {
-						icon.className = 'fas fa-exclamation-triangle text-red-600';
+						icon.innerHTML = '<svg class="w-3 h-3 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>';
 						this.autoSaveStatus.classList.add('error');
 					} else {
-						icon.className = 'fas fa-circle text-gray-400';
+						icon.innerHTML = '<svg class="w-2.5 h-2.5 text-gray-400" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle></svg>';
 					}
 				}
 

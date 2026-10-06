@@ -11,33 +11,15 @@
 		{% include 'seo_meta.html' %}
 
 		<!-- Preconnect to external domains -->
-		<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
-		<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link rel="preconnect" href="https://cloud.umami.is" crossorigin />
 
-		<link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}" />
-		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon-optimized.ico') }}" />
-		<link rel="stylesheet" href="{{ url_for('static', filename='tailwind.css') }}" />
+		<link rel="icon" type="image/png" sizes="32x32" href="{{ static_versioned('favicon-32x32.png') }}" />
+		<link rel="icon" type="image/x-icon" href="{{ static_versioned('favicon-optimized.ico') }}" />
+		<link rel="stylesheet" href="{{ static_versioned('tailwind.css') }}" />
 		{% include '_theme.html' %}
 
-		<!-- Non-blocking Font Awesome -->
-		<link
-			rel="preload"
-			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-			as="style"
-			onload="this.onload=null;this.rel='stylesheet'"
-		/>
-		<noscript
-			><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-		/></noscript>
-
-		<link
-			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
-			rel="stylesheet"
-		/>
 		<!-- Enhanced blog styling -->
-		<link rel="stylesheet" href="{{ url_for('static', filename='blog-styles.css') }}" />
+		<link rel="stylesheet" href="{{ static_versioned('blog-styles.css') }}" />
 		{% include 'analytics.html' %}
 		{% block head_extra %}{% endblock %}
 	</head>

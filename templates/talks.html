@@ -9,11 +9,9 @@
 		and presentations by Ollayor Maxammadnabiyev on software engineering, programming, and technology topics." %} {%
 		include 'seo_meta.html' %}
 
-		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" />
-		<link rel="stylesheet" href="{{ url_for('static', filename='tailwind.css') }}" />
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
+		<link rel="icon" type="image/x-icon" href="{{ static_versioned('favicon.ico') }}" />
+		<link rel="stylesheet" href="{{ static_versioned('tailwind.css') }}" />
+		{% include '_theme.html' %}
 		{% include 'analytics.html' %}
 	</head>
 
