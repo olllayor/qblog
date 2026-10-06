@@ -13,7 +13,7 @@ import logging
 import psycopg2
 from PIL import Image, UnidentifiedImageError
 
-from database import get_db
+from database import commit_db, get_db, rollback_db
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +52,8 @@ def optimize(raw: bytes):
         img = img.resize((MAX_WIDTH, round(img.height * ratio)), Image.LANCZOS)
 
     out = io.BytesIO()
-    img.save(out, format="WEBP", quality=WEBP_QUALITY, method=6)
+    # method=4 offers 4-5x faster compression speed than method=6 with virtually identical visual quality
+    img.save(out, format="WEBP", quality=WEBP_QUALITY, method=4)
     return out.getvalue(), "image/webp"
 
 
@@ -90,11 +91,11 @@ class ImageStore:
                     len(data),
                 ),
             )
-            conn.commit()
+            commit_db(conn)
             return image_id
         except psycopg2.Error as e:
             logger.error(f"Error saving image: {e}")
-            conn.rollback()
+            rollback_db(conn)
             return None
 
     @staticmethod

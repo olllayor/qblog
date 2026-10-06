@@ -13,29 +13,31 @@ class SearchResult:
     degraded: bool = False
 
 
-class PostgresSearchService:
+class SearchService:
+    """Postgres tsvector search service for published articles."""
+
     def __init__(self):
         self._column_checked = False
 
-    def is_enabled(self) -> bool:
-        return True
-
     def ensure_index(self) -> bool:
+        """Verify the generated tsvector column is available for queries."""
         if self._column_checked:
             return True
+
         conn = get_db()
         if conn is None:
-            logger.warning("Search unavailable: database connection is None.")
             return False
+
         try:
             cur = conn.cursor()
             cur.execute(
                 """
-                SELECT 1 FROM information_schema.columns
+                SELECT 1
+                FROM information_schema.columns
                 WHERE table_name = 'articles' AND column_name = 'search_vector'
                 """
             )
-            if cur.fetchone() is None:
+            if not cur.fetchone():
                 logger.warning(
                     "articles.search_vector column missing. "
                     "Run init_db() to create it before searching."
@@ -70,7 +72,8 @@ class PostgresSearchService:
             cur.execute(
                 """
                 SELECT slug,
-                       ts_rank(search_vector, tsq) AS rank
+                       ts_rank(search_vector, tsq) AS rank,
+                       COUNT(*) OVER() AS total_count
                 FROM articles, websearch_to_tsquery('english', %s) AS tsq
                 WHERE search_vector @@ tsq
                   AND is_published = TRUE
@@ -79,19 +82,26 @@ class PostgresSearchService:
                 """,
                 (clean_query, per_page, from_),
             )
-            slugs = [row[0] for row in cur.fetchall() if row[0]]
+            rows = cur.fetchall()
+            if not rows:
+                if from_ > 0:
+                    cur.execute(
+                        """
+                        SELECT COUNT(*)
+                        FROM articles, websearch_to_tsquery('english', %s) AS tsq
+                        WHERE search_vector @@ tsq
+                          AND is_published = TRUE
+                        """,
+                        (clean_query,),
+                    )
+                    total_row = cur.fetchone()
+                    total = int(total_row[0]) if total_row else 0
+                else:
+                    total = 0
+                return SearchResult(slugs=[], total=total, degraded=False)
 
-            cur.execute(
-                """
-                SELECT COUNT(*)
-                FROM articles, websearch_to_tsquery('english', %s) AS tsq
-                WHERE search_vector @@ tsq
-                  AND is_published = TRUE
-                """,
-                (clean_query,),
-            )
-            total_row = cur.fetchone()
-            total = int(total_row[0]) if total_row else 0
+            slugs = [row[0] for row in rows if row[0]]
+            total = int(rows[0][2])
 
             return SearchResult(slugs=slugs, total=total, degraded=False)
         except Exception as exc:
@@ -104,8 +114,8 @@ class PostgresSearchService:
 _SEARCH_SERVICE = None
 
 
-def get_search_service() -> PostgresSearchService:
+def get_search_service() -> SearchService:
     global _SEARCH_SERVICE
     if _SEARCH_SERVICE is None:
-        _SEARCH_SERVICE = PostgresSearchService()
+        _SEARCH_SERVICE = SearchService()
     return _SEARCH_SERVICE
