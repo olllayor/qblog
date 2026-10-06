@@ -32,6 +32,7 @@
 								class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
 								loading="{{ 'eager' if project == first_image_project else 'lazy' }}"
 								{% if project == first_image_project %}fetchpriority="high"{% endif %}
+								decoding="async"
 							/>
 						</div>
 						{% endif %}

@@ -353,7 +353,16 @@
 
 		<main class="flex-grow w-full max-w-3xl mx-auto px-6 py-12">
 			{% if article %}
-			<article data-article-slug="{{ article.slug }}">
+			<nav aria-label="Breadcrumb" class="mb-8 text-xs text-gray-500 dark:text-gray-500">
+				<ol class="flex flex-wrap items-center gap-2">
+					<li><a href="{{ url_for('index') }}" class="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Home</a></li>
+					<li aria-hidden="true">/</li>
+					<li><a href="{{ url_for('blog') }}" class="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Blog</a></li>
+					<li aria-hidden="true">/</li>
+					<li aria-current="page" class="text-gray-900 dark:text-gray-100 truncate max-w-[16rem] md:max-w-xs">{{ article.title }}</li>
+				</ol>
+			</nav>
+			<article data-article-slug="{{ article.slug }}" itemscope itemtype="https://schema.org/BlogPosting">
 				<header class="mb-12 text-center">
 					<div
 						class="flex items-center justify-center gap-3 text-xs text-gray-500 dark:text-gray-500 uppercase tracking-wider font-medium mb-6"
@@ -379,6 +388,37 @@
 					{{ article.content | safe }}
 				</div>
 			</article>
+
+			<section
+				aria-label="About the author"
+				class="mt-16 p-6 rounded-lg border border-gray-200/20 dark:border-white/10 bg-black/5 dark:bg-black/50"
+			>
+				<div class="flex gap-4 items-start">
+					<img
+						src="{{ url_for('static', filename='myself.webp') }}"
+						alt="Ollayor Maxammadnabiyev - Software Engineer"
+						class="w-16 h-16 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700 flex-shrink-0"
+						width="64"
+						height="64"
+						loading="lazy"
+						decoding="async"
+					/>
+					<div class="space-y-2">
+						<p class="text-[11px] text-gray-500 dark:text-gray-500 uppercase tracking-wider font-medium">
+							Written by
+						</p>
+						<p class="font-bold">
+							<a href="{{ url_for('about') }}" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+								>Ollayor Maxammadnabiyev</a
+							>
+						</p>
+						<p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+							Software Engineer from Uzbekistan building with Python, JavaScript/TypeScript, and modern
+							web tech. He writes about software engineering, APIs, and things he learns along the way.
+						</p>
+					</div>
+				</div>
+			</section>
 			{% else %}
 			<div class="text-center py-20">
 				<p class="text-gray-600 dark:text-gray-400">Article not found.</p>
