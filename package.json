@@ -1,13 +1,6 @@
 {
-  "name": "qblog",
-  "version": "0.1.0",
-  "private": true,
-  "description": "DevOps & Engineering workflow scripts for qblog",
-  "scripts": {
-    "build:css": "tailwindcss -i ./static/src/input.css -o ./static/tailwind.css --minify",
-    "build": "npm run build:css"
-  },
-  "devDependencies": {
-    "tailwindcss": "^3.4.17"
-  }
-}
+  \"name\": \"qblog\",
+  \"version\": \"0.1.0\",
+  \"private\": true,
+  \"description\": \"DevOps & Engineering workflow scripts for qblog\",\n  \"engines\": {\n    \"node\": \">=22.0.0\"\n  },
+  \"scripts\": {\n    \"build:css\": \"tailwindcss -i ./static/src/input.css -o ./static/tailwind.css --minify\",\n    \"build\": \"npm run build:css\"\n  },\n  \"devDependencies\": {\n    \"tailwindcss\": \"^3.4.17\"\n  }\n}
