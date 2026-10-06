@@ -526,7 +526,9 @@ class Article:
             rows = cur.fetchall()
             if not rows:
                 if offset > 0:
-                    cur.execute("SELECT COUNT(*) FROM articles WHERE is_published = TRUE")
+                    cur.execute(
+                        "SELECT COUNT(*) FROM articles WHERE is_published = TRUE"
+                    )
                     total_res = cur.fetchone()
                     total = total_res[0] if total_res else 0
                 else:
@@ -534,9 +536,7 @@ class Article:
                 return [], total
 
             total = rows[0][5]
-            article_objects = [
-                Article(r[0], r[1], r[2], r[3], r[4]) for r in rows
-            ]
+            article_objects = [Article(r[0], r[1], r[2], r[3], r[4]) for r in rows]
             return article_objects, total
         except psycopg2.Error as e:
             logger.error(f"Error fetching paginated published articles: {e}")

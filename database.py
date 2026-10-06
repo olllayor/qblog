@@ -146,7 +146,10 @@ def connect_db():
                 continue
 
             # Rollback any pending transaction before handing out
-            if hasattr(conn, "status") and conn.status == psycopg2.extensions.STATUS_IN_TRANSACTION:
+            if (
+                hasattr(conn, "status")
+                and conn.status == psycopg2.extensions.STATUS_IN_TRANSACTION
+            ):
                 try:
                     conn.rollback()
                 except Exception as e:
@@ -267,7 +270,9 @@ def _schema_is_ready(conn) -> bool:
         row = cur.fetchone()
         return bool(row and row[0] >= len(_SCHEMA_PROBE_COLUMNS))
     except Exception as e:
-        logger.debug("Fast catalog schema probe failed, falling back to full init: %s", e)
+        logger.debug(
+            "Fast catalog schema probe failed, falling back to full init: %s", e
+        )
         return False
 
 
