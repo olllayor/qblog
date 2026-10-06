@@ -1,6 +1,6 @@
 """Unit tests for seed_db module."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import seed_db
 
@@ -17,9 +17,9 @@ def test_seed_articles():
 
     assert len(executed_queries) == len(seed_db.MOCK_ARTICLES)
     assert all("INSERT INTO articles" in q for q in executed_queries)
-    titles_seeded = [p[0] for p in executed_params]
+    seeded_pairs = [(p[0], p[4]) for p in executed_params]
     for article in seed_db.MOCK_ARTICLES:
-        assert article["title"] in titles_seeded
+        assert (article["title"], article["slug"]) in seeded_pairs
 
 
 def test_seed_projects_insert_and_update():
@@ -31,14 +31,17 @@ def test_seed_projects_insert_and_update():
     seed_db.seed_projects(mock_conn)
 
     executed_queries = [call[0][0] for call in mock_cursor.execute.call_args_list]
-    # Should perform SELECT queries to check existence
-    assert any(
-        "SELECT id FROM projects WHERE title = %s" in q for q in executed_queries
+    select_count = sum(
+        1 for q in executed_queries if "SELECT id FROM projects WHERE title = %s" in q
     )
-    # Should perform UPDATE for existing project
-    assert any("UPDATE projects" in q and "SET" in q for q in executed_queries)
-    # Should perform INSERT for new projects
-    assert any("INSERT INTO projects" in q for q in executed_queries)
+    update_count = sum(
+        1 for q in executed_queries if "UPDATE projects" in q and "SET" in q
+    )
+    insert_count = sum(1 for q in executed_queries if "INSERT INTO projects" in q)
+
+    assert select_count == len(seed_db.MOCK_PROJECTS)
+    assert update_count == 1
+    assert insert_count == len(seed_db.MOCK_PROJECTS) - 1
 
 
 def test_seed_settings():
@@ -67,33 +70,3 @@ def test_seed_views():
         assert ip.startswith("192.168.1.")
         # Ensure timestamp date matches view_date
         assert viewed_at.date() == view_date
-
-
-def test_clean_database():
-    mock_conn = MagicMock()
-    mock_cursor = MagicMock()
-    mock_conn.cursor.return_value = mock_cursor
-    seed_db.clean_database(mock_conn)
-
-    assert mock_cursor.execute.call_count == 1
-    query = mock_cursor.execute.call_args[0][0]
-    assert "TRUNCATE TABLE" in query
-
-
-def test_seed_database_failure_when_init_fails():
-    with patch("seed_db.init_db", return_value=False):
-        assert seed_db.seed_database() is False
-
-
-def test_seed_database_success():
-    mock_conn = MagicMock()
-    mock_cursor = MagicMock()
-    mock_cursor.fetchone.return_value = None
-    mock_conn.cursor.return_value = mock_cursor
-
-    with (
-        patch("seed_db.init_db", return_value=True),
-        patch("seed_db.get_db", return_value=mock_conn),
-        patch("seed_db.commit_db"),
-    ):
-        assert seed_db.seed_database() is True

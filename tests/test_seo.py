@@ -47,6 +47,11 @@ def test_seo_meta_tags_custom_article(app):
         assert "https://example.com/custom-og.jpg" in meta
         assert 'name="twitter:card" content="summary_large_image"' in meta
         assert 'property="og:type" content="article"' in meta
+        assert f'<link rel="canonical" href="{custom_context["page_url"]}" />' in meta
+        assert '"@type": "BlogPosting"' in meta
+        assert '"@type": "BreadcrumbList"' in meta
+        assert '"position": 1' in meta
+        assert '"position": 2' in meta
 
 
 def test_structured_data_rendering(app):
@@ -72,6 +77,8 @@ def test_image_sitemap_generation(app):
     mock_article = MagicMock()
     mock_article.is_published = True
     mock_article.title = "Test Article"
+    mock_article.slug = "test-article"
+    mock_article.get_summary.return_value = "Test article summary"
     mock_article.get_first_image.return_value = "img/test.webp"
 
     with app.test_request_context("/"):
@@ -80,7 +87,12 @@ def test_image_sitemap_generation(app):
         assert len(images) >= 3  # 2 static images + 1 article image
         assert any("loc" in img for img in images)
         assert any("img/test.webp" in img["loc"] for img in images)
-        assert any(img.get("title") == "Test Article" for img in images)
+        assert any(
+            img.get("title") == "Test Article"
+            and img.get("caption") == "Test article summary"
+            and "test-article" in img.get("page_url", "")
+            for img in images
+        )
 
 
 def test_optimized_images_exist(app):

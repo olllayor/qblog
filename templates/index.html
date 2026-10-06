@@ -145,6 +145,7 @@
 
 			<!-- Right Column: Projects -->
 			{% if hp.show_projects %}
+			{% set first_image_project = (projects | selectattr('image_url') | first) %}
 			<div class="space-y-4">
 				<!-- Projects Grid -->
 				<div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="projects-grid">
@@ -168,8 +169,8 @@
 									class="w-6 h-6 object-cover rounded"
 									width="24"
 									height="24"
-									loading="{{ 'eager' if loop.index <= 2 else 'lazy' }}"
-									{% if loop.first %}fetchpriority="high"{% endif %}
+									loading="{{ 'eager' if project == first_image_project else 'lazy' }}"
+									{% if project == first_image_project %}fetchpriority="high"{% endif %}
 									decoding="async"
 								/>
 								{% else %}
@@ -278,48 +279,58 @@
 			>
 				<!-- Modal Header with Image -->
 				<div
-					id="modalImageContainer"
-					class="relative aspect-video bg-gray-100 dark:bg-gray-800 rounded-t-2xl overflow-hidden hidden"
+					id="modalHeader"
+					class="relative h-48 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 dark:from-blue-500/20 dark:via-purple-500/20 dark:to-pink-500/20 rounded-t-2xl overflow-hidden"
 				>
-					<img id="modalImage" src="" alt="" class="w-full h-full object-cover" />
+					<img
+						id="modalImage"
+						src=""
+						alt=""
+						class="w-full h-full object-cover hidden"
+					/>
+					<div
+						id="modalImagePlaceholder"
+						class="w-full h-full flex items-center justify-center"
+					>
+						{{ icon('code', 'w-16 h-16 text-gray-400') }}
+					</div>
+					<!-- Close Button -->
+					<button
+						onclick="closeProjectModal(event)"
+						class="absolute top-4 right-4 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors"
+						aria-label="Close modal"
+					>
+						{{ icon('x', 'w-4 h-4') }}
+					</button>
 				</div>
 
-				<!-- Modal Content -->
-				<div class="p-6">
-					<div class="flex justify-between items-start mb-4">
-						<h3 id="modalTitle" class="text-xl font-bold text-gray-900 dark:text-gray-100"></h3>
-						<button
-							onclick="closeProjectModal(event)"
-							class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors p-1"
-							aria-label="Close modal"
-						>
-							{{ icon('times', 'w-5 h-5') }}
-						</button>
-					</div>
-
-					<p id="modalDescription" class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-4"></p>
+				<!-- Modal Body -->
+				<div class="p-6 space-y-4">
+					<h3 id="modalTitle" class="text-xl font-bold"></h3>
+					<p
+						id="modalDescription"
+						class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed"
+					></p>
 
 					<!-- Technologies -->
-					<div id="modalTechnologies" class="flex flex-wrap gap-2 mb-6"></div>
+					<div id="modalTechnologies" class="flex flex-wrap gap-2 pt-2"></div>
 
 					<!-- Action Buttons -->
-					<div class="flex gap-3" id="modalActions">
+					<div class="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
 						<a
 							id="modalGithub"
-							href="#"
+							href=""
 							target="_blank"
-							class="flex-1 items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium text-sm hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
-							style="display: none"
+							class="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
 						>
 							{{ icon('github', 'w-4 h-4') }}
 							<span>View Code</span>
 						</a>
 						<a
 							id="modalDemo"
-							href="#"
+							href=""
 							target="_blank"
-							class="flex-1 items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 font-medium text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-							style="display: none"
+							class="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
 						>
 							{{ icon('external-link', 'w-4 h-4') }}
 							<span>Live Demo</span>
@@ -330,86 +341,78 @@
 		</div>
 
 		<script>
-			// Debounce helper for better INP
-			function debounce(fn, delay) {
-				let timer;
-				return function(...args) {
-					clearTimeout(timer);
-					timer = setTimeout(() => fn.apply(this, args), delay);
-				};
+			function openProjectModal(card) {
+				const title = card.dataset.title;
+				const description = card.dataset.description;
+				const image = card.dataset.image;
+				const github = card.dataset.github;
+				const demo = card.dataset.demo;
+				const technologies = card.dataset.technologies
+					? card.dataset.technologies.split(',')
+					: [];
+
+				document.getElementById('modalTitle').textContent = title;
+				document.getElementById('modalDescription').textContent = description;
+
+				const modalImage = document.getElementById('modalImage');
+				const modalPlaceholder = document.getElementById('modalImagePlaceholder');
+
+				if (image) {
+					modalImage.src = image;
+					modalImage.alt = title;
+					modalImage.classList.remove('hidden');
+					modalPlaceholder.classList.add('hidden');
+				} else {
+					modalImage.classList.add('hidden');
+					modalPlaceholder.classList.remove('hidden');
+				}
+
+				const techContainer = document.getElementById('modalTechnologies');
+				techContainer.innerHTML = '';
+				technologies.forEach((tech) => {
+					if (tech.trim()) {
+						const badge = document.createElement('span');
+						badge.className =
+							'text-xs px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium';
+						badge.textContent = tech.trim();
+						techContainer.appendChild(badge);
+					}
+				});
+
+				const githubBtn = document.getElementById('modalGithub');
+				if (github) {
+					githubBtn.href = github;
+					githubBtn.classList.remove('hidden');
+				} else {
+					githubBtn.classList.add('hidden');
+				}
+
+				const demoBtn = document.getElementById('modalDemo');
+				if (demo) {
+					demoBtn.href = demo;
+					demoBtn.classList.remove('hidden');
+				} else {
+					demoBtn.classList.add('hidden');
+				}
+
+				const modal = document.getElementById('projectModal');
+				modal.classList.remove('opacity-0', 'pointer-events-none');
+				document.body.style.overflow = 'hidden';
 			}
-				// Project Modal Functions
-				function openProjectModal(card) {
-					const modal = document.getElementById('projectModal');
-					const title = card.dataset.title;
-					const description = card.dataset.description;
-					const image = card.dataset.image;
-					const github = card.dataset.github;
-					const demo = card.dataset.demo;
-					const technologies = card.dataset.technologies ? card.dataset.technologies.split(',') : [];
 
-					// Populate modal
-					document.getElementById('modalTitle').textContent = title;
-					document.getElementById('modalDescription').textContent = description;
+			function closeProjectModal(event) {
+				if (event) event.preventDefault();
+				const modal = document.getElementById('projectModal');
+				modal.classList.add('opacity-0', 'pointer-events-none');
+				document.body.style.overflow = '';
+			}
 
-					// Image
-					const imageContainer = document.getElementById('modalImageContainer');
-					const modalImage = document.getElementById('modalImage');
-					if (image) {
-						modalImage.src = image;
-						modalImage.alt = title;
-						imageContainer.classList.remove('hidden');
-					} else {
-						imageContainer.classList.add('hidden');
-					}
-
-					// Technologies
-					const techContainer = document.getElementById('modalTechnologies');
-					techContainer.innerHTML = technologies
-						.map(
-							(tech) =>
-								`<span class="text-xs font-medium px-3 py-1 rounded-full bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-white/10">${tech.trim()}</span>`,
-						)
-						.join('');
-
-					// Links
-					const githubBtn = document.getElementById('modalGithub');
-					const demoBtn = document.getElementById('modalDemo');
-
-					if (github) {
-						githubBtn.href = github;
-						githubBtn.style.display = 'inline-flex';
-					} else {
-						githubBtn.style.display = 'none';
-					}
-
-					if (demo) {
-						demoBtn.href = demo;
-						demoBtn.style.display = 'inline-flex';
-					} else {
-						demoBtn.style.display = 'none';
-					}
-
-					// Show modal
-					modal.classList.remove('opacity-0', 'pointer-events-none');
-					modal.classList.add('opacity-100');
-					document.body.style.overflow = 'hidden';
+			// Close modal on Escape key
+			document.addEventListener('keydown', function (e) {
+				if (e.key === 'Escape') {
+					closeProjectModal();
 				}
-
-				function closeProjectModal(event) {
-					if (event) event.stopPropagation();
-					const modal = document.getElementById('projectModal');
-					modal.classList.remove('opacity-100');
-					modal.classList.add('opacity-0', 'pointer-events-none');
-					document.body.style.overflow = 'auto';
-				}
-
-				// Keyboard support - Use passive listener
-				document.addEventListener('keydown', function (event) {
-					if (event.key === 'Escape') {
-						closeProjectModal(event);
-					}
-				}, { passive: true });
+			});
 		</script>
 	</body>
 </html>

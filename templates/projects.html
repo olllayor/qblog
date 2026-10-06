@@ -15,6 +15,7 @@
 
 			<main>
 				{% if projects %}
+				{% set first_image_project = (projects | selectattr('image_url') | first) %}
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
 					{% for project in projects %}
 					<div
@@ -29,8 +30,8 @@
 								src="{{ project.image_url }}"
 								alt="{{ project.title }}"
 								class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-								loading="{{ 'eager' if loop.index <= 2 else 'lazy' }}"
-								{% if loop.first %}fetchpriority="high"{% endif %}
+								loading="{{ 'eager' if project == first_image_project else 'lazy' }}"
+								{% if project == first_image_project %}fetchpriority="high"{% endif %}
 							/>
 						</div>
 						{% endif %}
@@ -119,7 +120,6 @@
 				if (modal && modalImage) {
 					modalImage.src = imageUrl;
 					modal.classList.remove('opacity-0', 'pointer-events-none');
-					modal.classList.add('opacity-100');
 					document.body.style.overflow = 'hidden';
 				}
 			}
@@ -127,14 +127,14 @@
 			function closeModal() {
 				const modal = document.getElementById('imageModal');
 				if (modal) {
-					modal.classList.remove('opacity-100');
 					modal.classList.add('opacity-0', 'pointer-events-none');
-					document.body.style.overflow = 'auto';
+					document.body.style.overflow = '';
 				}
 			}
 
-			document.addEventListener('keydown', function (event) {
-				if (event.key === 'Escape') {
+			// Close modal on Escape key
+			document.addEventListener('keydown', function (e) {
+				if (e.key === 'Escape') {
 					closeModal();
 				}
 			});
