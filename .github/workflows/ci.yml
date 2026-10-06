@@ -74,14 +74,16 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install npm dependencies
         run: npm ci
 
-      - name: Compile Tailwind CSS
-        run: npm run build
+      - name: Compile Tailwind CSS and check for drift
+        run: |
+          npm run build
+          git diff --exit-code -- static/tailwind.css
 
       - name: Set up Python
         uses: actions/setup-python@v5

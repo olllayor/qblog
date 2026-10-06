@@ -30,7 +30,7 @@
 								alt="{{ project.title }}"
 								class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
 								loading="{{ 'eager' if loop.index <= 2 else 'lazy' }}"
-								{% if loop.index <= 2 %}fetchpriority="high"{% endif %}
+								{% if loop.first %}fetchpriority="high"{% endif %}
 							/>
 						</div>
 						{% endif %}
@@ -48,7 +48,7 @@
 										href="{{ project.github_link }}"
 										target="_blank"
 										class="text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
-										aria-label="GitHub Repository"
+										aria-label="GitHub Repository for {{ project.title }}"
 									>
 										{{ icon('github', 'w-5 h-5') }}
 									</a>
@@ -57,7 +57,7 @@
 										href="{{ project.live_demo_link }}"
 										target="_blank"
 										class="text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
-										aria-label="Live Demo"
+										aria-label="Live Demo for {{ project.title }}"
 									>
 										{{ icon('external-link', 'w-5 h-5') }}
 									</a>

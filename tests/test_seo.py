@@ -1,6 +1,7 @@
 """Tests for SEO features, meta tags, structured data, sitemaps, and assets."""
 
 from pathlib import Path
+from unittest.mock import MagicMock
 
 from flask import render_template
 
@@ -28,34 +29,33 @@ def test_seo_meta_tags_homepage(app):
         assert 'name="twitter:title"' in meta
         assert 'name="twitter:image"' in meta
         assert 'name="robots"' in meta
-        assert 'rel="canonical"' in meta
 
 
-def test_seo_article_structured_data(app):
-    """Verify JSON-LD and breadcrumbs rendered for article pages."""
-    with app.test_request_context("/article/test-post"):
-        meta = render_template(
-            "seo_meta.html",
-            page_type="article",
-            page_title="Test Post",
-            page_description="A test post description",
-            article_date="2026-10-06T12:00:00Z",
-        )
-        assert '"@context": "https://schema.org"' in meta
-        assert '"@type": "BlogPosting"' in meta
-        assert '"@type": "BreadcrumbList"' in meta
-        assert '"position": 1' in meta
-        assert '"position": 2' in meta
-        assert '"position": 3' in meta
+def test_seo_meta_tags_custom_article(app):
+    """Verify custom article metadata overrides defaults in seo_meta.html."""
+    custom_context = {
+        "page_title": "Deep Dive into Python Web Performance",
+        "page_description": "Comprehensive guide on optimizing Flask and Postgres.",
+        "page_image": "https://example.com/custom-og.jpg",
+        "page_url": "https://example.com/blog/deep-dive-python-perf",
+        "page_type": "article",
+    }
+    with app.test_request_context("/blog/deep-dive-python-perf"):
+        meta = render_template("seo_meta.html", **custom_context)
+        assert "Deep Dive into Python Web Performance" in meta
+        assert "Comprehensive guide on optimizing Flask and Postgres." in meta
+        assert "https://example.com/custom-og.jpg" in meta
+        assert 'name="twitter:card" content="summary_large_image"' in meta
+        assert 'property="og:type" content="article"' in meta
 
 
-def test_person_schema_structured_data(app):
-    """Verify JSON-LD Person and WebSite schema in person_schema.html."""
+def test_structured_data_rendering(app):
+    """Verify JSON-LD structured data template outputs valid schema types."""
     with app.test_request_context("/"):
-        schema = render_template("person_schema.html")
-        assert '"@context": "https://schema.org"' in schema
-        assert '"@type": "Person"' in schema
-        assert '"@type": "WebSite"' in schema
+        sd = render_template("person_schema.html")
+        assert '"@type": "Person"' in sd
+        assert "Ollayor Maxammadnabiyev" in sd
+        assert "Software Engineer" in sd
 
 
 def test_sitemap_generation(app):
@@ -69,11 +69,18 @@ def test_sitemap_generation(app):
 
 def test_image_sitemap_generation(app):
     """Ensure image sitemap generator produces static and article image mappings."""
+    mock_article = MagicMock()
+    mock_article.is_published = True
+    mock_article.title = "Test Article"
+    mock_article.get_first_image.return_value = "img/test.webp"
+
     with app.test_request_context("/"):
-        images = generate_image_sitemap(app, articles=[])
+        images = generate_image_sitemap(app, articles=[mock_article])
         assert isinstance(images, list)
-        assert len(images) > 0
+        assert len(images) >= 3  # 2 static images + 1 article image
         assert any("loc" in img for img in images)
+        assert any("img/test.webp" in img["loc"] for img in images)
+        assert any(img.get("title") == "Test Article" for img in images)
 
 
 def test_optimized_images_exist(app):

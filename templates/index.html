@@ -58,7 +58,7 @@
 						href="https://github.com/olllayor"
 						target="_blank"
 						rel="me noopener"
-						class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+						class="inline-flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
 						title="Ollayor's GitHub Profile"
 						itemprop="sameAs"
 					>
@@ -69,7 +69,7 @@
 						href="https://twitter.com/olllayor"
 						target="_blank"
 						rel="me noopener"
-						class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+						class="inline-flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
 						title="Ollayor's Twitter Profile"
 						itemprop="sameAs"
 					>
@@ -80,7 +80,7 @@
 						href="https://t.me/Qprogrammer"
 						target="_blank"
 						rel="me noopener"
-						class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+						class="inline-flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
 						title="Ollayor's Telegram Channel"
 						itemprop="sameAs"
 					>
@@ -91,7 +91,7 @@
 						href="https://www.linkedin.com/in/olllayor/"
 						target="_blank"
 						rel="me noopener"
-						class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+						class="inline-flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
 						title="Ollayor's LinkedIn Profile"
 						itemprop="sameAs"
 					>
@@ -100,7 +100,7 @@
 					</a>
 					<a
 						href="/matrix"
-						class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+						class="inline-flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
 						title="Terminal Matrix"
 					>
 						{{ icon('terminal', 'w-6 h-6') }}
@@ -109,7 +109,7 @@
 					<a
 						href="{{ static_versioned('media/Olloyor_s_resume.pdf') }}"
 						target="_blank"
-						class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+						class="inline-flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
 						title="Download Ollayor's CV / Resume"
 					>
 						{{ icon('newspaper', 'w-6 h-6') }}
@@ -169,7 +169,7 @@
 									width="24"
 									height="24"
 									loading="{{ 'eager' if loop.index <= 2 else 'lazy' }}"
-									{% if loop.index <= 2 %}fetchpriority="high"{% endif %}
+									{% if loop.first %}fetchpriority="high"{% endif %}
 									decoding="async"
 								/>
 								{% else %}
@@ -184,7 +184,7 @@
 								<a
 									href="{{ project.github_link }}"
 									target="_blank"
-									class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+									class="inline-flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
 									title="View on GitHub"
 								>
 									{{ icon('github', 'w-3 h-3') }}
@@ -193,7 +193,7 @@
 								<a
 									href="{{ project.live_demo_link }}"
 									target="_blank"
-									class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+									class="inline-flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
 									title="Live Demo"
 								>
 									{{ icon('external-link', 'w-3 h-3') }}

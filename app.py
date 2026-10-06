@@ -1,5 +1,6 @@
 import hashlib
 import hmac
+import io
 import logging
 import os
 import re
@@ -124,6 +125,7 @@ def inject_globals():
         "versioned_static": versioned_static,
         "static_versioned": static_versioned,
         "icon": render_icon,
+        "render_icon": render_icon,
     }
 
 
@@ -133,6 +135,8 @@ app.jinja_env.filters["icon"] = render_icon
 app.jinja_env.globals["versioned_static"] = versioned_static
 app.jinja_env.globals["static_versioned"] = static_versioned
 app.jinja_env.globals["icon"] = render_icon
+app.jinja_env.globals["render_icon"] = render_icon
+app.jinja_env.filters["render_icon"] = render_icon
 
 
 TWITTER_IMAGE_HOSTS = {"pbs.twimg.com"}
@@ -329,7 +333,8 @@ def lazy_content_images(html):
             style_match = re.search(r'style=(["\'])(.*?)\1', tag, re.IGNORECASE)
             if style_match:
                 existing_style = style_match.group(2).rstrip(";")
-                new_style = f'style="{existing_style}; aspect-ratio: 16 / 9;"'
+                q = style_match.group(1)
+                new_style = f"style={q}{existing_style}; aspect-ratio: 16 / 9;{q}"
                 tag = tag[: style_match.start()] + new_style + tag[style_match.end() :]
             else:
                 extra_parts.append('style="aspect-ratio: 16 / 9;"')
@@ -1013,9 +1018,10 @@ def upload_image():
     file = request.files.get("image")
     if file is None or not file.filename:
         return jsonify({"status": "error", "message": "No image provided"}), 400
+    raw_bytes = file.read()
     try:
         image_id = ImageStore.save(
-            file.read(),
+            raw_bytes,
             filename=file.filename,
             content_type=file.mimetype,
         )
@@ -1023,9 +1029,27 @@ def upload_image():
         return jsonify({"status": "error", "message": str(e)}), 400
     if not image_id:
         return jsonify({"status": "error", "message": "Failed to store image"}), 500
-    return jsonify(
-        {"status": "success", "url": url_for("serve_image", image_id=image_id)}
-    )
+
+    width, height = None, None
+    try:
+        from PIL import Image
+
+        with Image.open(io.BytesIO(raw_bytes)) as pil_img:
+            width, height = pil_img.size
+            if width > 1600:
+                height = round(height * (1600 / width))
+                width = 1600
+    except Exception as e:
+        logger.debug(f"Failed to read image dimensions: {e}")
+
+    resp = {
+        "status": "success",
+        "url": url_for("serve_image", image_id=image_id),
+    }
+    if width and height:
+        resp["width"] = width
+        resp["height"] = height
+    return jsonify(resp)
 
 
 @app.route("/media/img/<image_id>")

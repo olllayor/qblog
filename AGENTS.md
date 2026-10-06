@@ -3,20 +3,20 @@
 ## Project Structure & Module Organization
 - `app.py` is the Flask entry point; it wires routes, templates, and app config.
 - Core runtime modules live at the repo root: `articles.py`, `projects.py`,
-  `database.py`, and `sitemap_generator.py`.
+  `database.py`, `icons.py`, and `sitemap_generator.py`.
 - `scripts/` holds maintenance utilities (for example `scripts/optimize_images.py`).
-- `templates/` contains Jinja templates; `static/` holds CSS, images, and other
+- `templates/` contains Jinja templates; `static/` holds CSS, fonts, images, and other
   web assets (see `static/blog-styles.css` for MDX-style formatting).
-- SEO checks live in `tests/test_seo.py`.
+- Automated test suites live in `tests/`.
 
 ## Build, Test, and Development Commands
 - `uv run python app.py` runs the Flask app locally (defaults to port 4200).
 - `uv run ruff check .` runs lint rules (pyflakes/bugbear/security/isort/etc.).
 - `uv run ruff format .` formats code to the repo standard.
-- `uv run pytest` executes the test suite (including `tests/test_app.py`, `tests/test_seo.py`).
+- `uv run pytest` executes the test suite (including `tests/test_app.py`, `tests/test_seo.py`, `tests/test_performance.py`, `tests/test_seed_db.py`).
 - `uv build` builds the package as the CI does.
 - `npm run build` (or `npm run build:css` / `make build-css`) rebuilds Tailwind CSS.
-- `docker compose up -d` (or `make up`) starts local PostgreSQL 16 and Redis.
+- `docker compose up -d --wait` (or `make up`) starts local PostgreSQL 16 and Redis.
 - `uv run python seed_db.py` (or `make seed`) seeds local database with realistic test data.
 - `uv run python scripts/optimize_images.py` runs image optimization tooling.
 
@@ -26,10 +26,9 @@
 - Modules are lowercase with underscores; functions and variables use snake_case.
 
 ## Testing Guidelines
-- Current tests are focused scripts (e.g., `test_seo.py`); no coverage target
-  is enforced yet.
+- Tests are executed with pytest under `tests/` (e.g., `tests/test_app.py`, `tests/test_seo.py`, `tests/test_performance.py`, `tests/test_seed_db.py`).
 - Name tests with `test_*.py` or `*_test.py` to align with Ruff test ignores.
-- Prefer adding focused regression scripts when fixing a bug.
+- Every new feature or regression fix should include pytest tests.
 
 ## Commit & Pull Request Guidelines
 - Recent history uses short, imperative summaries; occasional Conventional

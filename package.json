@@ -4,7 +4,7 @@
   "private": true,
   "description": "DevOps & Engineering workflow scripts for qblog",
   "scripts": {
-    "build:css": "tailwindcss -i ./static/src/input.css -o ./static/css/tailwind.css --minify && cp ./static/css/tailwind.css ./static/tailwind.css",
+    "build:css": "tailwindcss -i ./static/src/input.css -o ./static/tailwind.css --minify",
     "build": "npm run build:css"
   },
   "devDependencies": {

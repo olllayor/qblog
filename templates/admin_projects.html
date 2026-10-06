@@ -23,7 +23,7 @@
 					>
 						{{ icon('arrow-left', 'w-5 h-5') }}
 					</a>
-					<h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200" style="font-family: 'Geist Mono', monospace">
+					<h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200" style="font-family: 'JetBrains Mono', monospace">
 						Manage Projects
 					</h1>
 				</div>
@@ -143,7 +143,7 @@
 										aria-label="{{ 'Remove from homepage' if project.is_featured else 'Feature on homepage' }}"
 										class="text-lg {{ 'text-amber-500 hover:text-amber-700' if project.is_featured else 'text-gray-400 hover:text-gray-600' }} transition-colors"
 									>
-										{{ icon('star', 'w-5 h-5 fill-current' if project.is_featured else 'w-5 h-5') }}
+										{{ icon('star' if project.is_featured else 'star-outline', 'w-5 h-5') }}
 									</button>
 								</form>
 							</td>

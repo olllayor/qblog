@@ -21,9 +21,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 load_dotenv()
 
 # Default to local Docker Compose database credentials if not configured
-os.environ.setdefault("DATABASE_URL", "postgresql://qblog:qblog@localhost:5432/qblog")
-
-from database import commit_db, get_db, init_db  # noqa: E402
+from database import commit_db, get_database_url, get_db, init_db  # noqa: E402
 from settings import HOMEPAGE_DEFAULTS  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -289,11 +287,13 @@ def seed_views(conn):
     count = 0
     for day_offset in range(10):
         view_date = today - timedelta(days=day_offset)
+        viewed_at = datetime.combine(
+            view_date, datetime.min.time(), tzinfo=UTC
+        ) + timedelta(hours=9 + (day_offset % 12))
         for slug, ip, ua, ref in MOCK_VIEWS:
-            ip_variant = f"{ip[:-1]}{day_offset % 9 + 1}"
-            viewed_at = datetime.now(UTC) - timedelta(
-                days=day_offset, hours=day_offset % 12
-            )
+            parts = ip.split(".")
+            parts[-1] = str(int(parts[-1]) + day_offset)
+            ip_variant = ".".join(parts)
             cur.execute(
                 """
                 INSERT INTO article_views (article_slug, ip_address, user_agent, viewed_at, view_date, referrer_host)
@@ -309,6 +309,9 @@ def seed_views(conn):
 
 def seed_database(clean=False):
     """Initialize schema and seed database."""
+    db_url, _ = get_database_url()
+    if not db_url:
+        os.environ["DATABASE_URL"] = "postgresql://qblog:qblog@localhost:5432/qblog"
     logger.info("Connecting to database and initializing schema...")
     if not init_db():
         logger.error(

@@ -13,10 +13,14 @@ help:
 	@echo "  make seed        - Populate database with mock data"
 	@echo "  make seed-clean  - Truncate and re-seed database"
 
+node_modules: package.json package-lock.json
+	npm ci
+	touch node_modules
+
 build: build-css
 	uv build
 
-build-css:
+build-css: node_modules
 	npm run build:css
 
 dev:
@@ -34,7 +38,7 @@ test:
 	uv run pytest
 
 up:
-	docker compose up -d
+	docker compose up -d --wait
 
 down:
 	docker compose down

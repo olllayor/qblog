@@ -1,5 +1,6 @@
 """Unit tests for Frontend & Core Web Vitals optimizations."""
 
+import re
 from pathlib import Path
 
 from app import app, get_static_version, lazy_content_images, versioned_static
@@ -15,20 +16,21 @@ def test_theme_universal_transition():
     content = theme_file.read_text(encoding="utf-8")
     assert "body, body *" not in content
     assert "transition: background-color 0.2s ease, color 0.2s ease;" in content
+    assert "prefers-reduced-motion" in content
 
 
 def test_font_awesome_cdn_eliminated():
-    """Verify font-awesome stylesheet CDN has been eliminated from all templates."""
+    """Verify font-awesome stylesheet CDN and icon elements are eliminated across all templates."""
+    fa_icon_pattern = re.compile(
+        r"<i\s+class=[\"\'](?:fa|fas|fab|far|fa-solid|fa-brands)\b"
+    )
     for html_file in TEMPLATES_DIR.glob("**/*.html"):
         content = html_file.read_text(encoding="utf-8")
         assert "cdnjs.cloudflare.com/ajax/libs/font-awesome" not in content, (
             f"Found Font Awesome CDN link in {html_file.name}"
         )
-        assert '<i class="fas ' not in content, (
-            f'Found <i class="fas in {html_file.name}'
-        )
-        assert '<i class="fab ' not in content, (
-            f'Found <i class="fab in {html_file.name}'
+        assert not fa_icon_pattern.search(content), (
+            f"Found Font Awesome <i> tag in {html_file.name}"
         )
 
 
@@ -45,11 +47,15 @@ def test_external_google_fonts_eliminated():
 
 
 def test_self_hosted_fonts_exist():
-    """Verify self-hosted JetBrains Mono woff2 fonts exist."""
+    """Verify self-hosted JetBrains Mono woff2 fonts exist and no duplicate variants are present."""
     font_400 = STATIC_DIR / "fonts" / "jetbrains-mono-400.woff2"
     font_700 = STATIC_DIR / "fonts" / "jetbrains-mono-700.woff2"
     assert font_400.exists() and font_400.stat().st_size > 0
     assert font_700.exists() and font_700.stat().st_size > 0
+
+    # Ensure duplicate unreferenced fonts were deleted
+    assert not (STATIC_DIR / "fonts" / "jetbrains-mono-v24-latin-400.woff2").exists()
+    assert not (STATIC_DIR / "fonts" / "jetbrains-mono-v24-latin-700.woff2").exists()
 
 
 def test_font_face_font_display_swap():
@@ -78,14 +84,28 @@ def test_static_cache_busting():
 
 
 def test_lazy_content_images_cls_fix():
-    """Verify lazy_content_images enforces aspect-ratio style on content images without dimensions."""
-    # First image is eager for LCP optimization, subsequent images are lazy
+    """Verify lazy_content_images enforces aspect-ratio style and proper loading priority."""
+    # First image is eager with high fetchpriority; second is lazy
     html_content = '<p><img src="/static/img1.png" alt="First"><img src="/static/img2.png" alt="Second"></p>'
     processed = lazy_content_images(html_content)
-    assert 'loading="eager"' in processed
-    assert 'loading="lazy"' in processed
-    assert 'decoding="async"' in processed
-    assert "aspect-ratio" in processed
+
+    img1_match = re.search(r'<img[^>]*alt="First"[^>]*>', processed)
+    img2_match = re.search(r'<img[^>]*alt="Second"[^>]*>', processed)
+    assert img1_match is not None
+    assert img2_match is not None
+
+    img1_tag = img1_match.group(0)
+    img2_tag = img2_match.group(0)
+
+    assert 'loading="eager"' in img1_tag
+    assert 'fetchpriority="high"' in img1_tag
+    assert 'decoding="async"' in img1_tag
+    assert "aspect-ratio" in img1_tag
+
+    assert 'loading="lazy"' in img2_tag
+    assert "fetchpriority" not in img2_tag
+    assert 'decoding="async"' in img2_tag
+    assert "aspect-ratio" in img2_tag
 
     # Images with existing dimensions keep their dimensions
     html_with_dim = (
@@ -94,6 +114,14 @@ def test_lazy_content_images_cls_fix():
     processed_with_dim = lazy_content_images(html_with_dim)
     assert 'width="800"' in processed_with_dim
     assert 'height="450"' in processed_with_dim
+
+    # Single-quoted style attribute preserves single quotes
+    html_single_quote = '<p><img src="/static/img3.png" style=\'border: 1px solid black;\' alt="Test"></p>'
+    processed_single_quote = lazy_content_images(html_single_quote)
+    assert (
+        "style='border: 1px solid black; aspect-ratio: 16 / 9;'"
+        in processed_single_quote
+    )
 
 
 def test_render_icon_helper():

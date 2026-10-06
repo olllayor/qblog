@@ -8,7 +8,10 @@
 
 		<!-- Tailwind CSS -->
 		<script src="https://cdn.tailwindcss.com"></script>
-		<script>
+		<template id="tpl-icon-saving">{{ icon('spinner', 'w-3 h-3 text-green-600') }}</template>
+<template id="tpl-icon-error">{{ icon('exclamation-triangle', 'w-3 h-3 text-red-600') }}</template>
+<template id="tpl-icon-idle">{{ icon('circle', 'w-2.5 h-2.5 text-gray-400') }}</template>
+<script>
 			tailwind.config = {
 				theme: {
 					extend: {
@@ -670,6 +673,10 @@
 							const img = figure.querySelector('img');
 							img.src = data.url;
 							img.alt = file.name.replace(/\.[^.]+$/, '');
+							if (data.width && data.height) {
+								img.width = data.width;
+								img.height = data.height;
+							}
 							figure.removeAttribute('data-uploading');
 							figure.removeAttribute('contenteditable');
 							figure.style.opacity = '1';
@@ -766,14 +773,15 @@
 					const icon = document.getElementById('saveIcon');
 					document.getElementById('saveText').textContent = text;
 					this.autoSaveStatus.classList.remove('saving', 'error');
+					const tplId = state === 'saving' ? 'tpl-icon-saving' : (state === 'error' ? 'tpl-icon-error' : 'tpl-icon-idle');
+					const tpl = document.getElementById(tplId);
+					if (tpl && icon) {
+						icon.innerHTML = tpl.innerHTML;
+					}
 					if (state === 'saving') {
-						icon.innerHTML = '<svg class="w-3 h-3 animate-spin text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>';
 						this.autoSaveStatus.classList.add('saving');
 					} else if (state === 'error') {
-						icon.innerHTML = '<svg class="w-3 h-3 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>';
 						this.autoSaveStatus.classList.add('error');
-					} else {
-						icon.innerHTML = '<svg class="w-2.5 h-2.5 text-gray-400" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle></svg>';
 					}
 				}
 
