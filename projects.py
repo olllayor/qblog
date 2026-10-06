@@ -2,8 +2,9 @@ import logging
 from datetime import UTC, datetime
 
 import psycopg2
+import psycopg2.extras
 
-from database import get_db
+from database import commit_db, get_db, rollback_db
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +66,6 @@ class Project:
             return False
         try:
             cur = conn.cursor()
-            # Ensure technologies is a string
             technologies_str = (
                 ",".join(project.technologies)
                 if isinstance(project.technologies, list)
@@ -90,15 +90,30 @@ class Project:
                 ),
             )
             project.id = cur.fetchone()[0]
-            conn.commit()
+            commit_db(conn)
             logger.info(
                 f"Project '{project.title}' saved successfully with id {project.id}."
             )
             return True
         except psycopg2.Error as e:
             logger.error(f"Error saving project: {e}")
-            conn.rollback()  # Rollback in case of error
+            rollback_db(conn)
             return False
+
+    @staticmethod
+    def get_count():
+        """Count total projects without loading rows into Python memory."""
+        conn = get_db()
+        if conn is None:
+            return 0
+        try:
+            cur = conn.cursor()
+            cur.execute("SELECT COUNT(*) FROM projects")
+            row = cur.fetchone()
+            return row[0] if row else 0
+        except psycopg2.Error as e:
+            logger.error(f"Error counting projects: {e}")
+            return 0
 
     @staticmethod
     def get_all_projects():
@@ -156,9 +171,11 @@ class Project:
                 (project_id,),
             )
             row = cur.fetchone()
-            return Project._from_row(row) if row else None
+            if row:
+                return Project._from_row(row)
+            return None
         except psycopg2.Error as e:
-            logger.error(f"Error fetching project by id: {e}")
+            logger.error(f"Error fetching project with id {project_id}: {e}")
             return None
 
     @staticmethod
@@ -175,7 +192,8 @@ class Project:
                 else project.technologies
             )
             cur.execute(
-                """UPDATE projects SET title = %s, description = %s, image_url = %s,
+                """UPDATE projects SET
+                    title = %s, description = %s, image_url = %s,
                     technologies = %s, github_link = %s, live_demo_link = %s,
                     is_visible = %s, is_featured = %s, sort_order = %s
                     WHERE id = %s""",
@@ -192,12 +210,12 @@ class Project:
                     project.id,
                 ),
             )
-            conn.commit()
+            commit_db(conn)
             logger.info(f"Project '{project.title}' updated successfully.")
             return True
         except psycopg2.Error as e:
             logger.error(f"Error updating project: {e}")
-            conn.rollback()
+            rollback_db(conn)
             return False
 
     @staticmethod
@@ -215,11 +233,11 @@ class Project:
                 f"UPDATE projects SET {column} = %s WHERE id = %s",  # noqa: S608 — column whitelisted above
                 (value, project_id),
             )
-            conn.commit()
+            commit_db(conn)
             return cur.rowcount > 0
         except psycopg2.Error as e:
             logger.error(f"Error setting {column} on project {project_id}: {e}")
-            conn.rollback()
+            rollback_db(conn)
             return False
 
     @staticmethod
@@ -249,16 +267,17 @@ class Project:
             return False
         try:
             cur = conn.cursor()
-            for p in projects:
-                cur.execute(
-                    "UPDATE projects SET sort_order = %s WHERE id = %s",
-                    (p.sort_order, p.id),
-                )
-            conn.commit()
+            update_data = [(p.sort_order, p.id) for p in projects]
+            psycopg2.extras.execute_batch(
+                cur,
+                "UPDATE projects SET sort_order = %s WHERE id = %s",
+                update_data,
+            )
+            commit_db(conn)
             return True
         except psycopg2.Error as e:
             logger.error(f"Error reordering projects: {e}")
-            conn.rollback()
+            rollback_db(conn)
             return False
 
     @staticmethod
@@ -270,10 +289,10 @@ class Project:
         try:
             cur = conn.cursor()
             cur.execute("DELETE FROM projects WHERE id = %s", (project_id,))
-            conn.commit()
+            commit_db(conn)
             logger.info(f"Project with id {project_id} deleted successfully.")
             return True
         except psycopg2.Error as e:
             logger.error(f"Error deleting project: {e}")
-            conn.rollback()
+            rollback_db(conn)
             return False

@@ -339,3 +339,92 @@ class TestSitemapGenerators:
         with app.test_request_context("/"):
             images = generate_image_sitemap(app, articles=[])
         assert len(images) >= 2
+
+
+class TestBackendOptimizations:
+    def test_cache_keys(self):
+        from app import get_cache_key
+
+        assert get_cache_key("index") == "view//"
+        assert get_cache_key("blog") == "view//blog"
+        assert get_cache_key("projects") == "view//projects"
+        assert get_cache_key("article", slug="fast-code") == "view//blog/fast-code"
+        assert get_cache_key("other", b="2", a="1") == "view//other?a=1&b=2"
+
+    def test_commit_and_rollback_db(self):
+        from database import commit_db, rollback_db
+
+        class MockConn:
+            def __init__(self, autocommit):
+                self.autocommit = autocommit
+                self.committed = False
+                self.rolled_back = False
+
+            def commit(self):
+                self.committed = True
+
+            def rollback(self):
+                self.rolled_back = True
+
+        # autocommit = True -> commit / rollback should NOT be called
+        c1 = MockConn(autocommit=True)
+        commit_db(c1)
+        rollback_db(c1)
+        assert not c1.committed
+        assert not c1.rolled_back
+
+        # autocommit = False -> commit / rollback should be called
+        c2 = MockConn(autocommit=False)
+        commit_db(c2)
+        assert c2.committed
+        rollback_db(c2)
+        assert c2.rolled_back
+
+        # None connection should not raise
+        commit_db(None)
+        rollback_db(None)
+
+    def test_article_memoization(self):
+        from datetime import datetime
+
+        from articles import Article
+
+        art = Article(
+            title="Memo Test",
+            content="<p>Word one two three four five.</p>",
+            date_published=datetime.now(),
+        )
+        assert art._word_count is None
+        assert art._reading_time is None
+        assert art._summaries == {}
+
+        wc = art.get_word_count()
+        rt = art.get_reading_time()
+        s1 = art.get_summary(50)
+
+        assert wc == 6
+        assert rt == 1
+        assert "Word one two three" in s1
+
+        # Check cached
+        assert art._word_count == 6
+        assert art._reading_time == 1
+        assert 50 in art._summaries
+
+        # Calling again uses cached values
+        assert art.get_word_count() == 6
+        assert art.get_reading_time() == 1
+        assert art.get_summary(50) == s1
+
+    def test_project_get_count_degrades_gracefully(self, monkeypatch):
+        from projects import Project
+
+        assert isinstance(Project.get_count(), int)
+        monkeypatch.setattr("projects.get_db", lambda: None)
+        assert Project.get_count() == 0
+
+    def test_article_published_limit(self):
+        from articles import Article
+
+        articles = Article.get_published_articles(limit=5)
+        assert isinstance(articles, list)

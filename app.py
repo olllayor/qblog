@@ -180,21 +180,29 @@ def safe_cached(timeout=360, **kwargs):
 
 # Cache key management functions
 def get_cache_key(view_name, **kwargs):
-    """Generate cache key for a given view function that matches Flask-Caching's format"""
-    # Flask-Caching uses 'view//' + endpoint format for @cache.cached
+    """Generate cache key for a given view function that matches Flask-Caching format."""
+    if view_name == "index":
+        return "view//"
+    if view_name == "projects":
+        return "view//projects"
+    if view_name == "blog":
+        return "view//blog"
+    if view_name == "article" and "slug" in kwargs:
+        return f"view//blog/{kwargs['slug']}"
     if kwargs:
-        # For parameterized routes like article(slug='test')
         params = "&".join([f"{k}={v}" for k, v in sorted(kwargs.items())])
         return f"view//{view_name}?{params}"
     return f"view//{view_name}"
 
 
 def invalidate_view_cache(view_name, **kwargs):
-    """Safely invalidate cache for a specific view"""
+    """Safely invalidate cache for a specific view."""
     try:
         cache_key = get_cache_key(view_name, **kwargs)
         cache.delete(cache_key)
         logger.info(f"Cache invalidated for {view_name} with key: {cache_key}")
+        if view_name == "article" and "slug" in kwargs:
+            cache.delete(f"article_content_{kwargs['slug']}")
     except Exception as e:
         logger.warning(f"Failed to invalidate cache for {view_name}: {e}")
 
@@ -453,7 +461,7 @@ def favicon():
 @safe_cached(timeout=600)
 def rss_feed():
     """Generate RSS feed for blog articles"""
-    articles = Article.get_published_articles()[:20]  # Latest 20 articles
+    articles = Article.get_published_articles(limit=20)  # Latest 20 articles
 
     # Build RSS XML
     rss_items = []
@@ -848,7 +856,7 @@ def admin_dashboard():
     drafts_count = articles_count - published_count
 
     try:
-        projects_count = len(Project.get_all_projects())
+        projects_count = Project.get_count()
     except Exception as e:
         logger.warning("Failed to fetch projects count: %s", e)
         projects_count = 0
@@ -979,7 +987,7 @@ def admin_db_info():
     }
 
     articles_count, _ = Article.get_article_counts()
-    projects_count = len(Project.get_all_projects())
+    projects_count = Project.get_count()
 
     return render_template(
         "admin_db_info.html",

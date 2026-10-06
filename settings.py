@@ -5,7 +5,7 @@ import logging
 
 import psycopg2
 
-from database import get_db
+from database import commit_db, get_db, rollback_db
 
 logger = logging.getLogger(__name__)
 
@@ -56,9 +56,9 @@ def save_homepage_settings(values):
                SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP""",
             ("homepage", json.dumps(clean)),
         )
-        conn.commit()
+        commit_db(conn)
         return True
     except psycopg2.Error as e:
-        logger.error("Failed to save homepage settings: %s", e)
-        conn.rollback()
+        logger.error(f"Failed to save homepage settings: {e}")
+        rollback_db(conn)
         return False

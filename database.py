@@ -3,8 +3,9 @@ import os
 from urllib.parse import urlparse
 
 import psycopg2
-from flask import g
-from psycopg2.pool import SimpleConnectionPool
+import psycopg2.extensions
+from flask import g, has_app_context
+from psycopg2.pool import ThreadedConnectionPool
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +66,10 @@ def _safe_dsn_summary(url: str | None, source: str | None) -> str:
 
 
 def _is_connection_alive(conn) -> bool:
-    """Check if a database connection is still usable."""
+    """Check if a database connection is still usable.
+
+    Used only when recovering from errors or explicitly probing.
+    """
     if conn is None:
         return False
     try:
@@ -93,8 +97,26 @@ def _reset_pool():
         _POOL = None
 
 
+def commit_db(conn):
+    """Safely commit transaction if autocommit is disabled."""
+    if conn is not None and not getattr(conn, "autocommit", False):
+        try:
+            conn.commit()
+        except psycopg2.ProgrammingError as e:
+            logger.debug("commit_db skipped (autocommit on): %s", e)
+
+
+def rollback_db(conn):
+    """Safely rollback transaction if autocommit is disabled."""
+    if conn is not None and not getattr(conn, "autocommit", False):
+        try:
+            conn.rollback()
+        except Exception as e:
+            logger.debug("rollback_db failed: %s", e)
+
+
 def connect_db():
-    """Create or reuse a global connection pool and fetch a connection with retry logic."""
+    """Create or reuse a thread-safe connection pool and fetch a connection."""
     global _POOL
     url, source = get_database_url()
     if not url:
@@ -103,23 +125,17 @@ def connect_db():
 
     for attempt in range(_MAX_RETRIES):
         try:
-            fresh_pool = False
             if _POOL is None:
-                # Serverless functions handle one request at a time, and each
-                # instance gets its own pool; keep it small to avoid Postgres
-                # connection exhaustion across many concurrent instances.
-                max_conn = int(os.getenv("DB_POOL_MAX", "2"))
-                _POOL = SimpleConnectionPool(minconn=1, maxconn=max_conn, dsn=url)
-                fresh_pool = True
+                max_conn = int(os.getenv("DB_POOL_MAX", "5"))
+                _POOL = ThreadedConnectionPool(minconn=1, maxconn=max_conn, dsn=url)
                 logger.info("Initialized DB pool (%s)", _safe_dsn_summary(url, source))
 
             conn = _POOL.getconn()
 
-            # Connections straight out of a brand-new pool are fresh by
-            # definition; skip the liveness roundtrip on cold starts.
-            if not fresh_pool and not _is_connection_alive(conn):
+            # Fast in-memory check without network roundtrip
+            if conn.closed:
                 logger.warning(
-                    "Got stale connection from pool, resetting pool (attempt %d)",
+                    "Got closed connection from pool, resetting pool (attempt %d)",
                     attempt + 1,
                 )
                 try:
@@ -129,11 +145,16 @@ def connect_db():
                 _reset_pool()
                 continue
 
-            # Rollback any pending transaction before setting autocommit
-            try:
-                conn.rollback()
-            except Exception as e:
-                logger.debug("Failed to rollback transaction: %s", e)
+            # Rollback any pending transaction before handing out
+            if (
+                hasattr(conn, "status")
+                and conn.status == psycopg2.extensions.STATUS_IN_TRANSACTION
+            ):
+                try:
+                    conn.rollback()
+                except Exception as e:
+                    logger.debug("Failed to rollback pending transaction: %s", e)
+
             conn.autocommit = True
             return conn
 
@@ -160,6 +181,8 @@ def get_db():
     """Opens a new database connection if there is none yet for the
     current application context.
     """
+    if not has_app_context():
+        return connect_db()
     if "db" not in g:
         g.db = connect_db()
         g._db_from_pool = True if g.db is not None else False
@@ -167,8 +190,10 @@ def get_db():
 
 
 def close_db(e=None):
-    """Closes the database connection."""
+    """Closes or returns the database connection to the pool."""
     global _POOL
+    if not has_app_context():
+        return
     db = g.pop("db", None)
     from_pool = g.pop("_db_from_pool", False)
 
@@ -214,36 +239,45 @@ _SCHEMA_PROBE_COLUMNS = (
 
 
 def _schema_is_ready(conn) -> bool:
-    """One-roundtrip check that the schema already exists.
+    """Fast check that the schema already exists.
 
-    Full init_db() runs ~25 sequential statements; on cold starts next to the
-    DB that is still ~25 RTTs of pure overhead on every fresh instance.
+    Uses PostgreSQL system catalog tables directly rather than heavy
+    information_schema views for sub-millisecond execution on cold starts.
     """
     try:
         cur = conn.cursor()
         cur.execute(
-            "SELECT COUNT(*) FROM information_schema.tables "
-            "WHERE table_schema NOT IN ('pg_catalog', 'information_schema') "
-            "AND table_name = ANY(%s)",
+            "SELECT COUNT(*) FROM pg_tables "
+            "WHERE schemaname = 'public' "
+            "AND tablename = ANY(%s)",
             (list(_SCHEMA_PROBE_TABLES),),
         )
         row = cur.fetchone()
         if not row or row[0] < len(_SCHEMA_PROBE_TABLES):
             return False
+
         cur.execute(
-            "SELECT COUNT(*) FROM information_schema.columns "
-            "WHERE table_name || '.' || column_name = ANY(%s)",
-            (["{}.{}".format(*pair) for pair in _SCHEMA_PROBE_COLUMNS],),
+            """
+            SELECT COUNT(*) FROM pg_attribute a
+            JOIN pg_class c ON a.attrelid = c.oid
+            JOIN pg_namespace n ON c.relnamespace = n.oid
+            WHERE n.nspname = 'public'
+              AND (c.relname || '.' || a.attname) = ANY(%s)
+              AND a.attnum > 0 AND NOT a.attisdropped
+            """,
+            ([f"{pair[0]}.{pair[1]}" for pair in _SCHEMA_PROBE_COLUMNS],),
         )
         row = cur.fetchone()
         return bool(row and row[0] >= len(_SCHEMA_PROBE_COLUMNS))
     except Exception as e:
-        logger.debug("Schema probe failed, running full init: %s", e)
+        logger.debug(
+            "Fast catalog schema probe failed, falling back to full init: %s", e
+        )
         return False
 
 
 def init_db():
-    conn = get_db()  # Use get_db instead of connect_db
+    conn = get_db()
     if conn is None:
         logger.error("Failed to connect to the database.")
         return False
@@ -254,26 +288,7 @@ def init_db():
             return True
         cur = conn.cursor()
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS articles (
-                id SERIAL PRIMARY KEY,
-                title TEXT NOT NULL,
-                content TEXT NOT NULL,
-                date_published TIMESTAMP NOT NULL,
-                is_published BOOLEAN NOT NULL DEFAULT FALSE,
-                slug TEXT UNIQUE NOT NULL,
-                search_vector tsvector
-                    GENERATED ALWAYS AS (
-                        setweight(to_tsvector('english', coalesce(title, '')), 'A') ||
-                        setweight(
-                            to_tsvector(
-                                'english',
-                                coalesce(regexp_replace(content, '<[^>]+>', ' ', 'g'), '')
-                            ),
-                            'B'
-                        )
-                    ) STORED
-            )
-        """)
+            CREATE TABLE IF NOT EXISTS articles (\n                id SERIAL PRIMARY KEY,\n                title TEXT NOT NULL,\n                content TEXT NOT NULL,\n                date_published TIMESTAMP NOT NULL,\n                is_published BOOLEAN NOT NULL DEFAULT FALSE,\n                slug TEXT UNIQUE NOT NULL,\n                search_vector tsvector\n                    GENERATED ALWAYS AS (\n                        setweight(to_tsvector('english', coalesce(title, '')), 'A') ||\n                        setweight(\n                            to_tsvector(\n                                'english',\n                                coalesce(regexp_replace(content, '<[^>]+>', ' ', 'g'), '')\n                            ),\n                            'B'\n                        )\n                    ) STORED\n            )\n        """)
         cur.execute(
             "ALTER TABLE articles ADD COLUMN IF NOT EXISTS search_vector tsvector"
             " GENERATED ALWAYS AS ("
@@ -282,20 +297,7 @@ def init_db():
             " ) STORED"
         )
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS projects (
-                id SERIAL PRIMARY KEY,
-                title TEXT NOT NULL,
-                description TEXT NOT NULL,
-                image_url TEXT,
-                technologies TEXT, -- Comma-separated or JSON
-                github_link TEXT,
-                live_demo_link TEXT,
-                date_added TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                is_visible BOOLEAN NOT NULL DEFAULT TRUE,
-                is_featured BOOLEAN NOT NULL DEFAULT FALSE,
-                sort_order INTEGER NOT NULL DEFAULT 0
-            )
-        """)
+            CREATE TABLE IF NOT EXISTS projects (\n                id SERIAL PRIMARY KEY,\n                title TEXT NOT NULL,\n                description TEXT NOT NULL,\n                image_url TEXT,\n                technologies TEXT, -- Comma-separated or JSON\n                github_link TEXT,\n                live_demo_link TEXT,\n                date_added TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\n                is_visible BOOLEAN NOT NULL DEFAULT TRUE,\n                is_featured BOOLEAN NOT NULL DEFAULT FALSE,\n                sort_order INTEGER NOT NULL DEFAULT 0\n            )\n        """)
         # Migrate pre-existing projects tables to the curation columns
         cur.execute(
             "ALTER TABLE projects ADD COLUMN IF NOT EXISTS is_visible BOOLEAN NOT NULL DEFAULT TRUE"
@@ -308,23 +310,9 @@ def init_db():
         )
         # Key/value store for admin-editable site settings (homepage copy, toggles)
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS site_settings (
-                key TEXT PRIMARY KEY,
-                value JSONB NOT NULL,
-                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
+            CREATE TABLE IF NOT EXISTS site_settings (\n                key TEXT PRIMARY KEY,\n                value JSONB NOT NULL,\n                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP\n            )\n        """)
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS article_views (
-                id SERIAL PRIMARY KEY,
-                article_slug TEXT NOT NULL,
-                ip_address TEXT NOT NULL,
-                user_agent TEXT,
-                viewed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                view_date DATE NOT NULL DEFAULT CURRENT_DATE,
-                UNIQUE(article_slug, ip_address, view_date)
-            )
-        """)
+            CREATE TABLE IF NOT EXISTS article_views (\n                id SERIAL PRIMARY KEY,\n                article_slug TEXT NOT NULL,\n                ip_address TEXT NOT NULL,\n                user_agent TEXT,\n                viewed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\n                view_date DATE NOT NULL DEFAULT CURRENT_DATE,\n                UNIQUE(article_slug, ip_address, view_date)\n            )\n        """)
         # Migrate legacy schema (unique per slug+ip forever) to per-day dedup so
         # daily/monthly aggregates actually reflect returning visitors.
         cur.execute(
@@ -362,6 +350,14 @@ def init_db():
         cur.execute(
             "CREATE INDEX IF NOT EXISTS idx_articles_published_date ON articles (is_published, date_published DESC)"
         )
+        # Index on view_date for daily view queries
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_article_views_view_date ON article_views (view_date)"
+        )
+        # Composite index for project curation and visibility sorting
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_projects_visible_order ON projects (is_visible, sort_order ASC, date_added DESC)"
+        )
         # Index for daily/monthly view aggregation
         cur.execute(
             "CREATE INDEX IF NOT EXISTS idx_article_views_viewed_at ON article_views (viewed_at)"
@@ -376,25 +372,13 @@ def init_db():
         )
         # Uploaded images, stored as bytes so they survive Vercel's read-only FS.
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS images (
-                id TEXT PRIMARY KEY,
-                filename TEXT,
-                content_type TEXT NOT NULL,
-                data BYTEA NOT NULL,
-                byte_size INTEGER NOT NULL,
-                uploaded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-        # Using autocommit, but safe to call commit in case autocommit was disabled
-        try:
-            conn.commit()
-        except Exception as exc:
-            logger.debug("Commit failed (likely autocommit on): %s", exc)
+            CREATE TABLE IF NOT EXISTS images (\n                id TEXT PRIMARY KEY,\n                filename TEXT,\n                content_type TEXT NOT NULL,\n                data BYTEA NOT NULL,\n                byte_size INTEGER NOT NULL,\n                uploaded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP\n            )\n        """)
+        commit_db(conn)
         logger.info("Database initialized or already exists.")
         return True
     except psycopg2.Error as e:
         logger.error(f"Error initializing database: {e}")
+        rollback_db(conn)
         return False
     finally:
-        # Connection is now managed by app context, no close here
         pass
