@@ -1,6 +1,7 @@
 {
 	"version": 2,
 	"regions": ["fra1"],
+	"buildCommand": "npm run build",
 	"git": {
 		"deploymentEnabled": false
 	},

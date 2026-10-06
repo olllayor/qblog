@@ -1,0 +1,13 @@
+{
+  "name": "qblog",
+  "version": "0.1.0",
+  "private": true,
+  "description": "DevOps & Engineering workflow scripts for qblog",
+  "scripts": {
+    "build:css": "tailwindcss -i ./static/src/input.css -o ./static/css/tailwind.css --minify && cp ./static/css/tailwind.css ./static/tailwind.css",
+    "build": "npm run build:css"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}
