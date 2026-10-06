@@ -136,6 +136,12 @@ def test_render_icon_helper():
     assert "<svg" in svg_alias
     assert 'class="w-4 h-4"' in svg_alias
 
+    # Times and x aliases
+    svg_times = render_icon("times", "w-4 h-4")
+    svg_x = render_icon("x", "w-4 h-4")
+    assert "<svg" in svg_times
+    assert svg_times == svg_x
+
     # Unknown icon returns empty
     svg_none = render_icon("unknown-xyz")
     assert svg_none == ""
