@@ -14,39 +14,17 @@
 		{% include 'person_schema.html' %}
 
 		<!-- Preconnect to external domains for better performance -->
-		<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
-		<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link rel="preconnect" href="https://cloud.umami.is" crossorigin />
 
 		<!-- Favicon with multiple formats and cache busting -->
-		<link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}" />
-		<link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}" />
-		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon-optimized.ico') }}" />
-		<link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='favicon-optimized.ico') }}" />
-		<link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='favicon-256x256.png') }}" />
+		<link rel="icon" type="image/png" sizes="32x32" href="{{ static_versioned('favicon-32x32.png') }}" />
+		<link rel="icon" type="image/png" sizes="16x16" href="{{ static_versioned('favicon-16x16.png') }}" />
+		<link rel="icon" type="image/x-icon" href="{{ static_versioned('favicon-optimized.ico') }}" />
+		<link rel="shortcut icon" type="image/x-icon" href="{{ static_versioned('favicon-optimized.ico') }}" />
+		<link rel="apple-touch-icon" sizes="180x180" href="{{ static_versioned('favicon-256x256.png') }}" />
 
-		<link rel="stylesheet" href="{{ url_for('static', filename='tailwind.css') }}" />
+		<link rel="stylesheet" href="{{ static_versioned('tailwind.css') }}" />
 		{% include '_theme.html' %}
-
-		<!-- Non-blocking Font Awesome -->
-		<link
-			rel="preload"
-			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-			as="style"
-			onload="this.onload=null;this.rel='stylesheet'"
-		/>
-		<noscript
-			><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-		/></noscript>
-
-		<!-- Non-blocking fonts with display=swap -->
-		<link
-			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
-			rel="stylesheet"
-			media="print"
-			onload="this.media='all'"
-		/>
 		{% include 'analytics.html' %}
 	</head>
 
@@ -80,61 +58,61 @@
 						href="https://github.com/olllayor"
 						target="_blank"
 						rel="me noopener"
-						class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+						class="inline-flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
 						title="Ollayor's GitHub Profile"
 						itemprop="sameAs"
 					>
-						<i class="fab fa-github text-2xl"></i>
+						{{ icon('github', 'w-6 h-6') }}
 						<span class="sr-only">GitHub - olllayor</span>
 					</a>
 					<a
 						href="https://twitter.com/olllayor"
 						target="_blank"
 						rel="me noopener"
-						class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+						class="inline-flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
 						title="Ollayor's Twitter Profile"
 						itemprop="sameAs"
 					>
-						<i class="fab fa-twitter text-2xl"></i>
+						{{ icon('twitter', 'w-6 h-6') }}
 						<span class="sr-only">Twitter - @olllayor</span>
 					</a>
 					<a
 						href="https://t.me/Qprogrammer"
 						target="_blank"
 						rel="me noopener"
-						class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+						class="inline-flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
 						title="Ollayor's Telegram Channel"
 						itemprop="sameAs"
 					>
-						<i class="fab fa-telegram text-2xl"></i>
+						{{ icon('telegram', 'w-6 h-6') }}
 						<span class="sr-only">Telegram - @Qprogrammer</span>
 					</a>
 					<a
 						href="https://www.linkedin.com/in/olllayor/"
 						target="_blank"
 						rel="me noopener"
-						class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+						class="inline-flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
 						title="Ollayor's LinkedIn Profile"
 						itemprop="sameAs"
 					>
-						<i class="fab fa-linkedin text-2xl"></i>
+						{{ icon('linkedin', 'w-6 h-6') }}
 						<span class="sr-only">LinkedIn - Ollayor Maxammadnabiyev</span>
 					</a>
 					<a
 						href="/matrix"
-						class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+						class="inline-flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
 						title="Terminal Matrix"
 					>
-						<i class="fas fa-terminal text-2xl"></i>
+						{{ icon('terminal', 'w-6 h-6') }}
 						<span class="sr-only">Terminal</span>
 					</a>
 					<a
-						href="{{ url_for('static', filename='media/Olloyor_s_resume.pdf') }}"
+						href="{{ static_versioned('media/Olloyor_s_resume.pdf') }}"
 						target="_blank"
-						class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+						class="inline-flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
 						title="Download Ollayor's CV / Resume"
 					>
-						<i class="fa-solid fa-newspaper text-2xl"></i>
+						{{ icon('newspaper', 'w-6 h-6') }}
 						<span class="sr-only">CV / Resume</span>
 					</a>
 				</div>
@@ -160,15 +138,14 @@
 							>
 							{% endif %}
 						</div>
-						<i
-							class="fas fa-arrow-right text-xs text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-transform group-hover:translate-x-0.5 ml-1"
-						></i>
+						{{ icon('arrow-right', 'w-3 h-3 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-transform group-hover:translate-x-0.5 ml-1') }}
 					</a>
 				</div>
 			</div>
 
 			<!-- Right Column: Projects -->
 			{% if hp.show_projects %}
+			{% set first_image_project = (projects | selectattr('image_url') | first) %}
 			<div class="space-y-4">
 				<!-- Projects Grid -->
 				<div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="projects-grid">
@@ -192,12 +169,13 @@
 									class="w-6 h-6 object-cover rounded"
 									width="24"
 									height="24"
-									loading="lazy"
+									loading="{{ 'eager' if project == first_image_project else 'lazy' }}"
+									{% if project == first_image_project %}fetchpriority="high"{% endif %}
 									decoding="async"
 								/>
 								{% else %}
 								<div class="p-1.5 bg-white dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
-									<i class="fas fa-code text-gray-500 text-xs"></i>
+									{{ icon('code', 'w-3 h-3 text-gray-500') }}
 								</div>
 								{% endif %}
 								<h3 class="font-bold text-sm">{{ project.title }}</h3>
@@ -207,19 +185,19 @@
 								<a
 									href="{{ project.github_link }}"
 									target="_blank"
-									class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+									class="inline-flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
 									title="View on GitHub"
 								>
-									<i class="fab fa-github text-xs"></i>
+									{{ icon('github', 'w-3 h-3') }}
 								</a>
 								{% endif %} {% if project.live_demo_link %}
 								<a
 									href="{{ project.live_demo_link }}"
 									target="_blank"
-									class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+									class="inline-flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
 									title="Live Demo"
 								>
-									<i class="fas fa-external-link-alt text-xs"></i>
+									{{ icon('external-link', 'w-3 h-3') }}
 								</a>
 								{% endif %}
 							</div>
@@ -261,7 +239,7 @@
 						class="inline-flex items-center gap-2 text-xs text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors group"
 					>
 						<span>View all projects</span>
-						<i class="fas fa-arrow-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
+						{{ icon('arrow-right', 'w-2.5 h-2.5 group-hover:translate-x-1 transition-transform') }}
 					</a>
 				</div>
 			</div>
@@ -301,49 +279,60 @@
 			>
 				<!-- Modal Header with Image -->
 				<div
-					id="modalImageContainer"
-					class="relative aspect-video bg-gray-100 dark:bg-gray-800 rounded-t-2xl overflow-hidden hidden"
+					id="modalHeader"
+					class="relative h-48 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 dark:from-blue-500/20 dark:via-purple-500/20 dark:to-pink-500/20 rounded-t-2xl overflow-hidden"
 				>
-					<img id="modalImage" src="" alt="" class="w-full h-full object-cover" />
+					<img
+						id="modalImage"
+						src=""
+						alt=""
+						class="w-full h-full object-cover hidden"
+					/>
+					<div
+						id="modalImagePlaceholder"
+						class="w-full h-full flex items-center justify-center"
+					>
+						{{ icon('code', 'w-16 h-16 text-gray-400') }}
+					</div>
+					<!-- Close Button -->
+					<button
+						onclick="closeProjectModal(event)"
+						class="absolute top-4 right-4 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors"
+						aria-label="Close modal"
+					>
+						{{ icon('times', 'w-4 h-4') }}
+					</button>
 				</div>
 
-				<!-- Modal Content -->
-				<div class="p-6">
-					<div class="flex justify-between items-start mb-4">
-						<h3 id="modalTitle" class="text-xl font-bold text-gray-900 dark:text-gray-100"></h3>
-						<button
-							onclick="closeProjectModal(event)"
-							class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors p-1"
-						>
-							<i class="fas fa-times text-lg"></i>
-						</button>
-					</div>
-
-					<p id="modalDescription" class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-4"></p>
+				<!-- Modal Body -->
+				<div class="p-6 space-y-4">
+					<h3 id="modalTitle" class="text-xl font-bold"></h3>
+					<p
+						id="modalDescription"
+						class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed"
+					></p>
 
 					<!-- Technologies -->
-					<div id="modalTechnologies" class="flex flex-wrap gap-2 mb-6"></div>
+					<div id="modalTechnologies" class="flex flex-wrap gap-2 pt-2"></div>
 
 					<!-- Action Buttons -->
-					<div class="flex gap-3" id="modalActions">
+					<div class="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
 						<a
 							id="modalGithub"
-							href="#"
+							href=""
 							target="_blank"
-							class="flex-1 items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium text-sm hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
-							style="display: none"
+							class="hidden flex-1 flex items-center justify-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
 						>
-							<i class="fab fa-github"></i>
+							{{ icon('github', 'w-4 h-4') }}
 							<span>View Code</span>
 						</a>
 						<a
 							id="modalDemo"
-							href="#"
+							href=""
 							target="_blank"
-							class="flex-1 items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 font-medium text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-							style="display: none"
+							class="hidden flex-1 flex items-center justify-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
 						>
-							<i class="fas fa-external-link-alt"></i>
+							{{ icon('external-link', 'w-4 h-4') }}
 							<span>Live Demo</span>
 						</a>
 					</div>
@@ -352,86 +341,80 @@
 		</div>
 
 		<script>
-			// Debounce helper for better INP
-			function debounce(fn, delay) {
-				let timer;
-				return function(...args) {
-					clearTimeout(timer);
-					timer = setTimeout(() => fn.apply(this, args), delay);
-				};
+			function openProjectModal(card) {
+				const title = card.dataset.title;
+				const description = card.dataset.description;
+				const image = card.dataset.image;
+				const github = card.dataset.github;
+				const demo = card.dataset.demo;
+				const technologies = card.dataset.technologies
+					? card.dataset.technologies.split(',')
+					: [];
+
+				document.getElementById('modalTitle').textContent = title;
+				document.getElementById('modalDescription').textContent = description;
+
+				const modalImage = document.getElementById('modalImage');
+				const modalPlaceholder = document.getElementById('modalImagePlaceholder');
+
+				if (image) {
+					modalImage.src = image;
+					modalImage.alt = title;
+					modalImage.classList.remove('hidden');
+					modalPlaceholder.classList.add('hidden');
+				} else {
+					modalImage.classList.add('hidden');
+					modalPlaceholder.classList.remove('hidden');
+				}
+
+				const techContainer = document.getElementById('modalTechnologies');
+				techContainer.innerHTML = '';
+				technologies.forEach((tech) => {
+					if (tech.trim()) {
+						const badge = document.createElement('span');
+						badge.className =
+							'text-xs px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium';
+						badge.textContent = tech.trim();
+						techContainer.appendChild(badge);
+					}
+				});
+
+				const githubBtn = document.getElementById('modalGithub');
+				if (github) {
+					githubBtn.href = github;
+					githubBtn.classList.remove('hidden');
+				} else {
+					githubBtn.classList.add('hidden');
+				}
+
+				const demoBtn = document.getElementById('modalDemo');
+				if (demo) {
+					demoBtn.href = demo;
+					demoBtn.classList.remove('hidden');
+				} else {
+					demoBtn.classList.add('hidden');
+				}
+
+				const modal = document.getElementById('projectModal');
+				modal.classList.remove('opacity-0', 'pointer-events-none');
+				document.body.style.overflow = 'hidden';
 			}
-				// Project Modal Functions
-				function openProjectModal(card) {
-					const modal = document.getElementById('projectModal');
-					const title = card.dataset.title;
-					const description = card.dataset.description;
-					const image = card.dataset.image;
-					const github = card.dataset.github;
-					const demo = card.dataset.demo;
-					const technologies = card.dataset.technologies ? card.dataset.technologies.split(',') : [];
 
-					// Populate modal
-					document.getElementById('modalTitle').textContent = title;
-					document.getElementById('modalDescription').textContent = description;
+			function closeProjectModal(event) {
+				if (event) event.preventDefault();
+				const modal = document.getElementById('projectModal');
+				modal.classList.add('opacity-0', 'pointer-events-none');
+				document.getElementById('modalGithub').classList.add('hidden');
+				document.getElementById('modalDemo').classList.add('hidden');
+				document.body.style.overflow = '';
+			}
 
-					// Image
-					const imageContainer = document.getElementById('modalImageContainer');
-					const modalImage = document.getElementById('modalImage');
-					if (image) {
-						modalImage.src = image;
-						modalImage.alt = title;
-						imageContainer.classList.remove('hidden');
-					} else {
-						imageContainer.classList.add('hidden');
-					}
-
-					// Technologies
-					const techContainer = document.getElementById('modalTechnologies');
-					techContainer.innerHTML = technologies
-						.map(
-							(tech) =>
-								`<span class="text-xs font-medium px-3 py-1 rounded-full bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-white/10">${tech.trim()}</span>`,
-						)
-						.join('');
-
-					// Links
-					const githubBtn = document.getElementById('modalGithub');
-					const demoBtn = document.getElementById('modalDemo');
-
-					if (github) {
-						githubBtn.href = github;
-						githubBtn.style.display = 'inline-flex';
-					} else {
-						githubBtn.style.display = 'none';
-					}
-
-					if (demo) {
-						demoBtn.href = demo;
-						demoBtn.style.display = 'inline-flex';
-					} else {
-						demoBtn.style.display = 'none';
-					}
-
-					// Show modal
-					modal.classList.remove('opacity-0', 'pointer-events-none');
-					modal.classList.add('opacity-100');
-					document.body.style.overflow = 'hidden';
+			// Close modal on Escape key
+			document.addEventListener('keydown', function (e) {
+				if (e.key === 'Escape') {
+					closeProjectModal();
 				}
-
-				function closeProjectModal(event) {
-					if (event) event.stopPropagation();
-					const modal = document.getElementById('projectModal');
-					modal.classList.remove('opacity-100');
-					modal.classList.add('opacity-0', 'pointer-events-none');
-					document.body.style.overflow = 'auto';
-				}
-
-				// Keyboard support - Use passive listener
-				document.addEventListener('keydown', function (event) {
-					if (event.key === 'Escape') {
-						closeProjectModal(event);
-					}
-				}, { passive: true });
+			});
 		</script>
 	</body>
 </html>

@@ -38,6 +38,7 @@ py-modules = [
     "search",
     "settings",
     "sitemap_generator",
+    "icons",
 ]
 
 [tool.pytest.ini_options]

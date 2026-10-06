@@ -4,20 +4,10 @@
 		<meta charset="UTF-8" />
 
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" />
-		<link rel="stylesheet" href="{{ url_for('static', filename='tailwind.css') }}" />
-
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link
-			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
-			rel="stylesheet"
-		/>
-		<link
-			href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap"
-			rel="stylesheet"
-		/>
+		<link rel="icon" type="image/x-icon" href="{{ static_versioned('favicon.ico') }}" />
+		<link rel="stylesheet" href="{{ static_versioned('tailwind.css') }}" />
 		<title>Login</title>
+		{% include '_theme.html' %}
 		{% include 'analytics.html' %}
 
 		<!-- Yandex.Metrika counter -->
@@ -58,7 +48,7 @@
 
 	<body class="font-inter bg-gray-100 dark:bg-gray-900 flex justify-center items-center h-screen">
 		<div class="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-md text-center w-80">
-			<h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100" style="font-family: 'Geist Mono', monospace">
+			<h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-100" style="font-family: 'JetBrains Mono', monospace">
 				Admin Login
 			</h2>
 			<form method="POST" action="{{ url_for('login') }}">

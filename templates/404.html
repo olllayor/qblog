@@ -3,23 +3,16 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" />
-		<link rel="stylesheet" href="{{ url_for('static', filename='tailwind.css') }}" />
-		<link
-			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap"
-			rel="stylesheet"
-		/>
-		<link
-			href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap"
-			rel="stylesheet"
-		/>
+		<link rel="icon" type="image/x-icon" href="{{ static_versioned('favicon.ico') }}" />
+		<link rel="stylesheet" href="{{ static_versioned('tailwind.css') }}" />
 		<title>404 - Page Not Found</title>
+		{% include '_theme.html' %}
 		{% include 'analytics.html' %}
 	</head>
 
 	<body class="font-inter bg-gray-50 dark:bg-gray-900 flex flex-col justify-center items-center h-screen">
 		<div class="text-center">
-			<h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200" style="font-family: 'Geist Mono', monospace">
+			<h1 class="text-3xl font-bold text-gray-800 dark:text-gray-200" style="font-family: 'JetBrains Mono', monospace">
 				404 Error
 			</h1>
 			<p class="text-gray-600 dark:text-gray-200" style="font-family: 'JetBrains Mono', monospace">

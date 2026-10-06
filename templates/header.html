@@ -87,14 +87,17 @@
 					aria-label="Toggle dark mode"
 					class="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
 				>
-					<i id="theme-icon" class="fas fa-moon"></i>
+					<span id="theme-icon" class="inline-flex items-center">
+						<span class="hidden dark:inline">{{ icon('sun', 'w-5 h-5') }}</span>
+						<span class="inline dark:hidden">{{ icon('moon', 'w-5 h-5') }}</span>
+					</span>
 				</button>
 				<a
 					href="https://t.me/Qprogrammer"
 					class="flex items-center space-x-1 px-4 py-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200"
 					style="font-family: 'JetBrains Mono', monospace"
 				>
-					<i class="fab fa-telegram-plane"></i>
+					{{ icon('telegram', 'w-4 h-4') }}
 					<span>Channel</span>
 				</a>
 			</nav>
@@ -138,10 +141,10 @@
 			{% endif %}
 			<a
 				href="https://t.me/Qprogrammer"
-				class="block px-3 py-2 rounded-md text-gray-600 dark:text-gray-200 hover:text-blue-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+				class="flex items-center px-3 py-2 rounded-md text-gray-600 dark:text-gray-200 hover:text-blue-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
 				style="font-family: 'JetBrains Mono', monospace"
 			>
-				<i class="fab fa-telegram-plane mr-2"></i>Channel
+				{{ icon('telegram', 'w-4 h-4 mr-2 inline-block') }}Channel
 			</a>
 		</div>
 	</div>
@@ -161,14 +164,16 @@
 
 			// Animate hamburger to X
 			const spans = toggle.getElementsByTagName('span');
-			if (isOpen) {
-				spans[0].style.transform = 'rotate(45deg) translate(5px, 5px)';
-				spans[1].style.opacity = '0';
-				spans[2].style.transform = 'rotate(-45deg) translate(5px, -5px)';
-			} else {
-				spans[0].style.transform = 'none';
-				spans[1].style.opacity = '1';
-				spans[2].style.transform = 'none';
+			if (spans.length >= 3) {
+				if (isOpen) {
+					spans[0].style.transform = 'rotate(45deg) translate(5px, 5px)';
+					spans[1].style.opacity = '0';
+					spans[2].style.transform = 'rotate(-45deg) translate(5px, -5px)';
+				} else {
+					spans[0].style.transform = 'none';
+					spans[1].style.opacity = '1';
+					spans[2].style.transform = 'none';
+				}
 			}
 		}
 
@@ -195,12 +200,12 @@
 			}
 		}
 
-		// Debounce helper
-		function debounce(fn, delay) {
+		// Debounce resize handler for performance
+		function debounce(fn, ms) {
 			let timer;
 			return function (...args) {
 				clearTimeout(timer);
-				timer = setTimeout(() => fn.apply(this, args), delay);
+				timer = setTimeout(() => fn.apply(this, args), ms);
 			};
 		}
 
@@ -216,20 +221,12 @@
 
 		// Dark Mode Toggle
 		const themeToggle = document.getElementById('theme-toggle');
-		const themeIcon = document.getElementById('theme-icon');
-
-		function updateIcon(isDark) {
-			if (!themeIcon) return;
-			themeIcon.classList.toggle('fa-sun', isDark);
-			themeIcon.classList.toggle('fa-moon', !isDark);
-		}
 
 		function applyTheme() {
 			const isDark =
 				localStorage.theme === 'dark' ||
 				(!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
 			document.documentElement.classList.toggle('dark', isDark);
-			updateIcon(isDark);
 		}
 
 		applyTheme();
@@ -238,7 +235,6 @@
 			themeToggle.addEventListener('click', () => {
 				const isDark = document.documentElement.classList.toggle('dark');
 				localStorage.theme = isDark ? 'dark' : 'light';
-				updateIcon(isDark);
 			});
 		}
 

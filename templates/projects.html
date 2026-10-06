@@ -15,6 +15,7 @@
 
 			<main>
 				{% if projects %}
+				{% set first_image_project = (projects | selectattr('image_url') | first) %}
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
 					{% for project in projects %}
 					<div
@@ -29,7 +30,8 @@
 								src="{{ project.image_url }}"
 								alt="{{ project.title }}"
 								class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-								loading="lazy"
+								loading="{{ 'eager' if project == first_image_project else 'lazy' }}"
+								{% if project == first_image_project %}fetchpriority="high"{% endif %}
 							/>
 						</div>
 						{% endif %}
@@ -47,16 +49,18 @@
 										href="{{ project.github_link }}"
 										target="_blank"
 										class="text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+										aria-label="GitHub Repository for {{ project.title }}"
 									>
-										<i class="fab fa-github text-lg"></i>
+										{{ icon('github', 'w-5 h-5') }}
 									</a>
 									{% endif %} {% if project.live_demo_link %}
 									<a
 										href="{{ project.live_demo_link }}"
 										target="_blank"
 										class="text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+										aria-label="Live Demo for {{ project.title }}"
 									>
-										<i class="fas fa-external-link-alt text-lg"></i>
+										{{ icon('external-link', 'w-5 h-5') }}
 									</a>
 									{% endif %}
 								</div>
@@ -102,8 +106,9 @@
 				<button
 					class="absolute top-0 right-0 -mt-12 text-white/70 hover:text-white transition-colors"
 					onclick="closeModal()"
+					aria-label="Close modal"
 				>
-					<i class="fas fa-times text-2xl"></i>
+					{{ icon('times', 'w-6 h-6') }}
 				</button>
 			</div>
 		</div>
@@ -115,7 +120,6 @@
 				if (modal && modalImage) {
 					modalImage.src = imageUrl;
 					modal.classList.remove('opacity-0', 'pointer-events-none');
-					modal.classList.add('opacity-100');
 					document.body.style.overflow = 'hidden';
 				}
 			}
@@ -123,14 +127,14 @@
 			function closeModal() {
 				const modal = document.getElementById('imageModal');
 				if (modal) {
-					modal.classList.remove('opacity-100');
 					modal.classList.add('opacity-0', 'pointer-events-none');
-					document.body.style.overflow = 'auto';
+					document.body.style.overflow = '';
 				}
 			}
 
-			document.addEventListener('keydown', function (event) {
-				if (event.key === 'Escape') {
+			// Close modal on Escape key
+			document.addEventListener('keydown', function (e) {
+				if (e.key === 'Escape') {
 					closeModal();
 				}
 			});
