@@ -82,6 +82,25 @@ csrf = CSRFProtect(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
+# Flask-Login's default context processor calls _get_user() eagerly on every
+# render_template, which reads session['_user_id'] and makes Flask emit
+# `Vary: Cookie` on every response. The edge refuses to cache those, so every
+# public view paid a cold start. Resolve current_user lazily instead: the
+# LocalProxy only touches the session when a template actually reads it.
+# Public templates never do (only header.html reads current_user). Note the
+# article route short-circuits on is_published before touching current_user,
+# so published articles stay session-free; keep that ordering.
+from flask_login.utils import _user_context_processor as _fl_user_ctx
+
+
+def _lazy_user_context_processor():
+    return {"current_user": current_user}
+
+
+app.template_context_processors[None] = [
+    p for p in app.template_context_processors[None] if p is not _fl_user_ctx
+] + [_lazy_user_context_processor]
+
 _static_hash_cache: dict[str, str] = {}
 
 

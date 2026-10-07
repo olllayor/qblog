@@ -169,14 +169,14 @@
 	            "position": {{ loop.index }},
 	            "item": {
 	                "@type": "SoftwareSourceCode",
-	                "name": "{{ project.title }}",
-	                "description": "{{ project.description | replace('"', '\\"') }}",
-	                {% if project.github_link %}"codeRepository": "{{ project.github_link }}",{% endif %}
-	                {% if project.live_demo_link %}"url": "{{ project.live_demo_link }}",{% endif %}
+	                "name": {{ project.title | tojson }},
+	                "description": {{ project.description | tojson }},
+	                {% if project.github_link %}"codeRepository": {{ project.github_link | tojson }},{% endif %}
+	                {% if project.live_demo_link %}"url": {{ project.live_demo_link | tojson }},{% endif %}
 	                "author": {
 	                    "@id": "https://ollayor.uz/#person"
 	                },
-	                "programmingLanguage": {% if project.technologies %}"{{ project.technologies | join(', ') }}"{% else %}"Python"{% endif %}
+	                "programmingLanguage": {% if project.technologies %}{{ project.technologies | join(', ') | tojson }}{% else %}"Python"{% endif %}
 	            }
 	        }{% if not loop.last %},{% endif %}
 	        {% endfor %}

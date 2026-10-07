@@ -78,6 +78,8 @@ class Article:
         matches = _RE_IMG.findall(self.content)
         if matches:
             img_src = matches[0]
+            if img_src.startswith(("data:", "blob:")):
+                return None  # inline/blob URIs are not addressable by crawlers
             if img_src.startswith("/"):
                 return f"{base_url}{img_src}"
             elif img_src.startswith("http"):
