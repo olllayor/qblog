@@ -1,11 +1,25 @@
 """Tests for SEO features, meta tags, structured data, sitemaps, and assets."""
 
+import json
+import re
+from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock
 
+import pytest
 from flask import render_template
 
+from articles import Article
 from sitemap_generator import generate_image_sitemap, generate_sitemap
+
+LD_JSON_RE = re.compile(r'<script type="application/ld\+json">(.*?)</script>', re.S)
+
+ADVERSARIAL_TEXTS = [
+    pytest.param("line one\nline two", id="newline"),
+    pytest.param('He said "hello" and it\'s fine', id="quotes"),
+    pytest.param("x</script><script>alert(1)", id="script-breakout"),
+    pytest.param("Uzbekiston \u2014 \u00absalom\u00bb \u2026", id="unicode"),
+]
 
 OPTIMIZED_IMAGES = [
     "me.webp",
@@ -106,3 +120,115 @@ def test_optimized_images_exist(app):
         assert img_path.stat().st_size > 0, (
             f"Expected {img_name} to have non-zero file size"
         )
+
+
+@pytest.mark.parametrize("text", ADVERSARIAL_TEXTS)
+def test_article_json_ld_parses_with_adversarial_text(app, text):
+    """Every ld+json block on an article must stay valid JSON.
+
+    Summaries come from stripped article HTML, so they carry newlines;
+    titles carry quotes. Interpolating either into a JSON string literal
+    used to emit `Invalid control character` (BlogPosting) or mangled
+    HTML entities. The template now serializes a dict with tojson.
+    """
+    ctx = {
+        "page_title": f"Title {text}",
+        "page_description": f"Desc {text}",
+        "page_image": "https://example.com/og.jpg",
+        "page_url": "https://example.com/blog/x",
+        "page_type": "article",
+        "article_date": "2026-01-01",
+        "article_modified": "",
+    }
+    with app.test_request_context("/blog/x"):
+        meta = render_template("seo_meta.html", **ctx)
+    blocks = LD_JSON_RE.findall(meta)
+    assert len(blocks) == 2  # BlogPosting + BreadcrumbList
+    for raw in blocks:
+        json.loads(raw)  # must not raise
+    posting = json.loads(blocks[0])
+    assert posting["@type"] == "BlogPosting"
+    assert posting["headline"] == ctx["page_title"]
+    assert posting["description"] == ctx["page_description"]
+    crumb = json.loads(blocks[1])
+    assert crumb["itemListElement"][2]["name"] == ctx["page_title"]
+
+
+def test_person_schema_itemlist_parses_with_adversarial_project(app):
+    """Project fields are user input; the ItemList block must survive them."""
+    project = MagicMock()
+    project.title = 'P "quoted"\nnewline'
+    project.description = 'D1\nD2 "q" </script>'
+    project.github_link = "https://github.com/x/y"
+    project.live_demo_link = ""
+    project.technologies = ["Python", 'A"B']
+    with app.test_request_context("/"):
+        html = render_template("person_schema.html", projects=[project])
+    blocks = LD_JSON_RE.findall(html)
+    assert blocks, "expected at least the ItemList block"
+    for raw in blocks:
+        json.loads(raw)  # must not raise
+
+
+def test_get_first_image_rejects_inline_uris():
+    """data: and blob: sources are not crawler-addressable; fall back."""
+    assert (
+        Article("t", '<img src="data:image/png;base64,AAA">', None).get_first_image()
+        is None
+    )
+    assert (
+        Article("t", '<img src="blob:https://x/uuid">', None).get_first_image() is None
+    )
+    assert (
+        Article("t", '<img src="/media/img/abc">', None).get_first_image()
+        == "https://ollayor.uz/media/img/abc"
+    )
+    assert (
+        Article("t", '<img src="https://cdn/x.png">', None).get_first_image()
+        == "https://cdn/x.png"
+    )
+
+
+def test_public_responses_are_edge_cacheable(client):
+    """No session touch on public routes: Vary must be absent, CC public."""
+    for path in ["/", "/about", "/blog"]:
+        resp = client.get(path)
+        assert resp.status_code == 200, path
+        assert resp.headers.get("Vary") is None, path
+        assert "s-maxage" in (resp.headers.get("Cache-Control") or ""), path
+
+
+def test_login_keeps_session_vary(client):
+    """The session-dependent route must keep varying on Cookie."""
+    resp = client.get("/login")
+    assert resp.status_code == 200
+    assert resp.headers.get("Vary") == "Cookie"
+
+
+def test_article_page_json_ld_and_fallback_image(app, client, monkeypatch):
+    """Full article page: ld+json parses, data: image falls back, no Vary."""
+    nasty = Article(
+        'A "quoted"\ntitle',
+        "<p>first\nsecond</p>" + '<img src="data:image/png;base64,AAAA">',
+        datetime(2026, 1, 2),
+        True,
+        "nasty",
+    )
+    monkeypatch.setattr(Article, "get_by_slug", lambda slug: nasty)
+    monkeypatch.setattr(Article, "get_view_count", lambda slug: 0)
+    resp = client.get("/blog/nasty")
+    assert resp.status_code == 200
+    html = resp.get_data(as_text=True)
+    blocks = LD_JSON_RE.findall(html)
+    assert blocks, "expected BlogPosting + BreadcrumbList blocks"
+    for raw in blocks:
+        json.loads(raw)  # must not raise
+    assert "myself-social-optimized.jpg" in html
+    assert resp.headers.get("Vary") is None
+
+
+def test_authenticated_header_still_resolves_user(auth_client):
+    """The lazy current_user proxy must resolve for logged-in admins."""
+    resp = auth_client.get("/for-llms")
+    assert resp.status_code == 200
+    assert b"Admin" in resp.data
