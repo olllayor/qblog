@@ -46,9 +46,9 @@
 						<h1 class="text-3xl font-bold tracking-tight">{{ hp.hero_greeting }}</h1>
 					</div>
 					{% if hp.hero_line1 %}
-					<p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{{ hp.hero_line1 }}</p>
+					<p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{{ hp.hero_line1 }}</p>
 					{% endif %} {% if hp.hero_line2 %}
-					<p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{{ hp.hero_line2 }}</p>
+					<p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{{ hp.hero_line2 }}</p>
 					{% endif %}
 				</div>
 
@@ -58,7 +58,7 @@
 						href="https://github.com/olllayor"
 						target="_blank"
 						rel="me noopener"
-						class="inline-flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+						class="inline-flex items-center justify-center text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
 						title="Ollayor's GitHub Profile"
 						itemprop="sameAs"
 					>
@@ -69,7 +69,7 @@
 						href="https://twitter.com/olllayor"
 						target="_blank"
 						rel="me noopener"
-						class="inline-flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+						class="inline-flex items-center justify-center text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
 						title="Ollayor's Twitter Profile"
 						itemprop="sameAs"
 					>
@@ -80,7 +80,7 @@
 						href="https://t.me/Qprogrammer"
 						target="_blank"
 						rel="me noopener"
-						class="inline-flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+						class="inline-flex items-center justify-center text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
 						title="Ollayor's Telegram Channel"
 						itemprop="sameAs"
 					>
@@ -91,7 +91,7 @@
 						href="https://www.linkedin.com/in/olllayor/"
 						target="_blank"
 						rel="me noopener"
-						class="inline-flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+						class="inline-flex items-center justify-center text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
 						title="Ollayor's LinkedIn Profile"
 						itemprop="sameAs"
 					>
@@ -100,7 +100,7 @@
 					</a>
 					<a
 						href="/matrix"
-						class="inline-flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+						class="inline-flex items-center justify-center text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
 						title="Terminal Matrix"
 					>
 						{{ icon('terminal', 'w-6 h-6') }}
@@ -109,7 +109,7 @@
 					<a
 						href="{{ static_versioned('media/Olloyor_s_resume.pdf') }}"
 						target="_blank"
-						class="inline-flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+						class="inline-flex items-center justify-center text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
 						title="Download Ollayor's CV / Resume"
 					>
 						{{ icon('newspaper', 'w-6 h-6') }}
@@ -138,7 +138,7 @@
 							>
 							{% endif %}
 						</div>
-						{{ icon('arrow-right', 'w-3 h-3 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-transform group-hover:translate-x-0.5 ml-1') }}
+						{{ icon('arrow-right', 'w-3 h-3 text-gray-500 group-hover:text-gray-800 dark:text-gray-400 dark:group-hover:text-gray-200 transition-transform group-hover:translate-x-0.5 ml-1') }}
 					</a>
 				</div>
 			</div>
@@ -185,7 +185,7 @@
 								<a
 									href="{{ project.github_link }}"
 									target="_blank"
-									class="inline-flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+									class="inline-flex items-center justify-center text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
 									title="View on GitHub"
 								>
 									{{ icon('github', 'w-3 h-3') }}
@@ -194,7 +194,7 @@
 								<a
 									href="{{ project.live_demo_link }}"
 									target="_blank"
-									class="inline-flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+									class="inline-flex items-center justify-center text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
 									title="Live Demo"
 								>
 									{{ icon('external-link', 'w-3 h-3') }}
@@ -202,7 +202,7 @@
 								{% endif %}
 							</div>
 						</div>
-						<p class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed line-clamp-2 mb-3">
+						<p class="text-xs text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-2 mb-3">
 							{{ project.description }}
 						</p>
 
@@ -210,13 +210,13 @@
 						<div class="flex flex-wrap gap-1.5 mt-auto">
 							{% for tech in project.technologies[:3] %}
 							<span
-								class="tech-badge text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-300 border border-gray-200/50 dark:border-white/5"
+								class="tech-badge text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-200 border border-gray-300/60 dark:border-white/10"
 							>
 								{{ tech }}
 							</span>
 							{% endfor %} {% if project.technologies|length > 3 %}
 							<span
-								class="text-[10px] font-medium px-2 py-0.5 text-gray-400 dark:text-gray-500 cursor-default"
+								class="text-[10px] font-medium px-2 py-0.5 text-gray-600 dark:text-gray-400 cursor-default"
 								title="{{ project.technologies[3:]|join(', ') }}"
 							>
 								+{{ project.technologies|length - 3 }} more
@@ -226,7 +226,7 @@
 						{% endif %}
 					</div>
 					{% else %}
-					<div class="col-span-2 p-6 text-center text-gray-500">
+					<div class="col-span-2 p-6 text-center text-gray-600 dark:text-gray-400">
 						<p>No projects found.</p>
 					</div>
 					{% endfor %}
@@ -236,7 +236,7 @@
 				<div class="text-center pt-4">
 					<a
 						href="/projects"
-						class="inline-flex items-center gap-2 text-xs text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors group"
+						class="inline-flex items-center gap-2 text-xs text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors group"
 					>
 						<span>View all projects</span>
 						{{ icon('arrow-right', 'w-2.5 h-2.5 group-hover:translate-x-1 transition-transform') }}
@@ -309,7 +309,7 @@
 					<h3 id="modalTitle" class="text-xl font-bold"></h3>
 					<p
 						id="modalDescription"
-						class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed"
+						class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed"
 					></p>
 
 					<!-- Technologies -->
@@ -373,7 +373,7 @@
 					if (tech.trim()) {
 						const badge = document.createElement('span');
 						badge.className =
-							'text-xs px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium';
+							'text-xs px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 font-medium border border-gray-200/60 dark:border-gray-700';
 						badge.textContent = tech.trim();
 						techContainer.appendChild(badge);
 					}
