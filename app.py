@@ -78,7 +78,6 @@ else:
     logger.info("SENTRY_DSN not set. Sentry error tracking disabled.")
 
 app = Flask(__name__)
-app.config["TEMPLATES_AUTO_RELOAD"] = True
 csrf = CSRFProtect(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
@@ -1492,9 +1491,10 @@ def auto_save():
 
 
 if __name__ == "__main__":
-    debug_mode = os.getenv("FLASK_DEBUG", "1").lower() not in ("0", "false", "no")
+    debug_mode = (
+        os.getenv("FLASK_ENV") == "development" or os.getenv("FLASK_DEBUG") == "1"
+    )
     if debug_mode:
-        os.environ["FLASK_DEBUG"] = "1"
         app.config["TEMPLATES_AUTO_RELOAD"] = True
         app.jinja_env.auto_reload = True
         app.config["CACHE_TYPE"] = "NullCache"
