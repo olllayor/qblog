@@ -83,7 +83,7 @@
 				user-select: none;
 			}
 			.dark #article-rail .rail-views {
-				color: #9ca3af;
+				color: #cbd5e1;
 			}
 		#article-rail-ticks {
 			display: flex;
@@ -353,11 +353,11 @@
 
 		<main class="flex-grow w-full max-w-3xl mx-auto px-6 py-12">
 			{% if article %}
-			<nav aria-label="Breadcrumb" class="mb-8 text-xs text-gray-500 dark:text-gray-500">
+			<nav aria-label="Breadcrumb" class="mb-8 text-xs text-gray-600 dark:text-gray-300">
 				<ol class="flex flex-wrap items-center gap-2">
-					<li><a href="{{ url_for('index') }}" class="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Home</a></li>
+					<li><a href="{{ url_for('index') }}" class="hover:text-gray-900 dark:hover:text-white transition-colors">Home</a></li>
 					<li aria-hidden="true">/</li>
-					<li><a href="{{ url_for('blog') }}" class="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Blog</a></li>
+					<li><a href="{{ url_for('blog') }}" class="hover:text-gray-900 dark:hover:text-white transition-colors">Blog</a></li>
 					<li aria-hidden="true">/</li>
 					<li aria-current="page" class="text-gray-900 dark:text-gray-100 truncate max-w-[16rem] md:max-w-xs">{{ article.title }}</li>
 				</ol>
@@ -365,7 +365,7 @@
 			<article data-article-slug="{{ article.slug }}" itemscope itemtype="https://schema.org/BlogPosting">
 				<header class="mb-12 text-center">
 					<div
-						class="flex items-center justify-center gap-3 text-xs text-gray-500 dark:text-gray-500 uppercase tracking-wider font-medium mb-6"
+						class="flex items-center justify-center gap-3 text-xs text-gray-600 dark:text-gray-300 uppercase tracking-wider font-medium mb-6"
 					>
 					<time datetime="{{ article.date_published.isoformat() if article.date_published else '' }}" itemprop="datePublished">
 						{{ article.date_published.strftime('%Y-%m-%d') if article.date_published else '' }}
@@ -376,7 +376,7 @@
 					<h1 class="text-3xl md:text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-6 leading-tight">
 						{{ article.title }}
 					</h1>
-				<div id="article-views-header" class="flex items-center justify-center gap-2 text-sm text-gray-500">
+				<div id="article-views-header" class="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-300">
 					{{ icon('eye', 'w-4 h-4') }}
 					<span data-view-count>{{ view_count }} views</span>
 				</div>
@@ -404,7 +404,7 @@
 						decoding="async"
 					/>
 					<div class="space-y-2">
-						<p class="text-[11px] text-gray-500 dark:text-gray-500 uppercase tracking-wider font-medium">
+						<p class="text-[11px] text-gray-600 dark:text-gray-400 uppercase tracking-wider font-medium">
 							Written by
 						</p>
 						<p class="font-bold">
@@ -412,7 +412,7 @@
 								>Ollayor Maxammadnabiyev</a
 							>
 						</p>
-						<p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+						<p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
 							Software Engineer from Uzbekistan building with Python, JavaScript/TypeScript, and modern
 							web tech. He writes about software engineering, APIs, and things he learns along the way.
 						</p>
@@ -421,7 +421,7 @@
 			</section>
 			{% else %}
 			<div class="text-center py-20">
-				<p class="text-gray-600 dark:text-gray-400">Article not found.</p>
+				<p class="text-gray-700 dark:text-gray-300">Article not found.</p>
 				<a href="/blog" class="text-blue-500 hover:underline mt-4 inline-block">Back to essays</a>
 			</div>
 			{% endif %}

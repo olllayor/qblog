@@ -10,7 +10,7 @@
 				<h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-6 leading-tight">
 					Thoughts on design,<br />technology & life.
 				</h1>
-				<p class="text-lg text-gray-600 dark:text-gray-400 max-w-xl leading-relaxed">
+				<p class="text-lg text-gray-700 dark:text-gray-300 max-w-xl leading-relaxed">
 					A collection of essays and observations on the things that matter.
 				</p>
 			</section>
@@ -35,7 +35,7 @@
 
 			<main>
 				{% if query %}
-				<div class="mb-6 text-sm text-gray-600 dark:text-gray-400">
+				<div class="mb-6 text-sm text-gray-700 dark:text-gray-300">
 					{% if search_degraded %} Search is temporarily unavailable, showing latest posts for "<span
 						class="font-semibold"
 						>{{ query }}</span
@@ -57,7 +57,7 @@
 					>
 						<article class="grid grid-cols-[32px_1fr] md:grid-cols-[48px_1fr] gap-4 md:gap-6">
 							<span
-								class="text-sm text-gray-400 dark:text-gray-600 font-mono pt-1 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors"
+								class="text-sm text-gray-500 dark:text-gray-400 font-mono pt-1 group-hover:text-gray-900 dark:group-hover:text-white transition-colors"
 							>
 								{{ "%02d" | format(loop.index) }}
 							</span>
@@ -68,12 +68,12 @@
 									{{ article.title }}
 								</h3>
 								{% if article.get_summary(200) %}
-								<p class="text-gray-600 dark:text-gray-400 leading-relaxed text-sm">
+								<p class="text-gray-700 dark:text-gray-300 leading-relaxed text-sm">
 									{{ article.get_summary(200) | safe }}
 								</p>
 								{% endif %}
 								<div
-									class="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-500 uppercase tracking-wider font-medium mt-2"
+									class="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-300 uppercase tracking-wider font-medium mt-2"
 								>
 									<span>{{ article.date_published.strftime('%b %d, %Y') }}</span>
 									<span>·</span>
@@ -87,7 +87,7 @@
 
 				<div
 					id="infinite-scroll-loading"
-					class="items-center justify-center mt-12 text-gray-500 dark:text-gray-400 hidden"
+					class="items-center justify-center mt-12 text-gray-600 dark:text-gray-300 hidden"
 				>
 					{{ icon('spinner', 'w-4 h-4 mr-2 inline-block') }}
 					<span>Loading more...</span>
@@ -97,9 +97,9 @@
 				{% endif %} {% else %}
 				<div class="py-12 text-center">
 					{% if query %}
-					<p class="text-gray-600 dark:text-gray-400">No results found for "{{ query }}".</p>
+					<p class="text-gray-700 dark:text-gray-300">No results found for "{{ query }}".</p>
 					{% else %}
-					<p class="text-gray-600 dark:text-gray-400">No articles found.</p>
+					<p class="text-gray-700 dark:text-gray-300">No articles found.</p>
 					{% endif %}
 				</div>
 				{% endif %}
@@ -167,17 +167,17 @@
 
 							link.innerHTML = `
 								<article class="grid grid-cols-[32px_1fr] md:grid-cols-[48px_1fr] gap-4 md:gap-6">
-									<span class="text-sm text-gray-400 dark:text-gray-600 font-mono pt-1 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">
+									<span class="text-sm text-gray-500 dark:text-gray-400 font-mono pt-1 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
 										${formattedIndex}
 									</span>
 									<div class="space-y-3">
 										<h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
 											${article.title}
 										</h3>
-										<p class="text-gray-600 dark:text-gray-400 leading-relaxed text-sm">
+										<p class="text-gray-700 dark:text-gray-300 leading-relaxed text-sm">
 											${article.summary || ''}
 										</p>
-										<div class="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-500 uppercase tracking-wider font-medium mt-2">
+										<div class="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-300 uppercase tracking-wider font-medium mt-2">
 											<span>${article.published_on}</span>
 											<span>·</span>
 											<span>${article.reading_time} min read</span>

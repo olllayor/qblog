@@ -1494,4 +1494,9 @@ if __name__ == "__main__":
     debug_mode = (
         os.getenv("FLASK_ENV") == "development" or os.getenv("FLASK_DEBUG") == "1"
     )
+    if debug_mode:
+        app.config["TEMPLATES_AUTO_RELOAD"] = True
+        app.jinja_env.auto_reload = True
+        app.config["CACHE_TYPE"] = "NullCache"
+        cache.init_app(app, config={"CACHE_TYPE": "NullCache"})
     app.run(port=4200, debug=debug_mode)
